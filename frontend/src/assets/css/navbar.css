@@ -1,0 +1,12 @@
+.site-logo {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.site-logo:hover {
+  opacity: 0.9;
+}
+.logo-icon {
+  color: #ffd700;
+  margin-right: 8px;
+}

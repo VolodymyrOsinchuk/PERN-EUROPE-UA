@@ -1,0 +1,18 @@
+.hero {
+  background: linear-gradient(45deg, #ffd700, #0057b8);
+  color: white;
+  padding: 60px 0;
+  text-align: center;
+}
+.search-section {
+  background: white;
+  padding: 20px 0;
+  margin: 20px 0;
+}
+.latest-posts {
+  padding: 40px 0;
+}
+.section-title {
+  margin-bottom: 30px;
+  text-align: center;
+}
