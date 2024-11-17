@@ -1,5 +1,6 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import {
+  Ads,
   Contacts,
   Dashboard,
   ErrorPage,
@@ -29,15 +30,23 @@ const router = createBrowserRouter(
           path: "news",
           element: <News />,
         },
+        {
+          path: "ads",
+          element: <Ads />,
+        },
       ],
     },
-  ]
-  // {
-  //   future: {
-  //     v7_relativeSplatPath: true,
-  //     v7_startTransition: true,
-  //   },
-  // }
+  ],
+  {
+    future: {
+      v7_fetcherPersist: true,
+      v7_normalizeFormMethod: true,
+      v7_partialHydration: true,
+      v7_relativeSplatPath: true,
+      v7_skipActionErrorRevalidation: true,
+      v7_startTransition: true,
+    },
+  }
 );
 
 const App = () => {
@@ -45,9 +54,13 @@ const App = () => {
     <RouterProvider
       router={router}
       future={{
+        v7_fetcherPersist: true,
+        v7_normalizeFormMethod: true,
+        v7_partialHydration: true,
+        v7_relativeSplatPath: true,
+        v7_skipActionErrorRevalidation: true,
         v7_startTransition: true,
       }}
-      // future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
     />
   );
 };

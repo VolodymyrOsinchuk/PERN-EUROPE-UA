@@ -7,8 +7,8 @@ export { default as News } from "./News";
 export { default as Home } from "./Home";
 export { default as HomeLayout } from "./HomeLayout";
 export { default as Publications } from "./Publications";
+export { default as Ads } from "./Ads";
 
-// export {default as Contacts} from "./Contacts"
 // export {default as Contacts} from "./Contacts"
 // export {default as Contacts} from "./Contacts"
 // export {default as Contacts} from "./Contacts"
