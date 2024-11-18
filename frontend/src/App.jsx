@@ -1,15 +1,19 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import {
+  Admin,
   Ads,
   Contacts,
   Dashboard,
+  DashboardLayout,
   ErrorPage,
   Events,
   Forum,
   Home,
   HomeLayout,
+  Login,
   News,
   Publications,
+  Register,
 } from "./pages";
 const router = createBrowserRouter(
   [
@@ -33,6 +37,40 @@ const router = createBrowserRouter(
         {
           path: "ads",
           element: <Ads />,
+        },
+        {
+          path: "login",
+          element: <Login />,
+        },
+        {
+          path: "register",
+          element: <Register />,
+        },
+        {
+          path: "events",
+          element: <Events />,
+        },
+        {
+          path: "contact",
+          element: <Contacts />,
+        },
+        {
+          path: "publications",
+          element: <Publications />,
+        },
+      ],
+    },
+    {
+      path: "dashboard",
+      element: <DashboardLayout />,
+      children: [
+        {
+          index: true,
+          element: <Dashboard />,
+        },
+        {
+          path: "admin",
+          element: <Admin />,
         },
       ],
     },

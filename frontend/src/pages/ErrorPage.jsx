@@ -39,8 +39,8 @@ const ErrorPage = () => {
   return (
     <div className="error-container">
       <div className="error-animation">
-        <h1 className="error-code">404</h1>
-        <Typography variant="h4" gutterBottom>
+        {/* <h1 className="error-code">404</h1> */}
+        <Typography variant="h3" gutterBottom>
           Щось пішло не так.
         </Typography>
       </div>
@@ -65,4 +65,5 @@ const ErrorPage = () => {
     </div>
   );
 };
+
 export default ErrorPage;

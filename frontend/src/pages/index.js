@@ -8,7 +8,9 @@ export { default as Home } from "./Home";
 export { default as HomeLayout } from "./HomeLayout";
 export { default as Publications } from "./Publications";
 export { default as Ads } from "./Ads";
+export { default as Login } from "./Login";
+export { default as Register } from "./Register";
 
-// export {default as Contacts} from "./Contacts"
-// export {default as Contacts} from "./Contacts"
-// export {default as Contacts} from "./Contacts"
+//IMPORT ADMIN
+export { default as DashboardLayout } from "./DashboardLayout";
+export { default as Admin } from "./Admin";

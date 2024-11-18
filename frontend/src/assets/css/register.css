@@ -1,0 +1,14 @@
+.hero {
+  background: linear-gradient(45deg, #ffd700, #0057b8);
+  color: white;
+  padding: 40px 0;
+  text-align: center;
+}
+.registration-form {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 20px;
+}
+.form-field {
+  margin-bottom: 20px;
+}

@@ -8,7 +8,9 @@ import {
   Card,
   CardContent,
   CardActions,
+  Paper,
 } from "@mui/material";
+import { Link } from "react-router-dom";
 
 import "../assets/css/home.css";
 const Home = (props) => {
@@ -17,18 +19,20 @@ const Home = (props) => {
       <div className="hero">
         <Container>
           <Typography variant="h2" gutterBottom>
-            Ukrainians in Europe
+            Ласкаво просимо до спільноти "Українці в Європі"
           </Typography>
           <Typography variant="h5" gutterBottom>
-            Your guide to European life
+            Ваш путівник у житті за кордоном
           </Typography>
           <Button
             variant="contained"
-            color="primary"
+            color="secondary"
             size="large"
-            style={{ marginTop: 20 }}
+            sx={{ mt: 2 }}
+            component={Link}
+            to="/register"
           >
-            Join the community
+            Приєднатися до спільноти
           </Button>
         </Container>
       </div>
@@ -39,13 +43,13 @@ const Home = (props) => {
             <Grid2 size={{ xs: 12, md: 8 }}>
               <TextField
                 fullWidth
-                placeholder="Search for services, events or information..."
+                placeholder="Пошук послуг, подій або інформації..."
                 variant="outlined"
               />
             </Grid2>
             <Grid2 size={{ xs: 12, md: 4 }}>
               <Button variant="contained" color="primary" fullWidth>
-                Search
+                Пошук
               </Button>
             </Grid2>
           </Grid2>
@@ -170,9 +174,27 @@ const Home = (props) => {
             </Grid2>
           ))}
         </Grid2>
+
+        <Paper elevation={3} style={{ marginTop: "40px", padding: "20px" }}>
+          <Typography variant="h4" gutterBottom>
+            Про нас
+          </Typography>
+          <Typography variant="body1" paragraph>
+            "Українці в Європі" - це онлайн-платформа, створена для об'єднання
+            та підтримки української діаспори в європейських країнах. Наша мета
+            - допомогти українцям адаптуватися до життя за кордоном, зберігаючи
+            зв'язок з рідною культурою та традиціями.
+          </Typography>
+          <Typography variant="body1">
+            Ми пропонуємо актуальну інформацію, корисні ресурси та можливості
+            для спілкування, щоб зробити ваше життя в Європі комфортним та
+            насиченим.
+          </Typography>
+        </Paper>
       </Container>
     </>
   );
 };
+
 Home.propTypes = {};
 export default Home;
