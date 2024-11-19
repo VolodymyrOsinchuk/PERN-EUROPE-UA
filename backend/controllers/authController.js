@@ -5,6 +5,9 @@ const { sendVerificationEmail } = require("../utils/emailService");
 
 exports.register = async (req, res) => {
   try {
+    const isFirstAccount = (await User.count()) === 0;
+    req.body.role = isFirstAccount ? "admin" : "user";
+
     const { firstName, lastName, email, password, phoneNumber } = req.body;
 
     // Vérifier si l'utilisateur existe déjà

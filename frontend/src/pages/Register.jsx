@@ -1,7 +1,6 @@
-import { Fragment, useState } from "react";
-import { Link } from "react-router-dom";
-
+import { Fragment, useEffect, useState } from "react";
 import PropTypes from "prop-types";
+import { Link, Form, redirect, useNavigation } from "react-router-dom";
 import {
   Button,
   Typography,
@@ -16,7 +15,33 @@ import {
   FormControlLabel,
 } from "@mui/material";
 import "../assets/css/register.css";
-const Register = (props) => {
+import customFetch from "../utils/customFetch";
+import { FormRow, FormRowSelect } from "../components";
+import { toast } from "react-toastify";
+import {
+  CountrySelect,
+  StateSelect,
+  CitySelect,
+  RegionSelect,
+  LanguageSelect,
+  GetCountries,
+} from "react-country-state-city";
+
+export const action = async ({ request }) => {
+  const formData = await request.formData();
+  const data = Object.fromEntries(formData);
+  try {
+    await customFetch.post("auth/register", data);
+    toast.success("Реєстрація пройшла успішно");
+    return redirect("/login");
+  } catch (error) {
+    console.log("🚀 ~ action ~ error:", error);
+    toast.error(error?.response.data?.msg);
+    return error;
+  }
+};
+
+const Register = () => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -27,6 +52,24 @@ const Register = (props) => {
     interests: [],
     agreeToTerms: false,
   });
+
+  const [europeanCountries, setEuropeanCountries] = useState([]);
+  const [allCountries, setCountries] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState("");
+
+  const handleCountryChange = (event) => {
+    setSelectedCountry(event.target.value);
+  };
+
+  useEffect(() => {
+    const europeanCountries = allCountries.filter((country) => {
+      return country.region === "Europe";
+    });
+    setEuropeanCountries(europeanCountries);
+  }, [allCountries]);
+
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -41,6 +84,12 @@ const Register = (props) => {
       [name]: name === "agreeToTerms" ? checked : value,
     }));
   };
+
+  useEffect(() => {
+    GetCountries().then((result) => {
+      setCountries(result);
+    });
+  }, []);
 
   return (
     <Fragment>
@@ -58,97 +107,69 @@ const Register = (props) => {
 
       <Container>
         <Paper className="registration-form" elevation={3}>
-          <form onSubmit={handleSubmit}>
-            <div className="form-field">
-              <TextField
-                fullWidth
-                label="Ім'я"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
+          <Form method="post">
+            <FormRow type="text" name="firstName" label="Ім'я" />
+            <FormRow type="text" name="lastName" label="Прізвище" />
+            <FormRow label="Email" name="email" type="email" />
+            <FormRow type="password" label="Пароль" name="password" />
+
+            <FormRowSelect
+              // type="text"
+              name="country"
+              labelText="Країна проживання"
+              defaultValue={selectedCountry}
+              list={europeanCountries}
+              // onChange={handleCountryChange}
+            />
+
+            {/* <FormControl fullWidth margin="normal">
+              <InputLabel>Країна проживання</InputLabel>
+              <Select
+                value={selectedCountry}
+                onChange={handleCountryChange}
                 required
-              />
-            </div>
-            <div className="form-field">
-              <TextField
-                fullWidth
-                label="Прізвище"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="form-field">
-              <TextField
-                fullWidth
-                type="email"
-                label="Email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="form-field">
-              <TextField
-                fullWidth
-                type="password"
-                label="Пароль"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="form-field">
-              <FormControl fullWidth>
-                <InputLabel>Країна проживання</InputLabel>
-                <Select
-                  name="country"
-                  value={formData.country}
-                  onChange={handleChange}
+              >
+                {europeanCountries.map((country) => {
+                  return (
+                    <MenuItem key={country.id} value={country.name}>
+                      {country.native}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl> */}
+
+            <TextField
+              fullWidth
+              label="Місто"
+              name="city"
+              margin="normal"
+              // value={formData.city}
+              // onChange={handleChange}
+            />
+
+            <FormControlLabel
+              control={
+                <Checkbox
+                  name="agreeToTerms"
+                  // checked={formData.agreeToTerms}
+                  // onChange={handleChange}
                   required
-                >
-                  <MenuItem value="poland">Польща</MenuItem>
-                  <MenuItem value="germany">Німеччина</MenuItem>
-                  <MenuItem value="france">Франція</MenuItem>
-                  <MenuItem value="italy">Італія</MenuItem>
-                  <MenuItem value="spain">Іспанія</MenuItem>
-                  <MenuItem value="other">Інша країна</MenuItem>
-                </Select>
-              </FormControl>
-            </div>
-            <div className="form-field">
-              <TextField
-                fullWidth
-                label="Місто"
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="form-field">
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    name="agreeToTerms"
-                    checked={formData.agreeToTerms}
-                    onChange={handleChange}
-                    required
-                  />
-                }
-                label="Я погоджуюся з умовами використання та політикою конфіденційності"
-              />
-            </div>
+                  margin="normal"
+                />
+              }
+              label="Я погоджуюся з умовами використання та політикою конфіденційності"
+            />
+
             <Button
               type="submit"
               variant="contained"
               color="primary"
               size="large"
               fullWidth
+              disabled={isSubmitting}
             >
-              Зареєструватися
+              {isSubmitting ? "Реєстрація..." : "Зареєструватися"}
             </Button>
             <Typography
               variant="body2"
@@ -159,7 +180,7 @@ const Register = (props) => {
                 Увійти
               </Button>
             </Typography>
-          </form>
+          </Form>
         </Paper>
       </Container>
     </Fragment>

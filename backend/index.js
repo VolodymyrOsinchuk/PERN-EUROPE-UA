@@ -41,7 +41,8 @@ app.use((err, req, res, next) => {
 const port = process.env.PORT || 5000;
 
 app.listen(port, () => {
-  console.log("server listening on port 5000");
+  console.log("server listening on port " + port);
+  console.log(`Serveur démarré en mode ${process.env.NODE_ENV}`);
 });
 
 const testDbConnection = async () => {

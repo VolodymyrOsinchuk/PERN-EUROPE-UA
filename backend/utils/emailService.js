@@ -7,11 +7,7 @@ async function sendVerificationEmail(email, firstName, verificationToken) {
     from: '"europe-ukraine" <osinvolo@gmail.com>',
     to: email,
     subject: "Vérifiez votre adresse email",
-    html: htmlTemplate,
-  };
-
-  // Template HTML de l'email
-  const htmlTemplate = `
+    html: `
     <!DOCTYPE html>
     <html lang="fr">
     <head>
@@ -56,7 +52,8 @@ async function sendVerificationEmail(email, firstName, verificationToken) {
       </div>
     </body>
     </html>
-  `;
+  `,
+  };
 
   try {
     const info = await transporter.sendMail(mailOptions);
