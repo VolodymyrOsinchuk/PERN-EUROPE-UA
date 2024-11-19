@@ -20,6 +20,7 @@ import react from "@vitejs/plugin-react-swc";
 export default defineConfig(({ mode }) => {
   // Charger les variables d'environnement
   const env = loadEnv(mode, process.cwd(), "");
+  console.log("🚀 ~ defineConfig ~ env:", env);
 
   return {
     plugins: [react()],
