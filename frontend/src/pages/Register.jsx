@@ -7,10 +7,6 @@ import {
   Container,
   TextField,
   Paper,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Checkbox,
   FormControlLabel,
 } from "@mui/material";
@@ -18,20 +14,13 @@ import "../assets/css/register.css";
 import customFetch from "../utils/customFetch";
 import { FormRow, FormRowSelect } from "../components";
 import { toast } from "react-toastify";
-import {
-  CountrySelect,
-  StateSelect,
-  CitySelect,
-  RegionSelect,
-  LanguageSelect,
-  GetCountries,
-} from "react-country-state-city";
+import { GetCountries } from "react-country-state-city";
 
 export const action = async ({ request }) => {
   const formData = await request.formData();
   const data = Object.fromEntries(formData);
   try {
-    await customFetch.post("auth/register", data);
+    await customFetch.post("/auth/register", data);
     toast.success("Реєстрація пройшла успішно");
     return redirect("/login");
   } catch (error) {
@@ -114,49 +103,16 @@ const Register = () => {
             <FormRow type="password" label="Пароль" name="password" />
 
             <FormRowSelect
-              // type="text"
               name="country"
               labelText="Країна проживання"
               defaultValue={selectedCountry}
               list={europeanCountries}
-              // onChange={handleCountryChange}
             />
-
-            {/* <FormControl fullWidth margin="normal">
-              <InputLabel>Країна проживання</InputLabel>
-              <Select
-                value={selectedCountry}
-                onChange={handleCountryChange}
-                required
-              >
-                {europeanCountries.map((country) => {
-                  return (
-                    <MenuItem key={country.id} value={country.name}>
-                      {country.native}
-                    </MenuItem>
-                  );
-                })}
-              </Select>
-            </FormControl> */}
-
-            <TextField
-              fullWidth
-              label="Місто"
-              name="city"
-              margin="normal"
-              // value={formData.city}
-              // onChange={handleChange}
-            />
+            <TextField fullWidth label="Місто" name="city" margin="normal" />
 
             <FormControlLabel
               control={
-                <Checkbox
-                  name="agreeToTerms"
-                  // checked={formData.agreeToTerms}
-                  // onChange={handleChange}
-                  required
-                  margin="normal"
-                />
+                <Checkbox name="agreeToTerms" required margin="normal" />
               }
               label="Я погоджуюся з умовами використання та політикою конфіденційності"
             />
