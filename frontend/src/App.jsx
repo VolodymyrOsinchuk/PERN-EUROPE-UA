@@ -3,6 +3,7 @@ import {
   Admin,
   Ads,
   Contacts,
+  CreateAdPage,
   Dashboard,
   DashboardLayout,
   ErrorPage,
@@ -14,6 +15,7 @@ import {
   News,
   Publications,
   Register,
+  VerifyAccount,
 } from "./pages";
 const router = createBrowserRouter(
   [
@@ -47,6 +49,10 @@ const router = createBrowserRouter(
           element: <Register />,
         },
         {
+          path: "verify-account",
+          element: <VerifyAccount />,
+        },
+        {
           path: "events",
           element: <Events />,
         },
@@ -71,6 +77,10 @@ const router = createBrowserRouter(
         {
           path: "admin",
           element: <Admin />,
+        },
+        {
+          path: "create-ad",
+          element: <CreateAdPage />,
         },
       ],
     },

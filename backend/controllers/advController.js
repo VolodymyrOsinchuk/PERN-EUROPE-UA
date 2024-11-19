@@ -55,7 +55,7 @@ exports.deleteAnnonce = async (req, res) => {
     if (deleted) {
       res.status(204).send();
     } else {
-      res.status(404).json({ message: "Annonce non trouvée" });
+      res.status(404).json({ msg: "Annonce non trouvée" });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });

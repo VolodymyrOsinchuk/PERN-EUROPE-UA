@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
+const Categorie = require("./category");
 
 const Adv = sequelize.define(
   "Adv",
@@ -18,14 +19,37 @@ const Adv = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: false,
     },
+    // price: {
+    //   type: DataTypes.FLOAT,
+    //   allowNull: false,
+    //   defaultValue: 0,
+    // },
     price: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
-      defaultValue: 0,
+      validate: {
+        min: 0,
+      },
     },
     category: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    country: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+    },
+    state: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+    },
+    city: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+    },
+    status: {
+      type: DataTypes.ENUM("Actif", "Inactif", "Vendu"),
+      defaultValue: "Actif",
     },
     location: {
       type: DataTypes.STRING,
@@ -43,10 +67,30 @@ const Adv = sequelize.define(
       type: DataTypes.ARRAY(DataTypes.STRING),
       defaultValue: [],
     },
+    categorieId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "Categories",
+        key: "id",
+      },
+    },
+    // userId: {
+    //   type: DataTypes.UUID,
+    //   allowNull: false,
+    //   references: {
+    //     model: "Users",
+    //     key: "id",
+    //   },
+    // },
   },
   {
+    tableName: "announcements",
     timestamps: true,
   }
 );
+
+Adv.belongsTo(Categorie, { foreignKey: "categoryId", as: "categorie" });
+Categorie.hasMany(Adv, { foreignKey: "categoryId", as: "advs" });
 
 module.exports = Adv;

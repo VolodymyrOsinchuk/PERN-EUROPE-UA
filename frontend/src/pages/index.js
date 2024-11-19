@@ -10,7 +10,9 @@ export { default as Publications } from "./Publications";
 export { default as Ads } from "./Ads";
 export { default as Login } from "./Login";
 export { default as Register } from "./Register";
+export { default as VerifyAccount } from "./VerifyAccount";
 
 //IMPORT ADMIN
 export { default as DashboardLayout } from "./DashboardLayout";
 export { default as Admin } from "./Admin";
+export { default as CreateAdPage } from "./CreateAdPage";

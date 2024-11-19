@@ -51,7 +51,8 @@ const Navbar = () => {
         ads: "Оголошення",
         publications: "Публікації",
         forum: "Форум",
-        contacts: "Контакти",
+        contacts: "Контакт",
+        dashboard: "Панель",
         language: "Мова",
       },
     },
@@ -65,6 +66,7 @@ const Navbar = () => {
         publications: "Publications",
         forum: "Forum",
         contacts: "Contacts",
+        dashboard: "Dashboard",
         language: "Language",
       },
     },
@@ -80,14 +82,14 @@ const Navbar = () => {
     { text: t.menu.publications, href: "/publications" },
     { text: t.menu.forum, href: "/forum" },
     { text: t.menu.contacts, href: "/contact" },
-    { text: t.menu.language },
+    { text: t.menu.dashboard, href: "/dashboard" },
   ];
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
+    <>
       <AppBar
         position="fixed"
-        sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        // sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
       >
         <Toolbar>
           <div
@@ -179,7 +181,7 @@ const Navbar = () => {
           </Menu>
         </Toolbar>
       </AppBar>
-    </Box>
+    </>
   );
 };
 export default Navbar;
