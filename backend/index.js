@@ -10,7 +10,7 @@ const advRoutes = require("./routes/advRouter");
 const categoryRoutes = require("./routes/categoryRouter");
 const authRoutes = require("./routes/authRouter");
 const userRoutes = require("./routes/userRouter");
-
+// console.log("process.env", process.env);
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
