@@ -19,20 +19,28 @@ import { GetCountries } from "react-country-state-city";
 export const action = async ({ request }) => {
   const formData = await request.formData();
   const dataForm = Object.fromEntries(formData);
+  // Vérification ou modification des données avant l'envoi si nécessaire
+  if (dataForm.agreeToTerms === "on") {
+    dataForm.agreeToTerms = true; // Si la case est cochée, on définit agreeToTerms sur true
+  } else {
+    dataForm.agreeToTerms = false; // Si la case n'est pas cochée, on définit agreeToTerms sur false
+  }
   try {
-    const { data } = await customFetch.post("/auth/register", dataForm);
+    await customFetch.post("/auth/register", dataForm);
 
     toast.success("Реєстрація пройшла успішно");
-    return redirect(`/login`);
+    return redirect(`/register`);
     // return response;
   } catch (error) {
     console.log("🚀 ~ action ~ error:", error);
-    toast.error(error?.response.data?.msg);
+    toast.error(error?.response.data?.msg || "Une erreur est survenue");
     return error;
   }
 };
 
 const Register = () => {
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -48,25 +56,12 @@ const Register = () => {
   const [allCountries, setCountries] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState("");
 
-  const handleCountryChange = (event) => {
-    setSelectedCountry(event.target.value);
-  };
-
   useEffect(() => {
     const europeanCountries = allCountries.filter((country) => {
       return country.region === "Europe";
     });
     setEuropeanCountries(europeanCountries);
   }, [allCountries]);
-
-  const navigation = useNavigation();
-  const isSubmitting = navigation.state === "submitting";
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Here you would typically send the data to your backend
-  };
 
   const handleChange = (e) => {
     const { name, value, checked } = e.target;
@@ -114,7 +109,12 @@ const Register = () => {
 
             <FormControlLabel
               control={
-                <Checkbox name="agreeToTerms" required margin="normal" />
+                <Checkbox
+                  name="agreeToTerms"
+                  required
+                  margin="normal"
+                  defaultValue={false}
+                />
               }
               label="Я погоджуюся з умовами використання та політикою конфіденційності"
             />

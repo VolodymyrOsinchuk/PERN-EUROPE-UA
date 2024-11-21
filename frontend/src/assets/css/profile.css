@@ -1,0 +1,17 @@
+.profile-header {
+  background: linear-gradient(45deg, #ffd700, #0057b8);
+  padding: 40px 0;
+  color: white;
+}
+
+.profile-avatar {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: 4px solid white;
+  margin-bottom: 20px;
+}
+
+.content {
+  padding: 40px 0;
+}

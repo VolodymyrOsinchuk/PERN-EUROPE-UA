@@ -2,6 +2,7 @@ const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { sendVerificationEmail } = require("../utils/emailService");
+const config = require("../config/config");
 
 exports.register = async (req, res) => {
   try {
@@ -13,10 +14,20 @@ exports.register = async (req, res) => {
       req.body.role === "admin";
     }
 
-    const { firstName, lastName, email, password, phoneNumber } = req.body;
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      phoneNumber,
+      country,
+      city,
+      agreeToTerms,
+    } = req.body;
 
     // Vérifier si l'utilisateur existe déjà
     const existingUser = await User.findOne({ where: { email } });
+
     if (existingUser) {
       return res.status(400).json({ message: "Utilisateur déjà existant" });
     }
@@ -32,6 +43,9 @@ exports.register = async (req, res) => {
       password,
       phoneNumber,
       verificationToken,
+      country,
+      city,
+      agreeToTerms,
     });
 
     await sendVerificationEmail(user.email, firstName, verificationToken);
@@ -61,6 +75,7 @@ exports.login = async (req, res) => {
     if (!user) {
       return res.status(401).json({ message: "Identifiants invalides" });
     }
+    console.log("🚀 ~ login= ~  user :", user);
 
     // Vérifier le mot de passe
     const isMatch = await user.validatePassword(password);
@@ -82,8 +97,8 @@ exports.login = async (req, res) => {
         email: user.email,
         role: user.role,
       },
-      process.env.JWT_SECRET,
-      { expiresIn: "24h" }
+      config.jwt.secret,
+      { expiresIn: config.jwt.expirationTime }
     );
 
     // Mettre à jour la dernière connexion
@@ -105,66 +120,6 @@ exports.login = async (req, res) => {
       .json({ message: "Erreur lors de la connexion", error: error.message });
   }
 };
-
-// exports.verifyAccount = async (req, red) => {
-//   try {
-//     const { token } = req.params;
-
-//     const user = await User.findOne({
-//       where: { verificationToken: token },
-//     });
-
-//     if (!user) {
-//       return res.status(400).json({ message: "Token invalide" });
-//     }
-
-//     // Marquer comme vérifié et effacer le token
-//     await user.update({
-//       isVerified: true,
-//       verificationToken: null,
-//     });
-
-//     res.json({ message: "Compte vérifié avec succès" });
-//   } catch (error) {
-//     res
-//       .status(500)
-//       .json({ message: "Erreur de vérification", error: error.message });
-//   }
-// };
-
-// exports.verifyEmail = async (req, res) => {
-//   console.log("req.params", typeof req.params.token);
-//   try {
-//     const { token } = req.params;
-//     const user = await User.findOne({
-//       where: {
-//         verificationToken: token,
-//       },
-//     });
-//     console.log("🚀 ~ exports.verifyEmail= ~ user:", user);
-
-//     if (!user) {
-//       return res
-//         .status(400)
-//         .json({ message: "Token de vérification invalide" });
-//     }
-
-//     if (user.isVerified) {
-//       return res.status(400).json({ message: "Cet email a déjà été vérifié" });
-//     }
-
-//     user.isVerified = true;
-//     user.verificationToken = null;
-//     await user.save();
-
-//     res.status(200).json({ message: "Email vérifié avec succès" });
-//   } catch (error) {
-//     res.status(500).json({
-//       message: "Erreur lors de la vérification de l'email",
-//       error: error.message,
-//     });
-//   }
-// };
 
 exports.verifyEmail = async (req, res) => {
   // console.log("Headers reçus:", req.headers);

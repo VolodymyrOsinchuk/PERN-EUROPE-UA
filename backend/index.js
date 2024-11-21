@@ -12,6 +12,7 @@ const authRoutes = require("./routes/authRouter");
 const userRoutes = require("./routes/userRouter");
 const config = require("./config/config");
 // console.log("process.env", config);
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

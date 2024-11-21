@@ -13,12 +13,14 @@ import {
   HomeLayout,
   Login,
   News,
+  Profile,
   Publications,
   Register,
   VerifyAccount,
 } from "./pages";
 
 import { action as registerAction } from "./pages/Register";
+import { action as loginAction } from "./pages/Login";
 
 import { loader as accountLoader } from "./pages/VerifyAccount";
 
@@ -48,6 +50,7 @@ const router = createBrowserRouter(
         {
           path: "login",
           element: <Login />,
+          action: loginAction,
         },
         {
           path: "register",
@@ -70,6 +73,10 @@ const router = createBrowserRouter(
         {
           path: "publications",
           element: <Publications />,
+        },
+        {
+          path: "profile",
+          element: <Profile />,
         },
       ],
     },

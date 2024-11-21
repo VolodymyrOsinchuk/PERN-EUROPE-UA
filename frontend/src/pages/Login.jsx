@@ -1,38 +1,46 @@
-import { Fragment, useState } from "react";
-import { Link } from "react-router-dom";
+import { Fragment } from "react";
+import { Form, Link, redirect, useNavigation } from "react-router-dom";
 
 import PropTypes from "prop-types";
 import {
   Button,
   Typography,
   Container,
-  TextField,
   Paper,
   Divider,
   Checkbox,
   FormControlLabel,
 } from "@mui/material";
+import { FormRow } from "../components";
+import customFetch from "../utils/customFetch";
+import { toast } from "react-toastify";
 import "../assets/css/login.css";
-const Login = (props) => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    rememberMe: false,
-  });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Login attempt:", formData);
-    // Here you would typically handle authentication
-  };
-
-  const handleChange = (e) => {
-    const { name, value, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "rememberMe" ? checked : value,
-    }));
-  };
+export const action = async ({ request }) => {
+  const formData = await request.formData();
+  const dataForm = Object.fromEntries(formData);
+  const rememberMe = dataForm.rememberMe;
+  try {
+    const { data } = await customFetch.post("/auth/login", dataForm);
+    console.log("🚀 ~ action ~  data :", data);
+    // Si "Remember Me" est coché, stocker le token dans localStorage ou cookies
+    if (rememberMe) {
+      localStorage.setItem("authToken", data.token); // Vous pouvez aussi utiliser les cookies
+    } else {
+      sessionStorage.setItem("authToken", data.token); // SessionStorage pour ne pas conserver après la fermeture du navigateur
+    }
+    toast.success("Ви увійшли успішно успішно");
+    return redirect(`/profile`);
+    // return response;
+  } catch (error) {
+    console.log("🚀 ~ action ~ error:", error);
+    toast.error(error?.response.data?.msg);
+    return error;
+  }
+};
+const Login = () => {
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
 
   const handleSocialLogin = (provider) => {
     console.log(`Logging in with ${provider}`);
@@ -113,38 +121,16 @@ const Login = (props) => {
             </Typography>
           </Divider>
 
-          <form onSubmit={handleSubmit}>
+          <Form method="post">
             <div className="form-field">
-              <TextField
-                fullWidth
-                type="email"
-                label="Email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
+              <FormRow label="Email" name="email" type="email" />
             </div>
             <div className="form-field">
-              <TextField
-                fullWidth
-                type="password"
-                label="Пароль"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
+              <FormRow type="password" label="Пароль" name="password" />
             </div>
             <div className="form-field">
               <FormControlLabel
-                control={
-                  <Checkbox
-                    name="rememberMe"
-                    checked={formData.rememberMe}
-                    onChange={handleChange}
-                  />
-                }
+                control={<Checkbox name="rememberMe" />}
                 label="Запам'ятати мене"
               />
             </div>
@@ -154,8 +140,9 @@ const Login = (props) => {
               color="primary"
               size="large"
               fullWidth
+              disabled={isSubmitting}
             >
-              Увійти
+              {isSubmitting ? "Зєднання..." : "Увійти"}
             </Button>
             <Typography
               variant="body2"
@@ -175,7 +162,7 @@ const Login = (props) => {
                 Зареєструватися
               </Button>
             </Typography>
-          </form>
+          </Form>
         </Paper>
       </Container>
     </Fragment>
