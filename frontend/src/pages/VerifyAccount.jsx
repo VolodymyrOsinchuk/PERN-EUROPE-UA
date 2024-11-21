@@ -1,37 +1,47 @@
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { Box, CircularProgress, Typography, Button } from "@mui/material";
-import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import {
+  useParams,
+  useNavigate,
+  redirect,
+  useNavigation,
+  useLoaderData,
+} from "react-router-dom";
+import customFetch from "../utils/customFetch";
 
-const VerifyAccount = (props) => {
-  const { token } = useParams();
-  const [isVerified, setIsVerified] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+export const loader = async ({ params }) => {
+  console.log("🚀 ~ loader ~ params :", params);
+  try {
+    const { data } = await customFetch.get(
+      `/auth/verify-email/${params.token}`
+    );
+    console.log("🚀 ~ loader ~  data:", data);
+    return data;
+  } catch (error) {
+    console.log("🚀 ~ loader ~ error:", error);
+    toast.error(error?.response.data?.msg);
+    return redirect("/register");
+  }
+};
+
+const VerifyAccount = () => {
+  const data = useLoaderData();
+  console.log("🚀 ~ VerifyAccount ~ data:", data);
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isVerified, setIsVerified] = useState(false);
 
   useEffect(() => {
-    const verifyToken = async () => {
-      try {
-        const response = await axios.get(
-          `https::localhost:5000/api/v1/auth/verify-email/${token}`
-        );
-        if (response.statusCode === 200) {
-          setIsVerified(false);
-        }
-      } catch (error) {
-        console.error("🚀 ~ verifyToken ~ error:", error);
-        //
-        setError("Token invalid or expired");
-        setIsVerified(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    verifyToken();
-  }, [token]);
+    if (data) {
+      setIsVerified(true);
+      setIsLoading(false);
+    } else {
+      setIsVerified(false);
+      setIsLoading(false);
+      navigate("/register");
+    }
+  }, [data, navigate]);
 
   const handleRedirect = () => {
     navigate("/login");

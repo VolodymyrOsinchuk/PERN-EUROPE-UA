@@ -20,6 +20,8 @@ import {
 
 import { action as registerAction } from "./pages/Register";
 
+import { loader as accountLoader } from "./pages/VerifyAccount";
+
 const router = createBrowserRouter(
   [
     {
@@ -53,8 +55,9 @@ const router = createBrowserRouter(
           action: registerAction,
         },
         {
-          path: "verify-account",
+          path: "verify-account/:token",
           element: <VerifyAccount />,
+          loader: accountLoader,
         },
         {
           path: "events",

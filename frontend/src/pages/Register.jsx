@@ -18,11 +18,13 @@ import { GetCountries } from "react-country-state-city";
 
 export const action = async ({ request }) => {
   const formData = await request.formData();
-  const data = Object.fromEntries(formData);
+  const dataForm = Object.fromEntries(formData);
   try {
-    await customFetch.post("/auth/register", data);
+    const { data } = await customFetch.post("/auth/register", dataForm);
+
     toast.success("Реєстрація пройшла успішно");
-    return redirect("/login");
+    return redirect(`/login`);
+    // return response;
   } catch (error) {
     console.log("🚀 ~ action ~ error:", error);
     toast.error(error?.response.data?.msg);

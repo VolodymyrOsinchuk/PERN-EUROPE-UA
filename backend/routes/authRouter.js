@@ -3,12 +3,11 @@ const router = express.Router();
 const {
   register,
   login,
-  verifyAccount,
   verifyEmail,
 } = require("../controllers/authController");
 
 router.post("/login", login);
 router.post("/register", register);
-router.get("/verify/:token", verifyEmail);
+router.get("/verify-email/:token", verifyEmail);
 
 module.exports = router;

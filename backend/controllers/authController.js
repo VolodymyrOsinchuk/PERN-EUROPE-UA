@@ -6,7 +6,12 @@ const { sendVerificationEmail } = require("../utils/emailService");
 exports.register = async (req, res) => {
   try {
     const isFirstAccount = (await User.count()) === 0;
-    req.body.role = isFirstAccount ? "admin" : "user";
+    console.log("🚀 ~ exports.register= ~ isFirstAccount:", isFirstAccount);
+    // req.body.role = isFirstAccount ? "admin" : "user";
+
+    if (isFirstAccount) {
+      req.body.role === "admin";
+    }
 
     const { firstName, lastName, email, password, phoneNumber } = req.body;
 
@@ -29,7 +34,7 @@ exports.register = async (req, res) => {
       verificationToken,
     });
 
-    await sendVerificationEmail(user.email, verificationToken);
+    await sendVerificationEmail(user.email, firstName, verificationToken);
 
     // Envoyer email de vérification (à implémenter)
     // sendVerificationEmail(user.email, verificationToken);
@@ -37,6 +42,7 @@ exports.register = async (req, res) => {
     res.status(201).json({
       message: "Utilisateur créé avec succès",
       userId: user.id,
+      token: verificationToken,
     });
   } catch (error) {
     res.status(500).json({
@@ -100,49 +106,98 @@ exports.login = async (req, res) => {
   }
 };
 
-exports.verifyAccount = async (req, red) => {
-  try {
-    const { token } = req.params;
+// exports.verifyAccount = async (req, red) => {
+//   try {
+//     const { token } = req.params;
 
-    const user = await User.findOne({
-      where: { verificationToken: token },
-    });
+//     const user = await User.findOne({
+//       where: { verificationToken: token },
+//     });
 
-    if (!user) {
-      return res.status(400).json({ message: "Token invalide" });
-    }
+//     if (!user) {
+//       return res.status(400).json({ message: "Token invalide" });
+//     }
 
-    // Marquer comme vérifié et effacer le token
-    await user.update({
-      isVerified: true,
-      verificationToken: null,
-    });
+//     // Marquer comme vérifié et effacer le token
+//     await user.update({
+//       isVerified: true,
+//       verificationToken: null,
+//     });
 
-    res.json({ message: "Compte vérifié avec succès" });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Erreur de vérification", error: error.message });
-  }
-};
+//     res.json({ message: "Compte vérifié avec succès" });
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ message: "Erreur de vérification", error: error.message });
+//   }
+// };
+
+// exports.verifyEmail = async (req, res) => {
+//   console.log("req.params", typeof req.params.token);
+//   try {
+//     const { token } = req.params;
+//     const user = await User.findOne({
+//       where: {
+//         verificationToken: token,
+//       },
+//     });
+//     console.log("🚀 ~ exports.verifyEmail= ~ user:", user);
+
+//     if (!user) {
+//       return res
+//         .status(400)
+//         .json({ message: "Token de vérification invalide" });
+//     }
+
+//     if (user.isVerified) {
+//       return res.status(400).json({ message: "Cet email a déjà été vérifié" });
+//     }
+
+//     user.isVerified = true;
+//     user.verificationToken = null;
+//     await user.save();
+
+//     res.status(200).json({ message: "Email vérifié avec succès" });
+//   } catch (error) {
+//     res.status(500).json({
+//       message: "Erreur lors de la vérification de l'email",
+//       error: error.message,
+//     });
+//   }
+// };
 
 exports.verifyEmail = async (req, res) => {
+  // console.log("Headers reçus:", req.headers);
+  // console.log("Paramètres de requête:", req.params);
+  console.log("Corps de la requête:", req.body);
+  console.log("Début de verifyEmail");
+  console.log("Token reçu:", req.params.token);
   try {
     const { token } = req.params;
-    const user = await User.findOne({ where: { verificationToken: token } });
+    console.log("Recherche de l'utilisateur avec le token:", token);
+    const user = await User.findOne({
+      where: {
+        verificationToken: token,
+      },
+    });
+    console.log("Résultat de la recherche:", user);
 
     if (!user) {
+      console.log("Aucun utilisateur trouvé avec ce token");
       return res
         .status(400)
         .json({ message: "Token de vérification invalide" });
     }
 
+    console.log("Utilisateur trouvé, mise à jour...");
     user.isVerified = true;
     user.verificationToken = null;
     await user.save();
+    console.log("Utilisateur mis à jour avec succès");
 
     res.status(200).json({ message: "Email vérifié avec succès" });
   } catch (error) {
+    console.error("Erreur dans verifyEmail:", error);
     res.status(500).json({
       message: "Erreur lors de la vérification de l'email",
       error: error.message,

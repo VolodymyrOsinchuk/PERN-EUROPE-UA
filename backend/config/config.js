@@ -12,10 +12,14 @@ module.exports = {
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
+    url: process.env.DATABASE_URL,
     dialect: "postgres",
   },
   server: {
     port: process.env.SERVER_PORT || 5000,
+  },
+  client: {
+    url: process.env.BACKEND_URL,
   },
   jwt: {
     secret: process.env.JWT_SECRET,
