@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import {
   Admin,
   Ads,
+  CategoryManager,
   Contacts,
   CreateAdPage,
   Dashboard,
@@ -14,6 +15,7 @@ import {
   Login,
   News,
   Profile,
+  ProfileLayout,
   Publications,
   Register,
   VerifyAccount,
@@ -76,7 +78,17 @@ const router = createBrowserRouter(
         },
         {
           path: "profile",
-          element: <Profile />,
+          element: <ProfileLayout />,
+          children: [
+            {
+              index: true,
+              element: <Profile />,
+            },
+            {
+              path: "create-ad",
+              element: <CreateAdPage />,
+            },
+          ],
         },
       ],
     },
@@ -95,6 +107,10 @@ const router = createBrowserRouter(
         {
           path: "create-ad",
           element: <CreateAdPage />,
+        },
+        {
+          path: "categories",
+          element: <CategoryManager />,
         },
       ],
     },

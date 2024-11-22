@@ -19,6 +19,7 @@ import AdCard from "../components/AdCard";
 import TabNavigation from "../components/TabNavigation";
 import DeleteDialog from "../components/DeleteDialog";
 import "../assets/css/profile.css";
+import { Link } from "react-router-dom";
 
 const advertisements = [
   {
@@ -66,14 +67,6 @@ const Profile = () => {
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
-  };
-
-  const handleLanguageClick = (event) => {
-    setLanguageAnchor(event.currentTarget);
-  };
-
-  const handleLanguageClose = () => {
-    setLanguageAnchor(null);
   };
 
   const handleEditDialogOpen = () => {
@@ -133,6 +126,8 @@ const Profile = () => {
                   variant="contained"
                   color="primary"
                   startIcon={<span className="material-icons">add</span>}
+                  component={Link}
+                  to="/profile/create-ad"
                 >
                   Створити нове оголошення
                 </Button>

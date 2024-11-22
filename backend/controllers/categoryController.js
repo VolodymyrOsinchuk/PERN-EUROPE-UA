@@ -148,3 +148,98 @@ exports.deleteSubCategory = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// // controllers/categoryController.js
+// const Category = require("../models/category");
+
+// exports.createCategory = async (req, res) => {
+//   try {
+//     const { name, slug, parentId } = req.body;
+//     const category = await Category.create({
+//       name,
+//       slug,
+//       parentId,
+//     });
+//     res.status(201).json(category);
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// };
+
+// exports.getAllCategories = async (req, res) => {
+//   try {
+//     const categories = await Category.findAll({
+//       include: [
+//         {
+//           model: Category,
+//           as: "subcategories",
+//           include: [
+//             {
+//               model: Category,
+//               as: "subcategories",
+//             },
+//           ],
+//         },
+//       ],
+//       where: { parentId: null },
+//     });
+//     res.json(categories);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
+// exports.getCategoryById = async (req, res) => {
+//   try {
+//     const category = await Category.findByPk(req.params.id, {
+//       include: [
+//         {
+//           model: Category,
+//           as: "subcategories",
+//         },
+//       ],
+//     });
+//     if (!category) {
+//       return res.status(404).json({ message: "Категорію не знайдено" });
+//     }
+//     res.json(category);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
+// exports.updateCategory = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { name, slug, parentId } = req.body;
+
+//     const [updated] = await Category.update(
+//       { name, slug, parentId },
+//       { where: { id } }
+//     );
+
+//     if (updated) {
+//       const updatedCategory = await Category.findByPk(id);
+//       return res.json(updatedCategory);
+//     }
+
+//     throw new Error("Категорію не знайдено");
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// };
+
+// exports.deleteCategory = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const deleted = await Category.destroy({ where: { id } });
+
+//     if (deleted) {
+//       return res.status(204).send();
+//     }
+
+//     throw new Error("Категорію не знайдено");
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// };

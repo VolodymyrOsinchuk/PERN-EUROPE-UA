@@ -22,6 +22,7 @@ import {
 } from "react-country-state-city";
 import "../assets/css/create-ad.css";
 import "react-country-state-city/dist/react-country-state-city.css";
+import { Link } from "react-router-dom";
 
 const CreateAdPage = (props) => {
   const [formData, setFormData] = useState({
@@ -291,7 +292,7 @@ const CreateAdPage = (props) => {
             </Grid>
             <Grid size={{ xs: 12 }}>
               <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
-                <Button variant="outlined" href="/профіль">
+                <Button variant="outlined" component={Link} to="/profile">
                   Скасувати
                 </Button>
                 <Button

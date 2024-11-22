@@ -13,12 +13,12 @@ import {
 import { Link } from "react-router-dom";
 import "../assets/css/home.css";
 
-console.log("Environnement:", import.meta.env);
+// console.log("Environnement:", import.meta.env);
 
-const apiUrl = import.meta.env.VITE_APP_API_URL;
-console.log("🚀 ~ apiUrl:", apiUrl);
-const isDebug = import.meta.env.VITE_APP_DEBUG === "true";
-console.log("🚀 ~ isDebug :", isDebug);
+// const apiUrl = import.meta.env.VITE_APP_API_URL;
+// console.log("🚀 ~ apiUrl:", apiUrl);
+// const isDebug = import.meta.env.VITE_APP_DEBUG === "true";
+// console.log("🚀 ~ isDebug :", isDebug);
 const Home = (props) => {
   return (
     <>

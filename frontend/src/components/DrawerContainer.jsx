@@ -19,7 +19,10 @@ import {
   Dashboard as DashboardIcon,
   Settings as SettingsIcon,
 } from "@mui/icons-material";
+import Sidebar from "./Sidebar";
+
 const drawerWidth = 240;
+
 const DrawerContainer = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -27,47 +30,8 @@ const DrawerContainer = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const drawer = (
-    <div>
-      <Toolbar />
-      <List>
-        {["Dashboard", "Settings"].map((text, index) => (
-          <ListItem key={text}>
-            <ListItemIcon>
-              {index % 2 === 0 ? <DashboardIcon /> : <SettingsIcon />}
-            </ListItemIcon>
-            <ListItemText primary={text} />
-          </ListItem>
-        ))}
-      </List>
-    </div>
-  );
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar
-        position="fixed"
-        sx={{
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-        }}
-      >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: "none" } }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Responsive Dashboard
-          </Typography>
-          <Button variant="inherit" component={Link} to="/">
-            Home
-          </Button>
-        </Toolbar>
-      </AppBar>
       <Box
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
@@ -88,7 +52,7 @@ const DrawerContainer = () => {
             },
           }}
         >
-          {drawer}
+          <Sidebar />
         </Drawer>
         <Drawer
           variant="permanent"
@@ -101,7 +65,7 @@ const DrawerContainer = () => {
           }}
           open
         >
-          {drawer}
+          <Sidebar />
         </Drawer>
       </Box>
     </Box>
