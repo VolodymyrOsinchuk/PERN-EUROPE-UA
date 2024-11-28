@@ -3,7 +3,7 @@ import {
   Admin,
   Ads,
   CategoryDetails,
-  CategoryManager,
+  CategoryManager1,
   Contacts,
   CreateAdPage,
   Dashboard,
@@ -22,12 +22,22 @@ import {
   VerifyAccount,
 } from "./pages";
 
+import { CategoryForm } from "./components";
+
 import { action as registerAction } from "./pages/Register";
 import { action as loginAction } from "./pages/Login";
-import { action as categoryAction } from "./pages/CategoryManager";
+// import { action as categoryAction } from "./pages/CategoryManager";
+// import { action as categoryAction } from "./pages/CategoryMenager1";
+import {
+  // createCategoryAction,
+  // updateCategoryAction,
+  // deleteCategoryAction,
+  categoryAction,
+} from "./pages/CategoryMenager1";
 
 import { loader as accountLoader } from "./pages/VerifyAccount";
-import { loader as categoryLoader } from "./pages/CategoryManager";
+// import { loader as categoryLoader } from "./pages/CategoryManager";
+import { loader as categoryLoader } from "./pages/CategoryMenager1";
 import { loader as categoryDetailsLoader } from "./pages/CategoryDetails";
 
 const router = createBrowserRouter(
@@ -114,16 +124,29 @@ const router = createBrowserRouter(
         },
         {
           path: "categories",
-          element: <CategoryManager />,
+          element: <CategoryManager1 />,
           loader: categoryLoader,
           action: categoryAction,
         },
-        {
-          path: "categories/:id",
-          element: <CategoryDetails />,
-          loader: categoryDetailsLoader,
-          // action: categoryAction,
-        },
+        // {
+        //   path: "categories/create",
+        //   element: <CategoryForm />,
+        //   action: createCategoryAction,
+        // },
+        // {
+        //   path: ":categoryId/edit",
+        //   element: <CategoryForm />,
+        //   action: updateCategoryAction,
+        //   // loader: singleCategoryLoader,
+        // },
+        // {
+        //   path: ":categoryId/delete",
+        //   action: deleteCategoryAction,
+        // },
+        // {
+        //   path: "action",
+        //   action: categoryAction,
+        // },
       ],
     },
   ],

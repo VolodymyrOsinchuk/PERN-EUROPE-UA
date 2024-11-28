@@ -1,14 +1,21 @@
 import { Outlet } from "react-router-dom";
 import { Navbar, Footer } from "../components";
-import { Box } from "@mui/material";
+import { Container, Stack } from "@mui/material";
 
 const HomeLayout = () => {
   return (
-    <Box sx={{ minHeight: "80vh" }}>
+    <Stack
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+      }}
+      className="main"
+    >
       <Navbar />
       <Outlet />
       <Footer />
-    </Box>
+    </Stack>
   );
 };
 export default HomeLayout;

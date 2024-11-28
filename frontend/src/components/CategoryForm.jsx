@@ -1,32 +1,25 @@
 import React from "react";
-import { TextField, Button, Paper } from "@mui/material";
-import Grid from "@mui/material/Grid2";
-import { Form } from "react-router-dom";
+import { Form, useNavigation, useActionData } from "react-router-dom";
+import { Button, TextField, Box, Alert } from "@mui/material";
 
-function CategoryForm({ newCategoryName }) {
+function CategoryForm() {
+  const navigation = useNavigation();
+  const actionData = useActionData();
+  const isSubmitting = navigation.state === "submitting";
+
   return (
     <Form method="post">
-      <Paper style={{ padding: "20px", marginBottom: "20px" }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              fullWidth
-              label="Нова категорія"
-              name={newCategoryName}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              type="submit"
-              startIcon={<span className="material-icons">add</span>}
-            >
-              Додати категорію
-            </Button>
-          </Grid>
-        </Grid>
-      </Paper>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {actionData?.error && (
+          <Alert severity="error">{actionData.error.message}</Alert>
+        )}
+
+        <TextField name="name" label="Назва категорії" required fullWidth />
+
+        <Button type="submit" variant="contained" disabled={isSubmitting}>
+          {isSubmitting ? "Збереження..." : "Зберегти"}
+        </Button>
+      </Box>
     </Form>
   );
 }

@@ -228,7 +228,15 @@ function CategoryManager() {
   };
 
   return (
-    <Box component="div" sx={{ display: "flex" }}>
+    <Box
+      component="div"
+      sx={{
+        display: "flex",
+        mb: 4,
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
       <Box component="main" sx={{ flex: 1, p: 3 }}>
         <Typography variant="h4" gutterBottom>
           Менеджер категорій

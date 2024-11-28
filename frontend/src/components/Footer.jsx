@@ -1,10 +1,10 @@
 import { Fragment } from "react";
-import { Typography, Container, Grid2, IconButton } from "@mui/material";
+import { Typography, Container, Grid2, IconButton, Stack } from "@mui/material";
 import "../assets/css/footer.css";
 
 const Footer = () => {
   return (
-    <Fragment>
+    <Stack>
       {/* <footer className="footer">
         <Container>
           <Grid2 container spacing={4}>
@@ -57,7 +57,7 @@ const Footer = () => {
           </Typography>
         </Container>
       </footer>
-    </Fragment>
+    </Stack>
   );
 };
 export default Footer;

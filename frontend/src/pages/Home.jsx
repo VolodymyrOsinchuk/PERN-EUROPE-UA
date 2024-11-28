@@ -11,7 +11,7 @@ import {
   Paper,
 } from "@mui/material";
 import { Link } from "react-router-dom";
-import { HeroSection } from "../components";
+import { HeroSection, SectionsGrid } from "../components";
 import "../assets/css/home.css";
 
 // console.log("Environnement:", import.meta.env);
@@ -23,26 +23,6 @@ import "../assets/css/home.css";
 const Home = (props) => {
   return (
     <>
-      {/* <div className="hero">
-        <Container>
-          <Typography variant="h2" gutterBottom>
-            Ласкаво просимо до спільноти "Українці в Європі"
-          </Typography>
-          <Typography variant="h5" gutterBottom>
-            Ваш путівник у житті за кордоном
-          </Typography>
-          <Button
-            variant="contained"
-            color="secondary"
-            size="large"
-            sx={{ mt: 2 }}
-            component={Link}
-            to="/register"
-          >
-            Приєднатися до спільноти
-          </Button>
-        </Container>
-      </div> */}
       <HeroSection
         title="Українці в Європі"
         typedStrings={[
@@ -77,8 +57,8 @@ const Home = (props) => {
         <Typography variant="h4" className="section-title">
           Main Categories
         </Typography>
-
-        <Grid2 container spacing={4}>
+        <SectionsGrid />
+        {/* <Grid2 container spacing={4}>
           <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
             <Card className="feature-card">
               <CardContent>
@@ -162,7 +142,7 @@ const Home = (props) => {
               </CardActions>
             </Card>
           </Grid2>
-        </Grid2>
+        </Grid2> */}
       </Container>
 
       <Container>

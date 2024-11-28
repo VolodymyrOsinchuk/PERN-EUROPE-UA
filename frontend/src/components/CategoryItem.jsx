@@ -20,7 +20,7 @@ function CategoryItem({
   console.log("🚀 ~ category:", category);
 
   return (
-    <Paper style={{ marginBottom: "16px" }}>
+    <Paper sx={{ mb: "16px", p: 2 }}>
       <ListItem>
         <ListItemIcon>
           <span className="material-icons">folder</span>
