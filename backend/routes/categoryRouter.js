@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const categoryController = require("../controllers/categoryController");
 const {
   addSubCategory,
   createCategory,
@@ -9,9 +8,11 @@ const {
   getAllCategories,
   getCategoryById,
   getSubCategories,
+  getSubCategoryById,
   updateCategory,
   updateSubCategory,
 } = require("../controllers/categoryController");
+
 router.route("/").post(createCategory).get(getAllCategories);
 router
   .route("/:id")
@@ -20,10 +21,15 @@ router
   .delete(deleteCategory);
 
 // Nouvelles routes pour les sous-catégories
-router.post("/:parentId/sub-categories", addSubCategory);
-router.get("/:parentId/sub-categories", getSubCategories);
-router.put("/sub-categories/:id", updateSubCategory);
-router.delete("/sub-categories/:id", deleteSubCategory);
+router
+  .route("/:categoryId/sub-categories")
+  .post(addSubCategory)
+  .get(getSubCategories);
+router
+  .route("/:categoryId/sub-categories/:id")
+  .get(getSubCategoryById)
+  .put(updateSubCategory)
+  .delete(deleteSubCategory);
 
 // router.post("/", categoryController.createCategory);
 // router.get("/", categoryController.getAllCategories);

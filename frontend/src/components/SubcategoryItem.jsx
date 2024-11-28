@@ -12,7 +12,7 @@ function SubcategoryItem({ subcategory, onDelete }) {
       <ListItemIcon>
         <span className="material-icons">subdirectory_arrow_right</span>
       </ListItemIcon>
-      <ListItemText primary={subcategory} />
+      <ListItemText primary={subcategory.name} />
       <IconButton onClick={onDelete} color="error">
         <span className="material-icons">delete</span>
       </IconButton>

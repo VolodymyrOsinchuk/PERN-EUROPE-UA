@@ -1,6 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
-const Categorie = require("./category");
+const { Category } = require("./category");
 
 const Adv = sequelize.define(
   "Adv",
@@ -67,7 +67,7 @@ const Adv = sequelize.define(
       type: DataTypes.ARRAY(DataTypes.STRING),
       defaultValue: [],
     },
-    categorieId: {
+    categoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
@@ -90,7 +90,7 @@ const Adv = sequelize.define(
   }
 );
 
-Adv.belongsTo(Categorie, { foreignKey: "categoryId", as: "categorie" });
-Categorie.hasMany(Adv, { foreignKey: "categoryId", as: "advs" });
+Adv.belongsTo(Category, { foreignKey: "categoryId", as: "categorie" });
+Category.hasMany(Adv, { foreignKey: "categoryId", as: "advs" });
 
 module.exports = Adv;

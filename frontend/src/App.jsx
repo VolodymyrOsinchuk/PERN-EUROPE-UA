@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import {
   Admin,
   Ads,
+  CategoryDetails,
   CategoryManager,
   Contacts,
   CreateAdPage,
@@ -23,8 +24,11 @@ import {
 
 import { action as registerAction } from "./pages/Register";
 import { action as loginAction } from "./pages/Login";
+import { action as categoryAction } from "./pages/CategoryManager";
 
 import { loader as accountLoader } from "./pages/VerifyAccount";
+import { loader as categoryLoader } from "./pages/CategoryManager";
+import { loader as categoryDetailsLoader } from "./pages/CategoryDetails";
 
 const router = createBrowserRouter(
   [
@@ -111,6 +115,14 @@ const router = createBrowserRouter(
         {
           path: "categories",
           element: <CategoryManager />,
+          loader: categoryLoader,
+          action: categoryAction,
+        },
+        {
+          path: "categories/:id",
+          element: <CategoryDetails />,
+          loader: categoryDetailsLoader,
+          // action: categoryAction,
         },
       ],
     },

@@ -11,6 +11,7 @@ import {
   Paper,
 } from "@mui/material";
 import { Link } from "react-router-dom";
+import { HeroSection } from "../components";
 import "../assets/css/home.css";
 
 // console.log("Environnement:", import.meta.env);
@@ -22,7 +23,7 @@ import "../assets/css/home.css";
 const Home = (props) => {
   return (
     <>
-      <div className="hero">
+      {/* <div className="hero">
         <Container>
           <Typography variant="h2" gutterBottom>
             Ласкаво просимо до спільноти "Українці в Європі"
@@ -41,8 +42,18 @@ const Home = (props) => {
             Приєднатися до спільноти
           </Button>
         </Container>
-      </div>
-
+      </div> */}
+      <HeroSection
+        title="Українці в Європі"
+        typedStrings={[
+          "Українці в Європі",
+          "Community of Ukrainians in Europe",
+          "Об'єднання закордоном",
+        ]}
+        subtitle="Ваш путівник у житті за кордоном"
+        buttonText="Приєднатися до спільноти"
+        buttonLink="/register"
+      />
       <div className="search-section">
         <Container>
           <Grid2 container spacing={2} alignItems="center">

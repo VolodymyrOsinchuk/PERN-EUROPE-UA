@@ -15,6 +15,7 @@ import customFetch from "../utils/customFetch";
 import { FormRow, FormRowSelect } from "../components";
 import { toast } from "react-toastify";
 import { GetCountries } from "react-country-state-city";
+import { HeroSection } from "../components";
 
 export const action = async ({ request }) => {
   const formData = await request.formData();
@@ -79,17 +80,13 @@ const Register = () => {
 
   return (
     <Fragment>
-      <div className="hero">
-        <Container>
-          <Typography variant="h3" gutterBottom>
-            Приєднайтеся до нашої спільноти
-          </Typography>
-          <Typography variant="h6">
-            Створіть свій профіль та отримайте доступ до всіх можливостей
-            платформи
-          </Typography>
-        </Container>
-      </div>
+      <HeroSection
+        title="Реєстрація"
+        typedStrings={["Приєднайтеся до нашої спільноти"]}
+        subtitle="Створіть свій профіль та отримайте доступ до всіх можливостей платформи"
+        buttonText="На головну сторінку"
+        buttonLink="/"
+      />
 
       <Container>
         <Paper className="registration-form" elevation={3}>

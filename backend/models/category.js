@@ -1,6 +1,5 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
-const slugify = require("slugify");
 
 const Category = sequelize.define(
   "Category",
@@ -11,41 +10,37 @@ const Category = sequelize.define(
       autoIncrement: true,
       allowNull: false,
     },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    slug: {
-      type: DataTypes.STRING,
-      unique: true,
-    },
-    parentId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: "Categories",
-        key: "id",
-      },
-    },
+    name: { type: DataTypes.STRING, allowNull: false, unique: true },
   },
-  {
-    sequelize,
-    modelName: "Category",
-    tableName: "categories",
-    timestamps: true,
-    hooks: {
-      beforeValidate: (category) => {
-        category.slug = slugify(category.name, { lower: true });
-      },
-    },
-  }
+  { tableName: "categories", timestamps: true }
 );
 
-Category.hasMany(Category, { as: "subCategories", foreignKey: "parentId" });
-Category.belongsTo(Category, {
-  as: "parent",
-  foreignKey: "parentId",
+const SubCategory = sequelize.define(
+  "SubCategory",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
+    },
+    name: { type: DataTypes.STRING, allowNull: false, unique: true },
+    categoryId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: { model: Category, key: "id" },
+    },
+  },
+  { tableName: "subcategories", timestamps: true }
+);
+
+SubCategory.belongsTo(Category, {
+  foreignKey: "categoryId",
+  onDelete: "CASCADE",
+});
+Category.hasMany(SubCategory, {
+  foreignKey: "categoryId",
+  onDelete: "CASCADE",
 });
 
-module.exports = Category;
+module.exports = { Category, SubCategory };

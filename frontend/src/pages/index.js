@@ -19,3 +19,4 @@ export { default as DashboardLayout } from "./DashboardLayout";
 export { default as Admin } from "./Admin";
 export { default as CreateAdPage } from "./CreateAdPage";
 export { default as CategoryManager } from "./CategoryManager";
+export { default as CategoryDetails } from "./CategoryDetails";

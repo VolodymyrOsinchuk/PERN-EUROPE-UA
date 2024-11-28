@@ -1,6 +1,18 @@
 import PropTypes from "prop-types";
+import { HeroSection } from "../components";
+
 const News = (props) => {
-  return <h1>News</h1>;
+  return (
+    <>
+      <HeroSection
+        title="Останні Новини"
+        typedStrings={["Актуальна інформація для українців в Європі"]}
+        subtitle="Актуальна інформація для українців в Європі"
+        // backgroundImage="/path/to/news-background.jpg"
+        textColor="white"
+      />
+    </>
+  );
 };
 News.propTypes = {};
 export default News;

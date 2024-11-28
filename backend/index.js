@@ -6,7 +6,7 @@ const app = express();
 
 // import DB Sequelize
 const sequelize = require("./config/db");
-const advRoutes = require("./routes/advRouter");
+// const advRoutes = require("./routes/advRouter");
 const categoryRoutes = require("./routes/categoryRouter");
 const authRoutes = require("./routes/authRouter");
 const userRoutes = require("./routes/userRouter");
@@ -27,7 +27,7 @@ app.get("/api", (req, res) => {
   res.status(200).json({ msg: "Ласкаво просимо до серверної частини" });
 });
 
-app.use("/api/v1/adv", advRoutes);
+// app.use("/api/v1/adv", advRoutes);
 app.use("/api/v1/categories", categoryRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
@@ -43,32 +43,17 @@ app.use((err, req, res, next) => {
 const port = process.env.PORT || 5000;
 
 app.listen(port, () => {
-  console.log("server listening on port " + port);
-  console.log(`Serveur démarré en mode ${process.env.NODE_ENV}`);
+  console.log("Сервер працює на порту " + port);
+  console.log(`Сервер запущено в ${process.env.NODE_ENV}`);
 });
 
 const testDbConnection = async () => {
   try {
     await sequelize.sync();
-    console.log("Connection has been established successfully.");
+    console.log("З'єднання з базою даних встановлено успішно");
   } catch (error) {
-    console.error("Unable to connect to the database:", error);
+    console.error("Не вдається підключитися до бази даних:", error);
   }
 };
 
 testDbConnection();
-
-// async function truncateAllTables() {
-//   try {
-//     await sequelize.authenticate();
-//     console.log("Connection has been established successfully.");
-//     await sequelize.sync({ force: true });
-//   } catch (error) {
-//     console.error("Unable to connect to the database:", error);
-//   } finally {
-//     await sequelize.close();
-//     console.log("Connection has been closed successfully.");
-//   }
-// }
-
-// truncateAllTables();
