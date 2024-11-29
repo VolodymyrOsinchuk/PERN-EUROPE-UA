@@ -1,4 +1,5 @@
 import { Typography, Container, Button } from "@mui/material";
+import { Link } from "react-router-dom";
 import { ReactTyped } from "react-typed";
 const HeroSection = ({
   title,
@@ -67,7 +68,8 @@ const HeroSection = ({
             variant="contained"
             color="secondary"
             size="large"
-            href={buttonLink}
+            LinkComponent={Link}
+            to={buttonLink}
             style={{ marginTop: "20px" }}
           >
             {buttonText}
