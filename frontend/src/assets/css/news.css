@@ -1,0 +1,14 @@
+.news-card {
+  transition: transform 0.3s ease-in-out;
+  margin-bottom: 20px;
+}
+.news-card:hover {
+  transform: translateY(-5px);
+}
+.category-chip {
+  margin: 5px;
+}
+.loading-spinner {
+  display: inline-block;
+  margin-left: 10px;
+}
