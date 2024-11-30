@@ -5,9 +5,9 @@
   text-align: center;
 }
 .search-section {
-  background: white;
+  background-color: white;
   padding: 20px 0;
-  margin: 20px 0;
+  /* margin: 20px 0; */
 }
 .latest-posts {
   padding: 40px 0;

@@ -112,7 +112,7 @@ const News = (props) => {
     <>
       <HeroSection
         title="Останні Новини"
-        typedStrings={["Актуальна інформація для українців в Європі"]}
+        typedStrings={["Актуальна інформація"]}
         subtitle="Актуальна інформація для українців в Європі"
         // backgroundImage="/path/to/news-background.jpg"
         textColor="white"

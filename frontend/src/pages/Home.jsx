@@ -9,6 +9,7 @@ import {
   CardContent,
   CardActions,
   Paper,
+  Box,
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import { HeroSection, SectionsGrid } from "../components";
@@ -22,20 +23,16 @@ import "../assets/css/home.css";
 // console.log("🚀 ~ isDebug :", isDebug);
 const Home = (props) => {
   return (
-    <>
+    <Box component="div" sx={{ backgroundColor: "#f5f5f5" }}>
       <HeroSection
         title="Українці в Європі"
-        typedStrings={[
-          "Українці в Європі",
-          "Community of Ukrainians in Europe",
-          "Об'єднання закордоном",
-        ]}
+        typedStrings={["Українці в Європі"]}
         subtitle="Ваш путівник у житті за кордоном"
         buttonText="Приєднатися до спільноти"
         buttonLink="/register"
       />
       <div className="search-section">
-        <Container>
+        <Container maxWidth="lg">
           <Grid2 container spacing={2} alignItems="center">
             <Grid2 size={{ xs: 12, md: 8 }}>
               <TextField
@@ -55,7 +52,7 @@ const Home = (props) => {
 
       <Container className="latest-posts">
         <Typography variant="h4" className="section-title">
-          Main Categories
+          Основні категорії
         </Typography>
         <SectionsGrid />
         {/* <Grid2 container spacing={4}>
@@ -189,7 +186,7 @@ const Home = (props) => {
           </Typography>
         </Paper>
       </Container>
-    </>
+    </Box>
   );
 };
 

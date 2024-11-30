@@ -38,7 +38,7 @@ const SectionsGrid = () => {
   ];
 
   return (
-    <Grid2 container spacing={4}>
+    <Grid2 container spacing={4} mt={2}>
       {sections.map((section) => (
         <Grid2 size={{ xs: 12, sm: 6, md: 3 }} key={section.title}>
           <Card
