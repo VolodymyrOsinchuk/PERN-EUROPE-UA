@@ -9,6 +9,7 @@ export { default as HomeLayout } from "./HomeLayout";
 export { default as ProfileLayout } from "./ProfileLayout";
 export { default as Publications } from "./Publications";
 export { default as Ads } from "./Ads";
+export { default as AdDetailPage } from "./AdDetailPage";
 export { default as Login } from "./Login";
 export { default as Register } from "./Register";
 export { default as VerifyAccount } from "./VerifyAccount";

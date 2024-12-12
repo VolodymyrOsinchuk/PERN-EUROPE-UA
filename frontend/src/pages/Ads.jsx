@@ -15,7 +15,25 @@ import {
 import Grid from "@mui/material/Grid2";
 import { GridView, HeroSection, ListView } from "../components/";
 import "../assets/css/ads.css";
+import customFetch from "../utils/customFetch";
+import { toast } from "react-toastify";
+import { useLoaderData } from "react-router-dom";
+
+export const loader = async () => {
+  try {
+    const { data } = await customFetch.get(`/adv`);
+
+    // console.log("🚀 ~ loader ~ data :", data);
+    return data;
+  } catch (error) {
+    console.log("🚀 ~ loader ~ error:", error);
+    toast.error(error?.response.data?.msg);
+    return error;
+  }
+};
 const Ads = (props) => {
+  const data = useLoaderData();
+  // console.log("🚀 ~ Ads ~ data:", data);
   const [category, setCategory] = React.useState("");
   const [city, setCity] = React.useState("");
   const [viewMode, setViewMode] = React.useState("grid");
@@ -101,7 +119,11 @@ const Ads = (props) => {
           </ToggleButtonGroup>
         </div>
 
-        {viewMode === "grid" ? <GridView /> : <ListView />}
+        {viewMode === "grid" ? (
+          <GridView ads={data} />
+        ) : (
+          <ListView ads={data} />
+        )}
 
         <Fab color="primary" className="add-button" aria-label="add">
           <span className="material-icons">add</span>
