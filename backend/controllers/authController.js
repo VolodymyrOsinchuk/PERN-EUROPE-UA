@@ -1,4 +1,4 @@
-const User = require("../models/user");
+const { User } = require("../models/user");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { sendVerificationEmail } = require("../utils/emailService");
@@ -71,7 +71,12 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     // Trouver l'utilisateur
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({
+      where: { email },
+      attributes: {
+        exclude: ["password"],
+      },
+    });
     if (!user) {
       return res.status(401).json({ message: "Identifiants invalides" });
     }

@@ -1,6 +1,7 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 const bcrypt = require("bcryptjs");
+// const { Adv } = require("./adv");
 
 const User = sequelize.define(
   "User",
@@ -117,18 +118,15 @@ const User = sequelize.define(
     },
   }
 );
+// User.hasMany(Adv, {
+//   foreignKey: "userId",
+//   as: "advs",
+// });
 
+// Adv.belongsTo(User, { foreignKey: "userId", as: "user" });
 // Méthode d'instance pour vérifier le mot de passe
 User.prototype.validatePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Association avec Announcement
-User.associate = (models) => {
-  User.hasMany(models.Announcement, {
-    foreignKey: "userId",
-    as: "announcements",
-  });
-};
-
-module.exports = User;
+module.exports = { User };

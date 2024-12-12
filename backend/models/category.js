@@ -10,9 +10,21 @@ const Category = sequelize.define(
       autoIncrement: true,
       allowNull: false,
     },
-    name: { type: DataTypes.STRING, allowNull: false, unique: true },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      validate: {
+        len: [2, 100], // Name between 2 and 100 characters
+        notEmpty: { msg: "Category name cannot be empty" },
+      },
+    },
   },
-  { tableName: "categories", timestamps: true }
+  {
+    tableName: "categories",
+    timestamps: true,
+    indexes: [{ fields: ["name"], unique: true }],
+  }
 );
 
 const SubCategory = sequelize.define(
@@ -28,7 +40,15 @@ const SubCategory = sequelize.define(
     categoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: { model: Category, key: "id" },
+      references: { model: "categories", key: "id" },
+      validate: {
+        async validateCategory(value) {
+          const category = await Category.findByPk(value);
+          if (!category) {
+            throw new Error("Invalid category");
+          }
+        },
+      },
     },
   },
   { tableName: "subcategories", timestamps: true }
