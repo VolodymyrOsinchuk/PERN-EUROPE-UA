@@ -1,4 +1,4 @@
-const User = require("../models/user");
+const { User } = require("../models/user");
 
 exports.getAllUsers = async (req, res) => {
   try {
@@ -12,7 +12,9 @@ exports.getAllUsers = async (req, res) => {
 };
 exports.getUserById = async (req, res) => {
   try {
-    const user = await User.findByPk(req.params.id);
+    const user = await User.findByPk(req.user.userId, {
+      attributes: { exclude: ["password"] },
+    });
     if (user) {
       res.status(200).json(user);
     } else {

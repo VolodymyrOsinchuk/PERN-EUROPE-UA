@@ -41,13 +41,13 @@ const Adv = sequelize.define(
         notEmpty: { msg: "La ville est requise" },
       },
     },
-    postalCode: {
-      type: DataTypes.STRING(20),
-      allowNull: true,
-      validate: {
-        is: /^[0-9]{5}(-[0-9]{4})?$/, // Exemple pour code postal US
-      },
-    },
+    // postalCode: {
+    //   type: DataTypes.STRING(20),
+    //   allowNull: true,
+    //   validate: {
+    //     is: /^[0-9]{5}(-[0-9]{4})?$/, // Exemple pour code postal US
+    //   },
+    // },
     description: {
       type: DataTypes.TEXT,
       allowNull: false,
@@ -55,20 +55,20 @@ const Adv = sequelize.define(
         len: [10, 5000], // Longueur minimale et maximale de la description
       },
     },
-    author: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        len: [2, 100],
-      },
-    },
-    contact: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        is: /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, // Validation de numéro de téléphone
-      },
-    },
+    // author: {
+    //   type: DataTypes.STRING,
+    //   allowNull: false,
+    //   validate: {
+    //     len: [2, 100],
+    //   },
+    // },
+    // contact: {
+    //   type: DataTypes.STRING,
+    //   allowNull: false,
+    //   validate: {
+    //     is: /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, // Validation de numéro de téléphone
+    //   },
+    // },
     email: {
       type: DataTypes.STRING(100),
       allowNull: false,

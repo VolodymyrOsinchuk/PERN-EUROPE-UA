@@ -14,7 +14,7 @@ import "../assets/css/register.css";
 import customFetch from "../utils/customFetch";
 import { FormRow, FormRowSelect } from "../components";
 import { toast } from "react-toastify";
-import { GetCountries } from "react-country-state-city";
+import { GetCountries, GetRegions } from "react-country-state-city";
 import { HeroSection } from "../components";
 
 export const action = async ({ request }) => {

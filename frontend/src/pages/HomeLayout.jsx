@@ -1,8 +1,9 @@
 import { Outlet } from "react-router-dom";
 import { Navbar, Footer } from "../components";
 import { Stack } from "@mui/material";
-
+import { useProfileContext } from "./ProfileLayout";
 const HomeLayout = () => {
+  const item = useProfileContext();
   return (
     <>
       <Navbar />

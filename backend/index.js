@@ -3,6 +3,7 @@ const path = require("path");
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const app = express();
 
 // import DB Sequelize
@@ -12,11 +13,18 @@ const categoryRoutes = require("./routes/categoryRouter");
 const authRoutes = require("./routes/authRouter");
 const userRoutes = require("./routes/userRouter");
 const config = require("./config/config");
+const { authMiddleware } = require("./middleware/authMiddleware");
 // console.log("process.env", config);
 
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(
+  cors({
+    origin: config.client.url,
+    credentials: true,
+  })
+);
 // app.use(express.static(path.join(__dirname + "/public")));
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
@@ -30,10 +38,10 @@ app.get("/api", (req, res) => {
   res.status(200).json({ msg: "Ласкаво просимо до серверної частини" });
 });
 
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/users", authMiddleware, userRoutes);
 app.use("/api/v1/adv", advRoutes);
 app.use("/api/v1/categories", categoryRoutes);
-app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/users", userRoutes);
 
 app.use("*", (req, res) => {
   res.status(404).json({ msg: "не знайдено" });

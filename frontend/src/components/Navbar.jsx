@@ -54,6 +54,8 @@ const Navbar = () => {
         contacts: "Контакт",
         dashboard: "Панель",
         language: "Мова",
+        profile: "Профіль",
+        logout: "Вийти",
       },
     },
     en: {
@@ -68,6 +70,8 @@ const Navbar = () => {
         contacts: "Contacts",
         dashboard: "Dashboard",
         language: "Language",
+        profile: "Profile",
+        logout: "Logout",
       },
     },
   };

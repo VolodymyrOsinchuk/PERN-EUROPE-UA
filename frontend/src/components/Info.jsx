@@ -2,6 +2,17 @@ import { IconButton, Paper, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 
 const Info = ({ profileData, onClick }) => {
+  const formattedDate = new Date(profileData.createdAt).toLocaleString(
+    "uk-UA",
+    {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }
+  );
   return (
     <>
       <Paper elevation={3} style={{ padding: "20px" }}>
@@ -18,10 +29,14 @@ const Info = ({ profileData, onClick }) => {
               </IconButton>
             </Typography>
             <Typography variant="body1">Email: {profileData.email}</Typography>
+            {profileData.phoneNumber && (
+              <Typography variant="body1">
+                Телефон: {profileData.phoneNumber}
+              </Typography>
+            )}
             <Typography variant="body1">
-              Телефон: {profileData.phone}
+              Дата реєстрації: {formattedDate}
             </Typography>
-            <Typography variant="body1">Дата реєстрації: 15.03.2023</Typography>
             <Typography variant="body1">
               Про мене: {profileData.about}
             </Typography>

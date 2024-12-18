@@ -23,10 +23,11 @@ import {
   VerifyAccount,
 } from "./pages";
 
-import { CategoryForm } from "./components";
+import { CategoryForm, Loading } from "./components";
 
 import { action as registerAction } from "./pages/Register";
 import { action as loginAction } from "./pages/Login";
+import { action as createAdAction } from "./pages/CreateAdPage";
 // import { action as categoryAction } from "./pages/CategoryManager";
 // import { action as categoryAction } from "./pages/CategoryMenager1";
 import {
@@ -41,6 +42,8 @@ import { loader as accountLoader } from "./pages/VerifyAccount";
 import { loader as categoryLoader } from "./pages/CategoryMenager1";
 import { loader as adsLoader } from "./pages/Ads";
 import { loader as adLoader } from "./pages/AdDetailPage";
+import { loader as catLoader } from "./pages/CreateAdPage";
+import { loader as profileLoader } from "./pages/ProfileLayout";
 import { loader as categoryDetailsLoader } from "./pages/CategoryDetails";
 
 const router = createBrowserRouter(
@@ -53,34 +56,42 @@ const router = createBrowserRouter(
         {
           index: true,
           element: <Home />,
+          HydrateFallback: Loading,
         },
         {
           path: "forum",
           element: <Forum />,
+          HydrateFallback: Loading,
         },
         {
           path: "news",
           element: <News />,
+          HydrateFallback: Loading,
         },
         {
           path: "ads",
           element: <Ads />,
           loader: adsLoader,
+          HydrateFallback: Loading,
         },
         {
           path: "ads/:id",
           element: <AdDetailPage />,
+          HydrateFallback: Loading,
+
           loader: adLoader,
         },
         {
           path: "login",
           element: <Login />,
           action: loginAction,
+          HydrateFallback: Loading,
         },
         {
           path: "register",
           element: <Register />,
           action: registerAction,
+          HydrateFallback: Loading,
         },
         {
           path: "verify-account/:token",
@@ -90,26 +101,38 @@ const router = createBrowserRouter(
         {
           path: "events",
           element: <Events />,
+          HydrateFallback: Loading,
         },
         {
           path: "contact",
           element: <Contacts />,
+          HydrateFallback: Loading,
         },
         {
           path: "publications",
           element: <Publications />,
+          HydrateFallback: Loading,
         },
         {
           path: "profile",
           element: <ProfileLayout />,
+          HydrateFallback: Loading,
+
+          loader: profileLoader,
+
           children: [
             {
               index: true,
               element: <Profile />,
+              HydrateFallback: Loading,
             },
             {
               path: "create-ad",
               element: <CreateAdPage />,
+              HydrateFallback: Loading,
+
+              loader: catLoader,
+              action: createAdAction,
             },
           ],
         },
@@ -122,18 +145,25 @@ const router = createBrowserRouter(
         {
           index: true,
           element: <Dashboard />,
+          HydrateFallback: Loading,
         },
         {
           path: "admin",
           element: <Admin />,
+          HydrateFallback: Loading,
         },
         {
           path: "create-ad",
           element: <CreateAdPage />,
+          HydrateFallback: Loading,
+
+          loader: catLoader,
         },
         {
           path: "categories",
           element: <CategoryManager1 />,
+          HydrateFallback: Loading,
+
           loader: categoryLoader,
           action: categoryAction,
         },

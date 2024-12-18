@@ -27,7 +27,7 @@ exports.createAnnonce = async (req, res) => {
     } = req.body;
 
     // Vérification des champs obligatoires
-    if (!title || !description || !price ) {
+    if (!title || !description || !price) {
       return res.status(400).json({
         error: "Tous les champs obligatoires ne sont pas remplis",
       });
@@ -39,7 +39,7 @@ exports.createAnnonce = async (req, res) => {
     // Récupération et préparation des données de l'annonce
     const adData = {
       title,
-      author,
+      // author,
       contact,
       email,
       amenities,
@@ -47,14 +47,14 @@ exports.createAnnonce = async (req, res) => {
       country,
       state,
       city,
-      postalCode: parseFloat(postalCode),
+      // postalCode: parseFloat(postalCode),
       price: parseFloat(price),
       categoryId: parseFloat(categoryId),
       category,
       // Autres champs avec validation et transformation
       status,
       photos: photoPaths,
-      userId: req.user.id,
+      userId: req.user.userId,
       // datePosted: new Date(),
       // Ajoutez d'autres champs par défaut si nécessaire
     };

@@ -13,3 +13,4 @@ export { default as SubcategoryItem1 } from "./SubcategoryItem1.jsx";
 export { default as CategoryForm } from "./CategoryForm.jsx";
 export { default as SectionsGrid } from "./SectionsGrid.jsx";
 export { default as ImageGallery } from "./ImageGallery.jsx";
+export { default as Loading } from "./Loading";

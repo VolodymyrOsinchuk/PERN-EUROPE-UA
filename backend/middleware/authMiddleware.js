@@ -1,43 +1,23 @@
 const jwt = require("jsonwebtoken");
 const { User } = require("../models/user"); // Adjust path as needed
+const { verifyJWT } = require("../utils/tokenUtils");
 
 const authMiddleware = async (req, res, next) => {
-  console.log(" req.headers", req.headers);
-  // Check for token in Authorization header
-  const authHeader = req.headers.authorization;
-
+  const { token } = req.cookies;
   // If no authorization header
-  if (!authHeader) {
+  if (!token) {
     return res.status(401).json({
       error: "No token provided",
       message: "Authentication required",
     });
   }
 
-  // Extract token (expecting "Bearer TOKEN")
-  const token = authHeader.split(" ")[1];
-  console.log("🚀 ~ authMiddleware ~ token:", token);
-
   try {
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Find user by ID from token
-    const user = await User.findByPk(decoded.id, {
-      attributes: { exclude: ["password"] }, // Exclude password for security
-    });
-    console.log("🚀 ~ authMiddleware ~ user :", user);
-
-    // If no user found
-    if (!user) {
-      return res.status(401).json({
-        error: "Invalid token",
-        message: "User not found",
-      });
-    }
+    const { userId, email, role } = await verifyJWT(token);
 
     // Attach user to request object
-    req.user = user;
+    req.user = { userId, email, role };
     next();
   } catch (error) {
     // Handle different types of token errors

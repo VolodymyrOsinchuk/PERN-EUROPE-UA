@@ -21,14 +21,16 @@ export const action = async ({ request }) => {
   const dataForm = Object.fromEntries(formData);
   const rememberMe = dataForm.rememberMe;
   try {
-    const { data } = await customFetch.post("/auth/login", dataForm);
+    const { data } = await customFetch.post("/auth/login", dataForm, {
+      // withCredentials: true,
+    });
     console.log("🚀 ~ action ~  data :", data);
     // Si "Remember Me" est coché, stocker le token dans localStorage ou cookies
-    if (rememberMe) {
-      localStorage.setItem("authToken", data.token); // Vous pouvez aussi utiliser les cookies
-    } else {
-      sessionStorage.setItem("authToken", data.token); // SessionStorage pour ne pas conserver après la fermeture du navigateur
-    }
+    // if (rememberMe) {
+    //   localStorage.setItem("authToken", data.token); // Vous pouvez aussi utiliser les cookies
+    // } else {
+    //   sessionStorage.setItem("authToken", data.token); // SessionStorage pour ne pas conserver après la fermeture du navigateur
+    // }
     toast.success("Ви увійшли успішно успішно");
     return redirect(`/profile`);
     // return response;

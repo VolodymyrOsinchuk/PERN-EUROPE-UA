@@ -1,8 +1,7 @@
 const { User } = require("../models/user");
-const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { sendVerificationEmail } = require("../utils/emailService");
-const config = require("../config/config");
+const { createJWT } = require("../utils/tokenUtils");
 
 exports.register = async (req, res) => {
   try {
@@ -73,15 +72,13 @@ exports.login = async (req, res) => {
     // Trouver l'utilisateur
     const user = await User.findOne({
       where: { email },
-      attributes: {
-        exclude: ["password"],
-      },
+      // attributes: {
+      //   exclude: ["password"],
+      // },
     });
     if (!user) {
       return res.status(401).json({ message: "Identifiants invalides" });
     }
-    console.log("🚀 ~ login= ~  user :", user);
-
     // Vérifier le mot de passe
     const isMatch = await user.validatePassword(password);
     if (!isMatch) {
@@ -96,34 +93,44 @@ exports.login = async (req, res) => {
     }
 
     // Générer un token JWT
-    const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      },
-      config.jwt.secret,
-      { expiresIn: config.jwt.expirationTime }
-    );
+    const token = createJWT({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
 
     // Mettre à jour la dernière connexion
     await user.update({ lastLogin: new Date() });
 
-    res.json({
-      token,
-      user: {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-      },
+    const oneDay = 1000 * 60 * 60 * 24;
+
+    const userLogin = {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+    };
+
+    res.cookie("token", token, userLogin, {
+      httpOnly: true,
+      expires: new Date(Date.now() + oneDay),
+      secure: process.env.NODE_ENV === "production",
     });
+    res.status(200).json({ msg: "user logged in" });
   } catch (error) {
     res
       .status(500)
       .json({ message: "Erreur lors de la connexion", error: error.message });
   }
+};
+
+exports.logout = (req, res) => {
+  res.cookie("token", "logout", {
+    httpOnly: true,
+    expires: new Date(Date.now()),
+  });
+  res.status(200).json({ msg: "user logged out!" });
 };
 
 exports.verifyEmail = async (req, res) => {

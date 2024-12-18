@@ -20,6 +20,7 @@ import TabNavigation from "../components/TabNavigation";
 import DeleteDialog from "../components/DeleteDialog";
 import "../assets/css/profile.css";
 import { Link } from "react-router-dom";
+import { useProfileContext } from "./ProfileLayout";
 
 const advertisements = [
   {
@@ -51,6 +52,7 @@ const advertisements = [
   },
 ];
 const Profile = () => {
+  const { user } = useProfileContext();
   const [value, setValue] = useState(0);
   const [languageAnchor, setLanguageAnchor] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -107,7 +109,7 @@ const Profile = () => {
         <TabNavigation value={value} handleChange={handleChange} />
 
         {value === 0 && (
-          <Info profileData={profileData} onClick={handleEditDialogOpen} />
+          <Info profileData={user} onClick={handleEditDialogOpen} />
         )}
 
         {value === 1 && (
