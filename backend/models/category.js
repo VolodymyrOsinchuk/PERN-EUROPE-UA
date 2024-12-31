@@ -8,7 +8,7 @@ const Category = sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
-      allowNull: false,
+      // allowNull: false,
     },
     name: {
       type: DataTypes.STRING,
@@ -16,7 +16,7 @@ const Category = sequelize.define(
       unique: true,
       validate: {
         len: [2, 100], // Name between 2 and 100 characters
-        notEmpty: { msg: "Category name cannot be empty" },
+        notEmpty: { msg: "Le nom de la catégorie est requis" },
       },
     },
   },
@@ -34,7 +34,7 @@ const SubCategory = sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
-      allowNull: false,
+      // allowNull: false,
     },
     name: { type: DataTypes.STRING, allowNull: false, unique: true },
     categoryId: {
@@ -56,6 +56,7 @@ const SubCategory = sequelize.define(
 
 SubCategory.belongsTo(Category, {
   foreignKey: "categoryId",
+
   onDelete: "CASCADE",
 });
 Category.hasMany(SubCategory, {

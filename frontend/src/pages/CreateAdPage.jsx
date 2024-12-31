@@ -1,9 +1,8 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import {
   Button,
   Typography,
-  Container,
   TextField,
   MenuItem,
   Select,
@@ -30,6 +29,7 @@ import {
   redirect,
   Link,
 } from "react-router-dom";
+import { useDropzone } from "react-dropzone";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
 import { FormRow, FormRowSelect } from "../components";
@@ -48,32 +48,39 @@ export const loader = async () => {
 };
 
 export const action = async ({ request }) => {
-  const formData = await request.formData();
+  const formData = new FormData();
+  const data = await request.formData();
 
-  const adData = {
-    title: formData.get("title"),
-    category: formData.get("category"),
-    subcategory: formData.get("subcategory"),
-    country: formData.get("country"),
-    state: formData.get("state"),
-    city: formData.get("city"),
-    description: formData.get("description"),
-    price: formData.get("price") ? Number(formData.get("price")) : null,
-    location: formData.get("location"),
-    email: formData.get("email"),
-    photos: formData.getAll("photos"),
-  };
+  // Ajoutez chaque champ au FormData
+  formData.append("title", data.get("title"));
+  formData.append("categoryId", data.get("categoryId"));
+  formData.append("subcategoryId", data.get("subcategoryId"));
+  formData.append("country", data.get("country"));
+  formData.append("state", data.get("state"));
+  formData.append("city", data.get("city"));
+  formData.append("description", data.get("description"));
+  formData.append("price", data.get("price"));
+  formData.append("email", data.get("email"));
+  formData.append("phone", data.get("phone"));
+  formData.append("location", data.get("location"));
 
+  // Ajoutez les photos
+  const photos = data.getAll("photos");
+  photos.forEach((photo) => {
+    formData.append("photos", photo);
+  });
   try {
-    const response = await customFetch.post("/adv", adData);
+    const response = await customFetch.post("/adv", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     console.log("🚀 ~ action ~ response :", response);
 
-    if (!response.ok) {
-      throw new Error("Failed to create ad");
+    if (response.status === 201) {
+      toast.success(response.data.message);
+      return redirect("/profile");
     }
-
-    toast.success("Ви увійшли успішно успішно");
-    return redirect("/profile");
   } catch (error) {
     toast.error("Failed to create ad. Please try again.");
     return error;
@@ -83,24 +90,31 @@ export const action = async ({ request }) => {
 const CreateAdPage = () => {
   const categories = useLoaderData();
   const [selectedCountry, setSelectedCountry] = useState("");
+  console.log("🚀 ~ CreateAdPage ~ selectedCountry:", selectedCountry);
   const [selectedState, setSelectedState] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState("");
   const [countries, setCountries] = useState([]);
+  // console.log("🚀 ~ CreateAdPage ~ countries:", countries);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
   const [phoneCodes, setPhoneCodes] = useState("");
-
+  console.log("🚀 ~ phoneCodes:", phoneCodes);
+  const [subcategories, setSubcategories] = useState([]);
+  const [previewImages, setPreviewImages] = useState([]);
   const [loading, setLoading] = useState(false);
+
   const handleCategoryChange = (event) => {
     setSelectedCategoryId(event.target.value);
+    setSelectedSubCategoryId("");
+
+    // Mettre à jour les sous-catégories disponibles
+    const category = categories.find((cat) => cat.id === selectedCategoryId);
+    setSubcategories(category ? category.subcategories : []);
   };
 
-  const [previewImages, setPreviewImages] = useState([]);
-
   const navigation = useNavigation();
-
   const actionData = useActionData();
 
   //   // Update states when selected country changes
@@ -156,11 +170,25 @@ const CreateAdPage = () => {
     }
   };
 
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const imageUrls = files.map((file) => URL.createObjectURL(file));
-    setPreviewImages(imageUrls);
+  // Fonction de suppression d'une photo
+  const handleRemoveImage = (index) => {
+    setPreviewImages((prevImages) => prevImages.filter((_, i) => i !== index));
   };
+
+  // Callback function when files are dropped
+  const onDrop = useCallback((acceptedFiles) => {
+    // Process the accepted files
+    const imageUrls = acceptedFiles.map((file) => URL.createObjectURL(file));
+    setPreviewImages(imageUrls);
+  }, []);
+
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: {
+      "image/*": [".jpg", ".jpeg", ".png"],
+    },
+    onDrop,
+    multiple: true,
+  });
 
   useEffect(() => {
     const fetchCities = async () => {
@@ -189,13 +217,21 @@ const CreateAdPage = () => {
       setLoading(true);
       try {
         const result = await GetPhonecodes();
-        const europeCodes = result.filter((item) => item.region === "Europe");
-        const countryCode = europeCodes.find(
-          (code) => code.id === selectedCountry
-        );
 
+        const europeCodes = result.filter((item) => item.region === "Europe");
+        console.log("🚀 ~ fetchPhoneCodes ~ europeCodes:", europeCodes);
+
+        const countryCode = europeCodes.find(
+          (code) => code.name == selectedCountry
+        );
+        // console.log("🚀 ~ fetchPhoneCodes ~ countryCode:", countryCode);
+
+        // const countryName = countryCode ? countryCode.name : "";
+
+        // console.log("🚀 ~ fetchPhoneCodes ~  countryName:", countryName);
+        console.log("🚀 ~ fetchPhoneCodes ~ countryCode:", countryCode);
         if (countryCode) {
-          setPhoneCodes(countryCode.phone_code);
+          setPhoneCodes(countryCode);
         } else {
           setPhoneCodes("");
         }
@@ -232,14 +268,14 @@ const CreateAdPage = () => {
               <FormControl fullWidth>
                 <InputLabel>Catégorie</InputLabel>
                 <Select
-                  name="name"
+                  name="categoryId"
                   label="Catégorie"
                   required
                   value={selectedCategoryId || ""}
                   onChange={handleCategoryChange}
                 >
                   <MenuItem value="">
-                    <em>None</em>
+                    <em>Sélectionner une catégorie</em>
                   </MenuItem>
                   {categories.map((cat) => (
                     <MenuItem key={cat.id} value={cat.id}>
@@ -249,19 +285,20 @@ const CreateAdPage = () => {
                 </Select>
               </FormControl>
             </Grid>
+
             {selectedCategoryId && (
               <Grid size={{ xs: 12 }}>
                 <FormControl fullWidth>
                   <InputLabel>Sous-catégorie</InputLabel>
                   <Select
-                    name="name"
+                    name="subcategoryId"
                     label="Sous-catégorie"
                     required
                     value={selectedSubCategoryId || ""}
                     onChange={(e) => setSelectedSubCategoryId(e.target.value)}
                   >
                     <MenuItem value="">
-                      <em>None</em>
+                      <em>Sélectionner une sous-catégorie</em>
                     </MenuItem>
                     {categories
                       .find((cat) => cat.id === selectedCategoryId)
@@ -292,15 +329,19 @@ const CreateAdPage = () => {
               <FormControl fullWidth>
                 <InputLabel>Country</InputLabel>{" "}
                 <Select
-                  name="country"
+                  // name="country"
                   label="Country"
                   value={selectedCountry}
                   onChange={handleCountryChange}
                   required
                 >
-                  {countries.map((country) => {
+                  {countries.map((country, index) => {
+                    {
+                      /* console.log("🚀 ~ {countries.map ~ index:", index);
+                    console.log("🚀 ~ {countries.map ~ country:", country); */
+                    }
                     return (
-                      <MenuItem key={country.id} value={country.id}>
+                      <MenuItem key={country.id} value={country.name}>
                         {country.name}
                       </MenuItem>
                     );
@@ -364,14 +405,14 @@ const CreateAdPage = () => {
                   <TextField
                     fullWidth
                     label="Код країни"
-                    value={phoneCodes || ""}
+                    value={phoneCodes.phone_code || ""}
                   />
                 </Grid>
                 <Grid size={{ xs: 8 }}>
                   <TextField
                     fullWidth
                     label="Контактний телефон"
-                    name="contact"
+                    name="phone"
                     type="text"
                     // value={formData.contactMethod}
                     // onChange={handleInputChange}
@@ -393,45 +434,60 @@ const CreateAdPage = () => {
             </Grid>
             {/* Image Upload */}
             <Grid size={{ xs: 12 }}>
-              <input
-                accept="image/*"
-                style={{ display: "none" }}
-                id="image-upload"
-                multiple
-                type="file"
-                name="photos"
-                onChange={handleImageUpload}
-              />
-              <label htmlFor="image-upload">
-                <div className="image-upload-container">
-                  <span
-                    className="material-icons"
-                    style={{ fontSize: 48, color: "#666" }}
-                  >
-                    add_photo_alternate
-                  </span>
-                  <Typography variant="body1" gutterBottom>
-                    Додати фотографії
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    Клікніть або перетягніть файли сюди
-                  </Typography>
-                </div>
-              </label>
-
+              <div {...getRootProps()} className="image-upload-container">
+                <input {...getInputProps({ name: "photos" })} />
+                <span
+                  className="material-icons"
+                  style={{ fontSize: 48, color: "#666" }}
+                >
+                  add_photo_alternate
+                </span>
+                <Typography variant="body1" gutterBottom>
+                  Додати фотографії
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Клікніть або перетягніть файли сюди
+                </Typography>
+              </div>
               {previewImages.length > 0 && (
-                <Box sx={{ mt: 2 }}>
+                <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap" }}>
                   {previewImages.map((url, index) => (
-                    <img
+                    <div
                       key={index}
-                      src={url}
-                      alt={`Preview ${index + 1}`}
-                      className="preview-image"
-                    />
+                      style={{
+                        position: "relative",
+                        marginRight: 10,
+                        marginBottom: 10,
+                      }}
+                    >
+                      <img
+                        src={url}
+                        alt={`Preview ${index + 1}`}
+                        className="preview-image"
+                        style={{ width: 100, height: 100, marginRight: 10 }}
+                      />
+                      <button
+                        onClick={() => handleRemoveImage(index)}
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          right: 0,
+                          backgroundColor: "rgba(0, 0, 0, 0.6)",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "50%",
+                          padding: "5px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        X
+                      </button>
+                    </div>
                   ))}
                 </Box>
               )}
             </Grid>
+
             {/* Submit Buttons */}
             <Grid size={{ xs: 12 }}>
               <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
@@ -465,578 +521,3 @@ const CreateAdPage = () => {
 
 CreateAdPage.propTypes = {};
 export default CreateAdPage;
-
-// import React, { Fragment, useState, useCallback, useEffect } from "react";
-// import PropTypes from "prop-types";
-// import {
-//   Button,
-//   Typography,
-//   TextField,
-//   MenuItem,
-//   Select,
-//   FormControl,
-//   InputLabel,
-//   Box,
-//   Paper,
-//   FormHelperText,
-// } from "@mui/material";
-// import Grid from "@mui/material/Grid2";
-// import {
-//   GetCountries,
-//   GetState,
-//   GetCity,
-//   GetLanguages,
-//   GetRegions,
-//   GetPhonecodes,
-// } from "react-country-state-city";
-// import "react-country-state-city/dist/react-country-state-city.css";
-// import {
-//   Form,
-//   useLoaderData,
-//   useNavigation,
-//   useActionData,
-//   redirect,
-//   Link,
-// } from "react-router-dom";
-// import { toast } from "react-toastify";
-// import customFetch from "../utils/customFetch";
-// import { FormRow, FormRowSelect } from "../components";
-// import "../assets/css/create-ad.css";
-// import "react-country-state-city/dist/react-country-state-city.css";
-
-// // europeanCountries.js
-// export const europeanCountries = [
-//   "AT", // Austria
-//   "BE", // Belgium
-//   "BG", // Bulgaria
-//   "HR", // Croatia
-//   "CY", // Cyprus
-//   "CZ", // Czech Republic
-//   "DK", // Denmark
-//   "EE", // Estonia
-//   "FI", // Finland
-//   "FR", // France
-//   "DE", // Germany
-//   "GR", // Greece
-//   "HU", // Hungary
-//   "IE", // Ireland
-//   "IT", // Italy
-//   "LV", // Latvia
-//   "LT", // Lithuania
-//   "LU", // Luxembourg
-//   "MT", // Malta
-//   "NL", // Netherlands
-//   "PL", // Poland
-//   "PT", // Portugal
-//   "RO", // Romania
-//   "SK", // Slovakia
-//   "SI", // Slovenia
-//   "ES", // Spain
-//   "SE", // Sweden
-// ];
-
-// // Improved Loader Function with Error Handling
-// export const loader = async () => {
-//   try {
-//     const { data } = await customFetch.get("/categories");
-//     return data || [];
-//   } catch (error) {
-//     toast.error("Failed to load categories");
-//     return [];
-//   }
-// };
-
-// // Enhanced Action Function with Validation
-// export const action = async ({ request }) => {
-//   const formData = await request.formData();
-//   const adData = Object.fromEntries(formData);
-
-//   // Basic Validation
-//   const errors = {};
-//   if (!adData.title?.trim()) errors.title = "Title is required";
-//   if (!adData.category) errors.category = "Category is required";
-//   if (!adData.description?.trim())
-//     errors.description = "Description is required";
-
-//   if (Object.keys(errors).length) {
-//     return { errors };
-//   }
-
-//   try {
-//     const response = await customFetch.post("/adv", {
-//       ...adData,
-//       price: adData.price ? Number(adData.price) : null,
-//       photos: formData.getAll("photos"),
-//     });
-
-//     toast.success("Ad created successfully");
-//     return redirect("/profile");
-//   } catch (error) {
-//     toast.error(error.response?.data?.msg || "Failed to create ad");
-//     return error;
-//   }
-// };
-
-// const CreateAdPage = () => {
-//   const categories = useLoaderData() || [];
-//   const navigation = useNavigation();
-//   const actionData = useActionData();
-
-//   const [formData, setFormData] = React.useState({
-//     category: "",
-//     title: "",
-//     description: "",
-//     price: "",
-//     country: "",
-//     state: "",
-//     city: "",
-//     location: "",
-//     contactMethod: "",
-//     phoneCode: "",
-//     language: "",
-//     images: [],
-//   });
-
-//   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
-//   // const [selectedCountry, setSelectedCountry] = useState("");
-//   // const [countriesList, setCountriesList] = useState([]);
-//   // const [statesList, setStatesList] = useState([]);
-//   // const [previewImages, setPreviewImages] = useState([]);
-
-//   const [countries, setCountries] = React.useState([]);
-//   const [states, setStates] = React.useState([]);
-//   const [cities, setCities] = React.useState([]);
-//   const [languages, setLanguages] = React.useState([]);
-//   const [phoneCodes, setPhoneCodes] = React.useState([]);
-//   const [previewImages, setPreviewImages] = React.useState([]);
-//   const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
-//   const [showSuccessDialog, setShowSuccessDialog] = React.useState(false);
-//   const [showErrorDialog, setShowErrorDialog] = React.useState(false);
-//   const [errorMessage, setErrorMessage] = React.useState("");
-//   const [countryId, setCountryId] = React.useState(0);
-//   const [stateId, setStateId] = React.useState(0);
-//   const [cityId, setCityId] = React.useState(0);
-//   const [regionsList, setRegionsList] = React.useState([]);
-
-//   // Update states when selected country changes
-//   React.useEffect(() => {
-//     const loadData = async () => {
-//       try {
-//         const [countriesData, languagesData, phoneCodesData, regionsData] =
-//           await Promise.all([
-//             GetCountries(),
-//             GetLanguages(),
-//             GetPhonecodes(),
-//             GetRegions(),
-//           ]);
-
-//         const europeanCountries = countriesData.filter((country) => {
-//           return country.region === "Europe";
-//         });
-//         setCountries(europeanCountries);
-//         setLanguages(languagesData);
-//         setPhoneCodes(phoneCodesData);
-//         setRegionsList(regionsData);
-//       } catch (error) {
-//         console.error("Error loading initial data:", error);
-//         setErrorMessage("Failed to load initial data. Please try again.");
-//         setShowErrorDialog(true);
-//       }
-//     };
-
-//     loadData();
-//   }, []);
-
-//   const handleCategoryChange = (event) => {
-//     setSelectedCategoryId(event.target.value);
-//   };
-
-//   const handleCountryChange = async (e) => {
-//     console.log("🚀 ~ handleCountryChange ~ e.target:", e);
-
-//     const countryId = e.target.value;
-//     setFormData((prev) => ({
-//       ...prev,
-//       country: countryId,
-//       state: "",
-//       city: "",
-//     }));
-//     setCountryId(countryId);
-
-//     try {
-//       const states = await GetState(countryId);
-//       setStates(states);
-//     } catch (error) {
-//       console.error("Error loading states:", error);
-//     }
-//   };
-
-//   const handleStateChange = async (e) => {
-//     const stateId = e.target.value;
-//     console.log("🚀 ~ handleStateChange ~ stateId:", stateId);
-//     setFormData((prev) => ({
-//       ...prev,
-//       state: stateId,
-//       city: "",
-//     }));
-//     setStateId(stateId);
-
-//     try {
-//       const cities = await GetCity(countryId, stateId);
-//       console.log("🚀 ~ handleStateChange ~ cities:", cities);
-//       setCities(cities);
-//     } catch (error) {
-//       console.error("Error loading cities:", error);
-//     }
-//   };
-
-//   const handleInputChange = (e) => {
-//     const { name, value } = e.target;
-
-//     setFormData((prev) => ({
-//       ...prev,
-//       [name]: value,
-//     }));
-//   };
-
-//   const handleImageUpload = useCallback((e) => {
-//     const files = Array.from(e.target.files);
-//     const imageUrls = files.map((file) => URL.createObjectURL(file));
-//     setPreviewImages((prev) => [...prev, ...imageUrls]);
-//   }, []);
-
-//   const removePreviewImage = useCallback((indexToRemove) => {
-//     setPreviewImages((prev) =>
-//       prev.filter((_, index) => index !== indexToRemove)
-//     );
-//   }, []);
-
-//   return (
-//     <Fragment>
-//       <Typography variant="h4" gutterBottom>
-//         Створити нове оголошення
-//       </Typography>
-
-//       <Paper sx={{ p: 3, mt: 2 }}>
-//         <Form method="post" encType="multipart/form-data">
-//           {actionData?.errors && (
-//             <Box sx={{ mb: 2, color: "error.main" }}>
-//               {Object.entries(actionData.errors).map(([key, value]) => (
-//                 <Typography key={key} variant="body2">
-//                   {value}
-//                 </Typography>
-//               ))}
-//             </Box>
-//           )}
-
-//           <Grid container spacing={3}>
-//             {/* Title Field */}
-//             <Grid xs={12}>
-//               <FormRow
-//                 type="text"
-//                 name="title"
-//                 label="Заголовок оголошення"
-//                 error={actionData?.errors?.title}
-//               />
-//             </Grid>
-
-//             {/* Category Selection */}
-//             <Grid xs={12}>
-//               <FormControl fullWidth error={!!actionData?.errors?.category}>
-//                 <InputLabel>Категорія</InputLabel>
-//                 <Select
-//                   name="category"
-//                   value={selectedCategoryId || ""}
-//                   onChange={handleCategoryChange}
-//                   label="Категорія"
-//                 >
-//                   {categories.map((cat) => (
-//                     <MenuItem key={cat.id} value={cat.id}>
-//                       {cat.name}
-//                     </MenuItem>
-//                   ))}
-//                 </Select>
-//                 {actionData?.errors?.category && (
-//                   <FormHelperText>{actionData.errors.category}</FormHelperText>
-//                 )}
-//               </FormControl>
-//             </Grid>
-
-//             {/* Subcategory Selection */}
-//             {selectedCategoryId && (
-//               <Grid xs={12}>
-//                 <FormControl fullWidth>
-//                   <InputLabel>Підкатегорія</InputLabel>
-//                   <Select name="subcategory" label="Підкатегорія">
-//                     {categories
-//                       .find((cat) => cat.id === selectedCategoryId)
-//                       ?.SubCategories?.map((sub) => (
-//                         <MenuItem key={sub.id} value={sub.id}>
-//                           {sub.name}
-//                         </MenuItem>
-//                       ))}
-//                   </Select>
-//                 </FormControl>
-//               </Grid>
-//             )}
-
-//             {/* Description Field */}
-//             <Grid xs={12}>
-//               <TextField
-//                 fullWidth
-//                 multiline
-//                 rows={4}
-//                 name="description"
-//                 label="Опис"
-//                 error={!!actionData?.errors?.description}
-//                 helperText={actionData?.errors?.description}
-//               />
-//             </Grid>
-
-//             {/* Price Field */}
-//             <Grid xs={12} sm={6}>
-//               <FormRow label="Ціна (якщо є)" name="price" type="number" />
-//             </Grid>
-
-//             {/* Country Selection */}
-//              <Grid xs={12} sm={6}>
-//               <FormRowSelect
-//                 name="country"
-//                 labelText="Країна"
-//                 defaultValue={selectedCountry}
-//                 list={countriesList}
-//               />
-//             </Grid>
-
-//             {/* State Selection */}
-//              {selectedCountry && (
-//               <Grid xs={12} sm={6}>
-//                 <FormControl fullWidth>
-//                   <InputLabel>Область/Регіон</InputLabel>
-//                   <Select name="state">
-//                     {statesList.map((state) => {
-//                       console.log("🚀 ~ {statesList.map ~ state:", state);
-
-//                       return (
-//                         <MenuItem key={state.isoCode} value={state.isoCode}>
-//                           {state.name}
-//                         </MenuItem>
-//                       );
-//                     })}
-//                   </Select>
-//                 </FormControl>
-//               </Grid>
-//             )}
-
-//             {/* Location and Contact Fields */}
-//              <Grid xs={12} sm={6}>
-//               <FormRow type="text" label="Місто" name="location" />
-//             </Grid>
-//             <Grid xs={12} sm={6}>
-//               <FormRow
-//                 type="email"
-//                 label="Email для зв'язку"
-//                 name="contactMethod"
-//               />
-//             </Grid>
-//             <Grid xs={12} sm={6}>
-//               <FormRow type="tel" label="Телефон" name="phone" />
-//             </Grid>
-
-//             <Grid item xs={12} sm={6}>
-//               <FormControl fullWidth>
-//                 <InputLabel>Країна</InputLabel>
-//                 <Select
-//                   name="country"
-//                   value={formData.country}
-//                   onChange={handleCountryChange}
-//                   label="Країна"
-//                   required
-//                 >
-//                   {countries.map((country) => (
-//                     <MenuItem key={country.id} value={country.id}>
-//                       {country.name}
-//                     </MenuItem>
-//                   ))}
-//                 </Select>
-//               </FormControl>
-//             </Grid>
-
-//             <Grid item xs={12} sm={6}>
-//               <FormControl fullWidth>
-//                 <InputLabel>Регіон/Область</InputLabel>
-//                 <Select
-//                   name="state"
-//                   value={formData.state}
-//                   onChange={handleStateChange}
-//                   label="Регіон/Область"
-//                   required
-//                   disabled={!formData.country}
-//                 >
-//                   {states.map((state) => (
-//                     <MenuItem key={state.id} value={state.id}>
-//                       {state.name}
-//                     </MenuItem>
-//                   ))}
-//                 </Select>
-//               </FormControl>
-//             </Grid>
-
-//             <Grid item xs={12} sm={6}>
-//               <FormControl fullWidth>
-//                 <InputLabel>Місто</InputLabel>
-//                 <Select
-//                   name="city"
-//                   value={formData.city}
-//                   onChange={handleInputChange}
-//                   label="Місто"
-//                   required
-//                   disabled={!formData.state}
-//                 >
-//                   {cities.map((city) => (
-//                     <MenuItem key={city.id} value={city.id}>
-//                       {city.name}
-//                     </MenuItem>
-//                   ))}
-//                 </Select>
-//               </FormControl>
-//             </Grid>
-
-//             <Grid item xs={12}>
-//               <Grid container spacing={2}>
-//                 <Grid item xs={4}>
-//                   <FormControl fullWidth>
-//                     <InputLabel>Код країни</InputLabel>
-//                     <Select
-//                       name="phoneCode"
-//                       value={formData.phoneCode}
-//                       onChange={handleInputChange}
-//                       label="Код країни"
-//                     >
-//                       {phoneCodes.map((code) => (
-//                         <MenuItem key={code.id} value={code.code}>
-//                           {code.code}
-//                         </MenuItem>
-//                       ))}
-//                     </Select>
-//                   </FormControl>
-//                 </Grid>
-//                 <Grid item xs={8}>
-//                   <TextField
-//                     fullWidth
-//                     label="Контактний телефон"
-//                     name="contactMethod"
-//                     value={formData.contactMethod}
-//                     onChange={handleInputChange}
-//                     required
-//                   />
-//                 </Grid>
-//               </Grid>
-//             </Grid>
-
-//             {/* Image Upload */}
-//             <Grid xs={12}>
-//               <input
-//                 accept="image/*"
-//                 style={{ display: "none" }}
-//                 id="image-upload"
-//                 multiple
-//                 type="file"
-//                 name="photos"
-//                 onChange={handleImageUpload}
-//               />
-//               <label htmlFor="image-upload">
-//                 <Box
-//                   sx={{
-//                     border: "2px dashed grey",
-//                     borderRadius: 2,
-//                     p: 3,
-//                     textAlign: "center",
-//                     cursor: "pointer",
-//                   }}
-//                 >
-//                   <Typography variant="h6">Додати фотографії</Typography>
-//                   <Typography variant="body2" color="textSecondary">
-//                     Клікніть або перетягніть файли
-//                   </Typography>
-//                 </Box>
-//               </label>
-
-//               {previewImages.length > 0 && (
-//                 <Box
-//                   sx={{
-//                     display: "flex",
-//                     flexWrap: "wrap",
-//                     gap: 2,
-//                     mt: 2,
-//                   }}
-//                 >
-//                   {previewImages.map((url, index) => (
-//                     <Box
-//                       key={index}
-//                       sx={{
-//                         position: "relative",
-//                         width: 100,
-//                         height: 100,
-//                       }}
-//                     >
-//                       <img
-//                         src={url}
-//                         alt={`Preview ${index + 1}`}
-//                         style={{
-//                           width: "100%",
-//                           height: "100%",
-//                           objectFit: "cover",
-//                         }}
-//                       />
-//                       <Button
-//                         size="small"
-//                         color="error"
-//                         sx={{
-//                           position: "absolute",
-//                           top: 0,
-//                           right: 0,
-//                         }}
-//                         onClick={() => removePreviewImage(index)}
-//                       >
-//                         X
-//                       </Button>
-//                     </Box>
-//                   ))}
-//                 </Box>
-//               )}
-//             </Grid>
-
-//             {/* Action Buttons */}
-//             <Grid xs={12}>
-//               <Box
-//                 sx={{
-//                   display: "flex",
-//                   justifyContent: "flex-end",
-//                   gap: 2,
-//                 }}
-//               >
-//                 <Button variant="outlined" component={Link} to="/profile">
-//                   Скасувати
-//                 </Button>
-//                 <Button
-//                   variant="contained"
-//                   color="primary"
-//                   type="submit"
-//                   disabled={navigation.state === "submitting"}
-//                 >
-//                   {navigation.state === "submitting"
-//                     ? "Публікація..."
-//                     : "Опублікувати"}
-//                 </Button>
-//               </Box>
-//             </Grid>
-//           </Grid>
-//         </Form>
-//       </Paper>
-//     </Fragment>
-//   );
-// };
-
-// CreateAdPage.propTypes = {};
-// export default CreateAdPage;

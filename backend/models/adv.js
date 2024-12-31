@@ -1,6 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
-const { Category } = require("./category");
+const { Category, SubCategory } = require("./category");
 const { User } = require("./user");
 
 const Adv = sequelize.define(
@@ -55,20 +55,7 @@ const Adv = sequelize.define(
         len: [10, 5000], // Longueur minimale et maximale de la description
       },
     },
-    // author: {
-    //   type: DataTypes.STRING,
-    //   allowNull: false,
-    //   validate: {
-    //     len: [2, 100],
-    //   },
-    // },
-    // contact: {
-    //   type: DataTypes.STRING,
-    //   allowNull: false,
-    //   validate: {
-    //     is: /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, // Validation de numéro de téléphone
-    //   },
-    // },
+
     email: {
       type: DataTypes.STRING(100),
       allowNull: false,
@@ -77,11 +64,6 @@ const Adv = sequelize.define(
         isEmail: { msg: "Format d'email invalide" },
       },
     },
-    // price: {
-    //   type: DataTypes.FLOAT,
-    //   allowNull: false,
-    //   defaultValue: 0,
-    // },
     price: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
@@ -117,7 +99,8 @@ const Adv = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "categories",
+        // model: "categories",
+        model: Category,
         key: "id",
       },
       validate: {
@@ -132,13 +115,34 @@ const Adv = sequelize.define(
         },
       },
     },
-    status: {
-      type: DataTypes.ENUM("Actif", "Inactif", "Vendu"),
-      defaultValue: "Actif",
-      validate: {
-        isIn: [["Actif", "Inactif", "Vendu"]],
-      },
-    },
+    // subcategoryId: {
+    //   type: DataTypes.INTEGER,
+    //   allowNull: false,
+    //   references: {
+    //     model: SubCategory,
+    //     key: "id",
+    //   },
+    //   validate: {
+    //     notNull: { msg: "La sous-catégorie est requise" },
+    //     async validateSubCategoryBelongsToCategory(value) {
+    //       if (value && this.categoryId) {
+    //         const subCategory = await SubCategory.findByPk(value);
+    //         if (!subCategory || subCategory.categoryId !== this.categoryId) {
+    //           throw new Error(
+    //             "La sous-catégorie doit appartenir à la catégorie sélectionnée"
+    //           );
+    //         }
+    //       }
+    //     },
+    //   },
+    // },
+    // status: {
+    //   type: DataTypes.ENUM("Actif", "Inactif", "Vendu"),
+    //   defaultValue: "Actif",
+    //   validate: {
+    //     isIn: [["Actif", "Inactif", "Vendu"]],
+    //   },
+    // },
     datePosted: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
@@ -183,11 +187,11 @@ const Adv = sequelize.define(
         }
       },
     },
-    indexes: [
-      { fields: ["email"] },
-      { fields: ["categoryId"] },
-      { fields: ["status"] },
-    ],
+    // indexes: [
+    //   { fields: ["email"] },
+    //   { fields: ["categoryId"] },
+    //   { fields: ["status"] },
+    // ],
     timestamps: true,
     tableName: "advs",
   }
@@ -251,9 +255,26 @@ User.hasMany(Adv, {
   as: "advs",
 });
 
-Adv.belongsTo(User, { foreignKey: "userId", as: "users" });
+Adv.belongsTo(User, { foreignKey: "userId", as: "user" });
 
-Adv.belongsTo(Category, { foreignKey: "categoryId", as: "categorie" });
-Category.hasMany(Adv, { foreignKey: "categoryId", as: "advs" });
+Adv.belongsTo(Category, {
+  foreignKey: "categoryId",
+  as: "category",
+});
+
+// Adv.belongsTo(SubCategory, {
+//   foreignKey: "subcategoryId",
+//   as: "subcategory",
+// });
+
+Category.hasMany(Adv, {
+  foreignKey: "categoryId",
+  as: "advs",
+});
+
+// SubCategory.hasMany(Adv, {
+//   foreignKey: "subcategoryId",
+//   as: "advs",
+// });
 
 module.exports = { Adv };

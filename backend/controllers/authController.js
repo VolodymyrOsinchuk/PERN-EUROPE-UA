@@ -117,7 +117,7 @@ exports.login = async (req, res) => {
       expires: new Date(Date.now() + oneDay),
       secure: process.env.NODE_ENV === "production",
     });
-    res.status(200).json({ msg: "user logged in" });
+    res.status(200).json({ msg: "user logged in", token });
   } catch (error) {
     res
       .status(500)

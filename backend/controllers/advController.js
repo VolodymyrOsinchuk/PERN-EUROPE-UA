@@ -1,7 +1,62 @@
-const { Adv, Photo } = require("../models/adv");
-const { v4: uuidv4 } = require("uuid"); // Pour générer des noms de fichiers uniques
+const { Adv } = require("../models/adv");
+const { Category, SubCategory } = require("../models/category");
+const { User } = require("../models/user");
 const sharp = require("sharp"); // Pour le redimensionnement et l'optimisation des images
 // Middleware amélioré pour la création d'annonce
+
+// Middleware de validation
+const validateFields = async (req, res, next) => {
+  try {
+    const {
+      title,
+      description,
+      price,
+      categoryId,
+      subcategoryId,
+      country,
+      state,
+      city,
+      location,
+      email,
+      phone,
+    } = req.body;
+
+    // Validation des champs requis
+    if (!title || !description || !categoryId || !subcategoryId) {
+      return res.status(400).json({
+        error: "Tous les champs obligatoires doivent être remplis",
+      });
+    }
+
+    // Validation du prix
+    if (price && (isNaN(price) || price < 0)) {
+      return res.status(400).json({
+        error: "Le prix doit être un nombre positif",
+      });
+    }
+
+    // Vérification de l'existence de la catégorie
+    const category = await Category.findByPk(categoryId);
+    if (!category) {
+      return res.status(400).json({
+        error: "Catégorie invalide",
+      });
+    }
+
+    // Vérification de l'existence de la sous-catégorie
+    const subcategory = await SubCategory.findByPk(subcategoryId);
+    if (!subcategory || subcategory.categoryId !== parseInt(categoryId)) {
+      return res.status(400).json({
+        error: "Sous-catégorie invalide ou ne correspond pas à la catégorie",
+      });
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.createAnnonce = async (req, res) => {
   console.log("🚀 ~ exports.createAnnonce= ~ req.body:", req.body);
   console.log("🚀 ~ exports.createAnnonce= ~ req.files:", req.files);
@@ -11,27 +66,19 @@ exports.createAnnonce = async (req, res) => {
     // Validation des données d'entrée
     const {
       title,
-      category,
+      description,
+      price,
+      categoryId,
+      subcategoryId,
       country,
       state,
       city,
-      postalCode,
-      description,
-      price,
-      author,
-      contact,
+      location,
+      phone,
       email,
       amenities,
-      categoryId,
-      status,
     } = req.body;
 
-    // Vérification des champs obligatoires
-    if (!title || !description || !price) {
-      return res.status(400).json({
-        error: "Tous les champs obligatoires ne sont pas remplis",
-      });
-    }
     // Récupérer les chemins des fichiers uploadés
     const photoPaths = req.files ? req.files.map((file) => file.path) : [];
     console.log("🚀 ~ exports.createAnnonce= ~  photoPaths:", photoPaths);
@@ -39,24 +86,24 @@ exports.createAnnonce = async (req, res) => {
     // Récupération et préparation des données de l'annonce
     const adData = {
       title,
-      // author,
-      contact,
-      email,
-      amenities,
       description,
+      price: parseFloat(price) || null,
+      categoryId: parseFloat(categoryId),
+      subcategoryId: parseFloat(subcategoryId),
       country,
       state,
       city,
-      // postalCode: parseFloat(postalCode),
-      price: parseFloat(price),
-      categoryId: parseFloat(categoryId),
-      category,
-      // Autres champs avec validation et transformation
-      status,
+      location,
+      phone,
+      email,
+      amenities,
       photos: photoPaths,
+      status: "Active",
       userId: req.user.userId,
-      // datePosted: new Date(),
-      // Ajoutez d'autres champs par défaut si nécessaire
+      datePosted: new Date(),
+      expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours
+      views: 0,
+      isPromoted: false,
     };
 
     // Création de l'annonce
@@ -163,17 +210,81 @@ exports.getAnnonceById = async (req, res) => {
 
 exports.updateAnnonce = async (req, res) => {
   try {
-    const [updated] = await Adv.update(req.body, {
-      where: { id: req.params.id },
-    });
-    if (updated) {
-      const updatedAnnonce = await Adv.findByPk(req.params.id);
-      res.status(200).json(updatedAnnonce);
-    } else {
-      res.status(404).json({ message: "Adv non trouvée" });
+    const adv = req.adv; // From checkOwnership middleware
+    console.log("🚀 ~ exports.updateAnnonce= ~ adv:", adv);
+
+    const {
+      title,
+      description,
+      price,
+      categoryId,
+      // subcategoryId,
+      country,
+      state,
+      city,
+      location,
+      email,
+      phone,
+      status,
+      amenities,
+    } = req.body;
+
+    // Mise à jour des champs
+    const updateData = {};
+    if (title) updateData.title = title;
+    if (description) updateData.description = description;
+    if (price) updateData.price = price;
+    if (categoryId) updateData.categoryId = categoryId;
+    // if (subcategoryId) updateData.subcategoryId = subcategoryId;
+    if (country) updateData.country = country;
+    if (state) updateData.state = state;
+    if (city) updateData.city = city;
+    if (location) updateData.location = location;
+    if (email) updateData.email = email;
+    if (phone) updateData.phone = phone;
+    if (status) updateData.status = status;
+    if (amenities) updateData.amenities = amenities;
+
+    // Gestion des nouvelles photos si présentes
+    if (req.files && req.files.length > 0) {
+      const newPhotos = req.files.map((file) => file.path);
+      updateData.photos = [...(adv.photos || []), ...newPhotos];
     }
+
+    // Mise à jour de l'annonce
+    await adv.update(updateData);
+
+    // Récupérer l'annonce mise à jour avec les relations
+    const updatedAdv = await Adv.findByPk(adv.id, {
+      include: [
+        {
+          model: Category,
+          as: "category",
+          attributes: ["id", "name"],
+        },
+        // {
+        //   model: SubCategory,
+        //   as: "subcategory",
+        //   attributes: ["id", "name"],
+        // },
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "email"],
+        },
+      ],
+    });
+
+    res.status(200).json({
+      message: "Annonce mise à jour avec succès",
+      data: updatedAdv,
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("Erreur lors de la mise à jour:", error);
+    res.status(500).json({
+      error: "Erreur lors de la mise à jour de l'annonce",
+      details: error.message,
+    });
   }
 };
 

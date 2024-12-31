@@ -9,6 +9,8 @@ const {
   updateAnnonce,
 } = require("../controllers/advController");
 const upload = require("../middleware/multer");
+const checkOwnership = require("../middleware/checkOwnership");
+const validateUpdateFields = require("../middleware/validateUpdateFields");
 
 router
   .route("/")
@@ -17,7 +19,13 @@ router
 router
   .route("/:id")
   .get(getAnnonceById)
-  .put(updateAnnonce)
+  .put(
+    authMiddleware,
+    checkOwnership,
+    upload.array("photos", 5),
+    validateUpdateFields,
+    updateAnnonce
+  )
   .delete(deleteAnnonce);
 
 module.exports = router;

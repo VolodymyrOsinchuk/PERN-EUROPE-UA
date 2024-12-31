@@ -60,7 +60,7 @@ app.listen(port, () => {
 
 const testDbConnection = async () => {
   try {
-    await sequelize.sync();
+    await sequelize.sync({ alter: true });
     console.log("З'єднання з базою даних встановлено успішно");
   } catch (error) {
     console.error("Не вдається підключитися до бази даних:", error);
