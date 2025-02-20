@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import {
   Admin,
   Ads,
@@ -21,13 +21,14 @@ import {
   Publications,
   Register,
   VerifyAccount,
-} from "./pages";
+  PrivacyPolicy,
+} from './pages'
 
-import { CategoryForm, Loading } from "./components";
+import { CategoryForm, Loading } from './components'
 
-import { action as registerAction } from "./pages/Register";
-import { action as loginAction } from "./pages/Login";
-import { action as createAdAction } from "./pages/CreateAdPage";
+import { action as registerAction } from './pages/Register'
+import { action as loginAction } from './pages/Login'
+import { action as createAdAction } from './pages/CreateAdPage'
 // import { action as categoryAction } from "./pages/CategoryManager";
 // import { action as categoryAction } from "./pages/CategoryMenager1";
 import {
@@ -35,21 +36,21 @@ import {
   // updateCategoryAction,
   // deleteCategoryAction,
   categoryAction,
-} from "./pages/CategoryMenager1";
+} from './pages/CategoryMenager1'
 
-import { loader as accountLoader } from "./pages/VerifyAccount";
+import { loader as accountLoader } from './pages/VerifyAccount'
 // import { loader as categoryLoader } from "./pages/CategoryManager";
-import { loader as categoryLoader } from "./pages/CategoryMenager1";
-import { loader as adsLoader } from "./pages/Ads";
-import { loader as adLoader } from "./pages/AdDetailPage";
-import { loader as catLoader } from "./pages/CreateAdPage";
-import { loader as profileLoader } from "./pages/ProfileLayout";
-import { loader as categoryDetailsLoader } from "./pages/CategoryDetails";
+import { loader as categoryLoader } from './pages/CategoryMenager1'
+import { loader as adsLoader } from './pages/Ads'
+import { loader as adLoader } from './pages/AdDetailPage'
+import { loader as catLoader } from './pages/CreateAdPage'
+import { loader as profileLoader } from './pages/ProfileLayout'
+import { loader as categoryDetailsLoader } from './pages/CategoryDetails'
 
 const router = createBrowserRouter(
   [
     {
-      path: "/",
+      path: '/',
       element: <HomeLayout />,
       errorElement: <ErrorPage />,
       children: [
@@ -59,62 +60,67 @@ const router = createBrowserRouter(
           HydrateFallback: Loading,
         },
         {
-          path: "forum",
+          path: 'forum',
           element: <Forum />,
           HydrateFallback: Loading,
         },
         {
-          path: "news",
+          path: 'news',
           element: <News />,
           HydrateFallback: Loading,
         },
         {
-          path: "ads",
+          path: 'ads',
           element: <Ads />,
           loader: adsLoader,
           HydrateFallback: Loading,
         },
         {
-          path: "ads/:id",
+          path: 'ads/:id',
           element: <AdDetailPage />,
           HydrateFallback: Loading,
 
           loader: adLoader,
         },
         {
-          path: "login",
+          path: 'login',
           element: <Login />,
           action: loginAction,
           HydrateFallback: Loading,
         },
         {
-          path: "register",
+          path: 'register',
           element: <Register />,
           action: registerAction,
           HydrateFallback: Loading,
         },
         {
-          path: "verify-account/:token",
+          path: 'verify-account/:token',
           element: <VerifyAccount />,
           loader: accountLoader,
         },
         {
-          path: "events",
+          path: 'events',
           element: <Events />,
           HydrateFallback: Loading,
         },
         {
-          path: "contact",
+          path: 'contact',
           element: <Contacts />,
           HydrateFallback: Loading,
         },
         {
-          path: "publications",
+          path: 'publications',
           element: <Publications />,
           HydrateFallback: Loading,
         },
         {
-          path: "profile",
+          path: 'privacy-policy',
+          element: <PrivacyPolicy />,
+          HydrateFallback: Loading,
+        },
+        {
+          path: 'profile',
           element: <ProfileLayout />,
           HydrateFallback: Loading,
 
@@ -127,7 +133,7 @@ const router = createBrowserRouter(
               HydrateFallback: Loading,
             },
             {
-              path: "create-ad",
+              path: 'create-ad',
               element: <CreateAdPage />,
               HydrateFallback: Loading,
 
@@ -139,7 +145,7 @@ const router = createBrowserRouter(
       ],
     },
     {
-      path: "dashboard",
+      path: 'dashboard',
       element: <DashboardLayout />,
       children: [
         {
@@ -148,19 +154,19 @@ const router = createBrowserRouter(
           HydrateFallback: Loading,
         },
         {
-          path: "admin",
+          path: 'admin',
           element: <Admin />,
           HydrateFallback: Loading,
         },
         {
-          path: "create-ad",
+          path: 'create-ad',
           element: <CreateAdPage />,
           HydrateFallback: Loading,
 
           loader: catLoader,
         },
         {
-          path: "categories",
+          path: 'categories',
           element: <CategoryManager1 />,
           HydrateFallback: Loading,
 
@@ -199,7 +205,7 @@ const router = createBrowserRouter(
       v7_startTransition: true,
     },
   }
-);
+)
 
 const App = () => {
   return (
@@ -214,6 +220,6 @@ const App = () => {
         v7_startTransition: true,
       }}
     />
-  );
-};
-export default App;
+  )
+}
+export default App

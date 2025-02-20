@@ -1,4 +1,4 @@
-import PropTypes from "prop-types";
+import PropTypes from 'prop-types'
 import {
   Typography,
   Button,
@@ -10,10 +10,10 @@ import {
   CardActions,
   Paper,
   Box,
-} from "@mui/material";
-import { Link } from "react-router-dom";
-import { HeroSection, SectionsGrid } from "../components";
-import "../assets/css/home.css";
+} from '@mui/material'
+import { Link } from 'react-router-dom'
+import { HeroSection, SectionsGrid } from '../components'
+import '../assets/css/home.css'
 
 // console.log("Environnement:", import.meta.env);
 
@@ -23,10 +23,10 @@ import "../assets/css/home.css";
 // console.log("🚀 ~ isDebug :", isDebug);
 const Home = (props) => {
   return (
-    <Box component="div" sx={{ backgroundColor: "#f5f5f5" }}>
+    <Box component="div">
       <HeroSection
         title="Українці в Європі"
-        typedStrings={["Українці в Європі"]}
+        typedStrings={['Українці в Європі']}
         subtitle="Ваш путівник у житті за кордоном"
         buttonText="Приєднатися до спільноти"
         buttonLink="/register"
@@ -169,7 +169,7 @@ const Home = (props) => {
           ))}
         </Grid2>
 
-        <Paper elevation={3} style={{ marginTop: "40px", padding: "20px" }}>
+        <Paper elevation={3} style={{ marginTop: '40px', padding: '20px' }}>
           <Typography variant="h4" gutterBottom>
             Про нас
           </Typography>
@@ -187,8 +187,8 @@ const Home = (props) => {
         </Paper>
       </Container>
     </Box>
-  );
-};
+  )
+}
 
-Home.propTypes = {};
-export default Home;
+Home.propTypes = {}
+export default Home
