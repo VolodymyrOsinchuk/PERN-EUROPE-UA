@@ -67,10 +67,11 @@ import { Box, Typography, Link } from '@mui/material'
 const Footer = () => {
   return (
     <Box
+      component="footer" // Ajout d'une spécification sémantique
       sx={{
-        backgroundColor: '#f8f8f8',
+        backgroundColor: 'black',
         py: 6,
-        mt: 10,
+        // mt: 10,
         borderTop: 1,
         borderColor: 'gray.200',
       }}
@@ -78,15 +79,23 @@ const Footer = () => {
       <Box sx={{ textAlign: 'center' }}>
         <Typography
           variant="body2"
-          sx={{ color: 'gray', fontSize: '0.875rem' }}
+          sx={{ color: 'white', fontSize: '0.875rem' }}
         >
-          2024 Українці в Європі. Всі права захищені.
+          {new Date().getFullYear()} Українці в Європі. Всі права захищені.
           <Box component="span" sx={{ mx: 2 }}>
             •
           </Box>
           <Link
             href="/privacy-policy"
-            sx={{ color: 'gray', '&:hover': { color: 'blue' } }}
+            component="a" // Spécifier le composant de base
+            sx={{
+              color: 'white',
+              textDecoration: 'none', // Optionnel: pour un style plus propre
+              '&:hover': {
+                color: 'blue',
+                textDecoration: 'underline', // Meilleure indication visuelle
+              },
+            }}
           >
             Політика конфіденційності
           </Link>

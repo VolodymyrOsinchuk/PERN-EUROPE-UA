@@ -101,10 +101,7 @@ const CookieBanner = ({ onAccept }) => {
         <Typography variant="body2">
           Цей веб-сайт використовує файли cookie для покращення вашого досвіду.
           Продовжуючи користуватися сайтом, ви погоджуєтеся з нашою
-          <Link
-            href="/політика-конфіденційності"
-            sx={{ color: '#90caf9', ml: 1 }}
-          >
+          <Link href="/privacy-policy" sx={{ color: '#90caf9', ml: 1 }}>
             політикою конфіденційності
           </Link>
           .
