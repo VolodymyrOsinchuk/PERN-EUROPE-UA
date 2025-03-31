@@ -1,11 +1,10 @@
 import { Outlet } from 'react-router-dom'
 import { Navbar, Footer } from '../components'
 import { Stack } from '@mui/material'
-import { useProfileContext } from './ProfileLayout'
 import { CookieBanner } from '../components'
-const HomeLayout = () => {
-  const item = useProfileContext()
+import { Loading } from '../components'
 
+const HomeLayout = () => {
   const handleCookieAccept = () => {
     console.log('Cookies accepted')
   }
@@ -24,7 +23,7 @@ const HomeLayout = () => {
         }}
         component="main"
       >
-        <Outlet />
+        {isPageLoading ? <Loading /> : <Outlet />}
       </Stack>
       <Footer />
       <CookieBanner onAccept={handleCookieAccept} />

@@ -1,8 +1,9 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import {
+  AdDetailPage,
   Admin,
   Ads,
-  AdDetailPage,
+  AppLayout,
   CategoryDetails,
   CategoryManager1,
   Contacts,
@@ -16,12 +17,12 @@ import {
   HomeLayout,
   Login,
   News,
+  PrivacyPolicy,
   Profile,
   ProfileLayout,
   Publications,
   Register,
   VerifyAccount,
-  PrivacyPolicy,
 } from './pages'
 
 import { CategoryForm, Loading } from './components'
@@ -44,14 +45,16 @@ import { loader as categoryLoader } from './pages/CategoryMenager1'
 import { loader as adsLoader } from './pages/Ads'
 import { loader as adLoader } from './pages/AdDetailPage'
 import { loader as catLoader } from './pages/CreateAdPage'
-import { loader as profileLoader } from './pages/ProfileLayout'
+import { loader as profileLoader } from './layouts/ProfileLayout'
 import { loader as categoryDetailsLoader } from './pages/CategoryDetails'
 
 const router = createBrowserRouter(
   [
     {
       path: '/',
-      element: <HomeLayout />,
+      element: <AppLayout />,
+      HydrateFallback: Loading,
+      // loader: profileLoader,
       errorElement: <ErrorPage />,
       children: [
         {
@@ -119,33 +122,31 @@ const router = createBrowserRouter(
           element: <PrivacyPolicy />,
           HydrateFallback: Loading,
         },
+      ],
+    },
+    {
+      path: '/profile',
+      element: <ProfileLayout />,
+      HydrateFallback: Loading,
+      loader: profileLoader,
+      children: [
         {
-          path: 'profile',
-          element: <ProfileLayout />,
+          index: true,
+          element: <Profile />,
+          HydrateFallback: Loading,
+        },
+        {
+          path: 'create-ad',
+          element: <CreateAdPage />,
           HydrateFallback: Loading,
 
-          loader: profileLoader,
-
-          children: [
-            {
-              index: true,
-              element: <Profile />,
-              HydrateFallback: Loading,
-            },
-            {
-              path: 'create-ad',
-              element: <CreateAdPage />,
-              HydrateFallback: Loading,
-
-              loader: catLoader,
-              action: createAdAction,
-            },
-          ],
+          loader: catLoader,
+          action: createAdAction,
         },
       ],
     },
     {
-      path: 'dashboard',
+      path: '/dashboard',
       element: <DashboardLayout />,
       children: [
         {

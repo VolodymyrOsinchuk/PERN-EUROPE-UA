@@ -1,5 +1,5 @@
-import { useState } from "react";
-import PropTypes from "prop-types";
+import { useState } from 'react'
+import PropTypes from 'prop-types'
 import {
   Button,
   Typography,
@@ -11,96 +11,98 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-} from "@mui/material";
-import Grid from "@mui/material/Grid2";
-import Info from "../components/Info";
-import ProfileHeader from "../components/ProfileHeader";
-import AdCard from "../components/AdCard";
-import TabNavigation from "../components/TabNavigation";
-import DeleteDialog from "../components/DeleteDialog";
-import "../assets/css/profile.css";
-import { Link } from "react-router-dom";
-import { useProfileContext } from "./ProfileLayout";
+} from '@mui/material'
+import Grid from '@mui/material/Grid2'
+import Info from '../components/Info'
+import ProfileHeader from '../components/ProfileHeader'
+import AdCard from '../components/AdCard'
+import TabNavigation from '../components/TabNavigation'
+import DeleteDialog from '../components/DeleteDialog'
+import '../assets/css/profile.css'
+import { Link } from 'react-router-dom'
+import { useProfileContext } from '../layouts/ProfileLayout'
 
 const advertisements = [
   {
     id: 1,
-    title: "Шукаю роботу програмістом",
-    date: "10.06.2023",
+    title: 'Шукаю роботу програмістом',
+    date: '10.06.2023',
     description:
-      "5 років досвіду роботи з React, Node.js. Шукаю віддалену роботу або офіс у Берліні.",
+      '5 років досвіду роботи з React, Node.js. Шукаю віддалену роботу або офіс у Берліні.',
     views: 245,
     responses: 12,
   },
   {
     id: 2,
-    title: "Здам кімнату в Берліні",
-    date: "05.06.2023",
+    title: 'Здам кімнату в Берліні',
+    date: '05.06.2023',
     description:
-      "Затишна кімната в районі Мітте, 18м², повністю мебльована. 650€ на місяць включно з комунальними.",
+      'Затишна кімната в районі Мітте, 18м², повністю мебльована. 650€ на місяць включно з комунальними.',
     views: 532,
     responses: 8,
   },
   {
     id: 3,
-    title: "Пропоную послуги перекладача",
-    date: "01.06.2023",
+    title: 'Пропоную послуги перекладача',
+    date: '01.06.2023',
     description:
-      "Усний та письмовий переклад українська-німецька-англійська. Досвід роботи 3 роки.",
+      'Усний та письмовий переклад українська-німецька-англійська. Досвід роботи 3 роки.',
     views: 167,
     responses: 5,
   },
-];
+]
 const Profile = () => {
-  const { user } = useProfileContext();
-  const [value, setValue] = useState(0);
-  const [languageAnchor, setLanguageAnchor] = useState(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedAd, setSelectedAd] = useState(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const { user } = useProfileContext()
+  // console.log('🚀 ~ Profile ~  user:', user)
+
+  const [value, setValue] = useState(0)
+  const [languageAnchor, setLanguageAnchor] = useState(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [selectedAd, setSelectedAd] = useState(null)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [profileData, setProfileData] = useState({
-    name: "Олена Петренко",
-    location: "Берлін, Німеччина",
-    email: "olena.p@example.com",
-    phone: "+49 123 456 789",
+    name: 'Олена Петренко',
+    location: 'Берлін, Німеччина',
+    email: 'olena.p@example.com',
+    phone: '+49 123 456 789',
     about:
-      "Переїхала до Німеччини у 2022 році. Працюю IT-спеціалістом, люблю подорожувати та знайомитися з новими людьми.",
-  });
+      'Переїхала до Німеччини у 2022 році. Працюю IT-спеціалістом, люблю подорожувати та знайомитися з новими людьми.',
+  })
 
   const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
+    setValue(newValue)
+  }
 
   const handleEditDialogOpen = () => {
-    setEditDialogOpen(true);
-  };
+    setEditDialogOpen(true)
+  }
 
   const handleEditDialogClose = () => {
-    setEditDialogOpen(false);
-  };
+    setEditDialogOpen(false)
+  }
 
   const handleProfileUpdate = () => {
     // Here would be API call to update profile
-    handleEditDialogClose();
-  };
+    handleEditDialogClose()
+  }
 
   const handleInputChange = (e) => {
     setProfileData({
-      ...profileData,
+      ...user,
       [e.target.name]: e.target.value,
-    });
-  };
+    })
+  }
 
   const handleDeleteClick = (ad) => {
-    setSelectedAd(ad);
-    setDeleteDialogOpen(true);
-  };
+    setSelectedAd(ad)
+    setDeleteDialogOpen(true)
+  }
 
   const handleDeleteConfirm = () => {
     // Handle delete logic here
-    setDeleteDialogOpen(false);
-    setSelectedAd(null);
-  };
+    setDeleteDialogOpen(false)
+    setSelectedAd(null)
+  }
 
   return (
     <>
@@ -117,9 +119,9 @@ const Profile = () => {
             <Grid size={12}>
               <Box
                 sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                   mb: 3,
                 }}
               >
@@ -146,14 +148,14 @@ const Profile = () => {
         )}
 
         {value === 2 && (
-          <Paper elevation={3} style={{ padding: "20px" }}>
+          <Paper elevation={3} style={{ padding: '20px' }}>
             <Typography variant="h6" gutterBottom>
               Налаштування профілю
             </Typography>
             <Button
               variant="contained"
               color="primary"
-              style={{ marginRight: "10px" }}
+              style={{ marginRight: '10px' }}
               onClick={handleEditDialogOpen}
             >
               Редагувати профіль
@@ -233,7 +235,7 @@ const Profile = () => {
         </Dialog>
       </Container>
     </>
-  );
-};
-Profile.propTypes = {};
-export default Profile;
+  )
+}
+Profile.propTypes = {}
+export default Profile
