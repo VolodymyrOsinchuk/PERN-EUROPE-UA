@@ -1,11 +1,11 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import {
   AdDetailPage,
-  Admin,
+  Users,
   Ads,
   AppLayout,
   CategoryDetails,
-  CategoryManager1,
+  CategoryManager,
   Contacts,
   CreateAdPage,
   Dashboard,
@@ -17,12 +17,14 @@ import {
   HomeLayout,
   Login,
   News,
-  PrivacyPolicy,
+  Policy,
   Profile,
   ProfileLayout,
   Publications,
   Register,
   VerifyAccount,
+  AdsManager,
+  EventsManager,
 } from './pages'
 
 import { CategoryForm, Loading } from './components'
@@ -30,6 +32,7 @@ import { CategoryForm, Loading } from './components'
 import { action as registerAction } from './pages/Register'
 import { action as loginAction } from './pages/Login'
 import { action as createAdAction } from './pages/CreateAdPage'
+import { action as updateProfileAction } from './pages/Profile'
 // import { action as categoryAction } from "./pages/CategoryManager";
 // import { action as categoryAction } from "./pages/CategoryMenager1";
 import {
@@ -37,16 +40,20 @@ import {
   // updateCategoryAction,
   // deleteCategoryAction,
   categoryAction,
-} from './pages/CategoryMenager1'
+} from './pages/CategoryManager'
 
 import { loader as accountLoader } from './pages/VerifyAccount'
 // import { loader as categoryLoader } from "./pages/CategoryManager";
-import { loader as categoryLoader } from './pages/CategoryMenager1'
+import { loader as categoryLoader } from './pages/CategoryManager'
 import { loader as adsLoader } from './pages/Ads'
 import { loader as adLoader } from './pages/AdDetailPage'
 import { loader as catLoader } from './pages/CreateAdPage'
 import { loader as profileLoader } from './layouts/ProfileLayout'
 import { loader as categoryDetailsLoader } from './pages/CategoryDetails'
+import { loader as dashboardLoader } from './pages/Dashboard'
+import { loader as usersLoader, action as usersAction } from './pages/Users'
+import { loader as adsManagerLoader } from './pages/AdsManager'
+import { loader as eventsManagerLoader } from './pages/EventsManager'
 
 const router = createBrowserRouter(
   [
@@ -118,8 +125,8 @@ const router = createBrowserRouter(
           HydrateFallback: Loading,
         },
         {
-          path: 'privacy-policy',
-          element: <PrivacyPolicy />,
+          path: 'policy',
+          element: <Policy />,
           HydrateFallback: Loading,
         },
       ],
@@ -134,12 +141,12 @@ const router = createBrowserRouter(
           index: true,
           element: <Profile />,
           HydrateFallback: Loading,
+          action: updateProfileAction,
         },
         {
           path: 'create-ad',
           element: <CreateAdPage />,
           HydrateFallback: Loading,
-
           loader: catLoader,
           action: createAdAction,
         },
@@ -152,11 +159,26 @@ const router = createBrowserRouter(
         {
           index: true,
           element: <Dashboard />,
+          loader: dashboardLoader,
           HydrateFallback: Loading,
         },
         {
-          path: 'admin',
-          element: <Admin />,
+          path: 'users',
+          element: <Users />,
+          loader: usersLoader,
+          action: usersAction,
+          HydrateFallback: Loading,
+        },
+        {
+          path: 'ads',
+          element: <AdsManager />,
+          loader: adsManagerLoader,
+          HydrateFallback: Loading,
+        },
+        {
+          path: 'events',
+          element: <EventsManager />,
+          loader: eventsManagerLoader,
           HydrateFallback: Loading,
         },
         {
@@ -168,7 +190,7 @@ const router = createBrowserRouter(
         },
         {
           path: 'categories',
-          element: <CategoryManager1 />,
+          element: <CategoryManager />,
           HydrateFallback: Loading,
 
           loader: categoryLoader,

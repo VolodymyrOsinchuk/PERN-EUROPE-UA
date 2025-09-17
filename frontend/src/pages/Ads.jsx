@@ -1,5 +1,5 @@
-import React from "react";
-import PropTypes from "prop-types";
+import React from 'react'
+import PropTypes from 'prop-types'
 import {
   Typography,
   Container,
@@ -11,50 +11,50 @@ import {
   Fab,
   ToggleButton,
   ToggleButtonGroup,
-} from "@mui/material";
-import Grid from "@mui/material/Grid2";
-import { GridView, HeroSection, ListView } from "../components/";
-import "../assets/css/ads.css";
-import customFetch from "../utils/customFetch";
-import { toast } from "react-toastify";
-import { useLoaderData } from "react-router-dom";
+} from '@mui/material'
+import Grid from '@mui/material/Grid'
+import { GridView, HeroSection, ListView } from '../components/'
+import '../assets/css/ads.css'
+import customFetch from '../utils/customFetch'
+import { toast } from 'react-toastify'
+import { useLoaderData } from 'react-router-dom'
 
 export const loader = async () => {
   try {
-    const { data } = await customFetch.get(`/adv`);
+    const { data } = await customFetch.get(`/adv`)
 
     // console.log("🚀 ~ loader ~ data :", data);
-    return data;
+    return data
   } catch (error) {
-    console.log("🚀 ~ loader ~ error:", error);
-    toast.error(error?.response.data?.msg);
-    return error;
+    console.log('🚀 ~ loader ~ error:', error)
+    toast.error(error?.response.data?.msg)
+    return error
   }
-};
+}
 const Ads = (props) => {
-  const data = useLoaderData();
+  const data = useLoaderData()
   // console.log("🚀 ~ Ads ~ data:", data);
-  const [category, setCategory] = React.useState("");
-  const [city, setCity] = React.useState("");
-  const [viewMode, setViewMode] = React.useState("grid");
+  const [category, setCategory] = React.useState('')
+  const [city, setCity] = React.useState('')
+  const [viewMode, setViewMode] = React.useState('grid')
 
   const handleViewChange = (event, newView) => {
     if (newView !== null) {
-      setViewMode(newView);
+      setViewMode(newView)
     }
-  };
+  }
 
   return (
     <>
       <HeroSection
         title="Оголошення"
-        typedStrings={["Оголошення"]}
+        typedStrings={['Оголошення']}
         subtitle="Важлива інформація та актуальні повідомлення для української діаспори"
         buttonText="Переглянути оголошення"
         buttonLink="/ads"
         textAlign="left"
       />
-      <Container style={{ marginTop: "30px" }}>
+      <Container style={{ marginTop: '30px' }}>
         <Typography variant="h4" gutterBottom>
           Дошка оголошень
         </Typography>
@@ -119,7 +119,7 @@ const Ads = (props) => {
           </ToggleButtonGroup>
         </div>
 
-        {viewMode === "grid" ? (
+        {viewMode === 'grid' ? (
           <GridView ads={data} />
         ) : (
           <ListView ads={data} />
@@ -130,7 +130,8 @@ const Ads = (props) => {
         </Fab>
       </Container>
     </>
-  );
-};
-Ads.propTypes = {};
-export default Ads;
+  )
+}
+
+Ads.propTypes = {}
+export default Ads

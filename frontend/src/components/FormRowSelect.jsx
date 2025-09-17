@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react'
 import {
   TextField,
   FormControl,
@@ -6,14 +6,14 @@ import {
   Select,
   MenuItem,
   FormHelperText,
-} from "@mui/material";
-import Grid from "@mui/material/Grid2";
-import PropTypes from "prop-types";
+} from '@mui/material'
+import Grid from '@mui/material/Grid'
+import PropTypes from 'prop-types'
 
 const FormRowSelect = ({
   name,
   labelText,
-  defaultValue = "",
+  defaultValue = '',
   list,
   onChange,
   error,
@@ -46,8 +46,8 @@ const FormRowSelect = ({
         </FormControl>
       </Grid>
     </Grid>
-  );
-};
+  )
+}
 
 FormRowSelect.propTypes = {
   name: PropTypes.string.isRequired,
@@ -64,5 +64,5 @@ FormRowSelect.propTypes = {
   onChange: PropTypes.func,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   error: PropTypes.string,
-};
-export default FormRowSelect;
+}
+export default FormRowSelect

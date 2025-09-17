@@ -13,6 +13,7 @@ const advRoutes = require('./routes/advRouter')
 const categoryRoutes = require('./routes/categoryRouter')
 const authRoutes = require('./routes/authRouter')
 const userRoutes = require('./routes/userRouter')
+const eventRoutes = require('./routes/eventRouter')
 const config = require('./config/config')
 const { authMiddleware } = require('./middleware/authMiddleware')
 
@@ -46,11 +47,12 @@ app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/users', authMiddleware, userRoutes)
 app.use('/api/v1/adv', advRoutes)
 app.use('/api/v1/categories', categoryRoutes)
+app.use('/api/v1/events', authMiddleware, eventRoutes)
 
 // Gestion des erreurs 404
-app.use('*', (req, res) => {
-  res.status(404).json({ msg: 'не знайдено' })
-})
+// app.use('*', (req, res) => {
+//   res.status(404).json({ msg: 'не знайдено' })
+// })
 
 // Gestion des erreurs 500
 app.use((err, req, res, next) => {

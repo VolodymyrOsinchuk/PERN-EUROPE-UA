@@ -26,7 +26,7 @@ import {
   MenuItem,
   CircularProgress,
 } from '@mui/material'
-import Grid from '@mui/material/Grid2'
+import Grid from '@mui/material/Grid'
 import PropTypes from 'prop-types'
 import { ImageGallery } from '../components'
 import '../assets/css/adDetailPage.css'

@@ -55,7 +55,7 @@
 import React, { useState, useEffect } from 'react'
 import { Button, Typography, Link, Box } from '@mui/material'
 
-const CookieBanner = ({ onAccept }) => {
+const Banner = ({ onAccept }) => {
   const [visible, setVisible] = useState(true)
 
   useEffect(() => {
@@ -101,7 +101,7 @@ const CookieBanner = ({ onAccept }) => {
         <Typography variant="body2">
           Цей веб-сайт використовує файли cookie для покращення вашого досвіду.
           Продовжуючи користуватися сайтом, ви погоджуєтеся з нашою
-          <Link href="/privacy-policy" sx={{ color: '#90caf9', ml: 1 }}>
+          <Link href="/policy" sx={{ color: '#90caf9', ml: 1 }}>
             політикою конфіденційності
           </Link>
           .
@@ -116,4 +116,4 @@ const CookieBanner = ({ onAccept }) => {
   )
 }
 
-export default CookieBanner
+export default Banner

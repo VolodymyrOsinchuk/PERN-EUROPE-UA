@@ -1,6 +1,6 @@
-import { useState } from "react";
-import PropTypes from "prop-types";
-import { HeroSection } from "../components";
+import { useState } from 'react'
+import PropTypes from 'prop-types'
+import { HeroSection } from '../components'
 import {
   Alert,
   Box,
@@ -10,30 +10,30 @@ import {
   Paper,
   TextField,
   Typography,
-} from "@mui/material";
-import Grid from "@mui/material/Grid2";
-import "../assets/css/contact.css";
+} from '@mui/material'
+import Grid from '@mui/material/Grid'
+import '../assets/css/contact.css'
 const Contacts = (props) => {
-  const [formStatus, setFormStatus] = useState(null);
+  const [formStatus, setFormStatus] = useState(null)
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  });
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
+  })
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    setFormStatus("success");
+    e.preventDefault()
+    setFormStatus('success')
     // Here would be the actual form submission logic
-  };
+  }
 
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
-    });
-  };
+    })
+  }
 
   return (
     <>
@@ -51,13 +51,13 @@ const Contacts = (props) => {
             <Paper
               elevation={3}
               className="contact-form"
-              style={{ padding: "20px" }}
+              style={{ padding: '20px' }}
             >
               <Typography variant="h5" gutterBottom>
                 Форма зворотного зв'язку
               </Typography>
-              {formStatus === "success" && (
-                <Alert severity="success" style={{ marginBottom: "20px" }}>
+              {formStatus === 'success' && (
+                <Alert severity="success" style={{ marginBottom: '20px' }}>
                   Дякуємо за ваше повідомлення! Ми зв'яжемося з вами найближчим
                   часом.
                 </Alert>
@@ -107,7 +107,7 @@ const Contacts = (props) => {
                   variant="contained"
                   color="primary"
                   size="large"
-                  style={{ marginTop: "20px" }}
+                  style={{ marginTop: '20px' }}
                 >
                   Надіслати
                 </Button>
@@ -122,7 +122,7 @@ const Contacts = (props) => {
               <Box display="flex" alignItems="center" mb={2}>
                 <span
                   className="material-icons"
-                  style={{ marginRight: "10px" }}
+                  style={{ marginRight: '10px' }}
                 >
                   email
                 </span>
@@ -131,7 +131,7 @@ const Contacts = (props) => {
               <Box display="flex" alignItems="center" mb={2}>
                 <span
                   className="material-icons"
-                  style={{ marginRight: "10px" }}
+                  style={{ marginRight: '10px' }}
                 >
                   location_on
                 </span>
@@ -140,7 +140,7 @@ const Contacts = (props) => {
               <Box display="flex" alignItems="center">
                 <span
                   className="material-icons"
-                  style={{ marginRight: "10px" }}
+                  style={{ marginRight: '10px' }}
                 >
                   schedule
                 </span>
@@ -150,7 +150,7 @@ const Contacts = (props) => {
               </Box>
               <Typography
                 variant="h6"
-                style={{ marginTop: "20px", marginBottom: "10px" }}
+                style={{ marginTop: '20px', marginBottom: '10px' }}
               >
                 Слідкуйте за нами:
               </Typography>
@@ -179,7 +179,7 @@ const Contacts = (props) => {
         </Grid>
       </Container>
     </>
-  );
-};
-Contacts.propTypes = {};
-export default Contacts;
+  )
+}
+Contacts.propTypes = {}
+export default Contacts

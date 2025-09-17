@@ -1,6 +1,7 @@
-import PropTypes from "prop-types";
-const Admin = (props) => {
-  return <div>Admin</div>;
-};
-Admin.propTypes = {};
-export default Admin;
+import React from 'react'
+
+const Admin = () => {
+  return <div>Admin</div>
+}
+
+export default Admin

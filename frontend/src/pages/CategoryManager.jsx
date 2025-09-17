@@ -1,276 +1,313 @@
-import React, { useState } from "react";
+import React from "react";
 import {
-  // useParams,
-  // useNavigate,
-  // useNavigation,
-  redirect,
+  Form,
   useLoaderData,
+  useNavigation,
+  useActionData,
+  useSubmit,
 } from "react-router-dom";
-import { Typography, Box } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Alert,
+} from "@mui/material";
+import { Delete } from "@mui/icons-material";
+import customFetch from "../utils/customFetch"; // Assurez-vous d'importer votre utilitaire fetch
 
-// import Sidebar from "../components/Sidebar";
-import CategoryForm from "../components/CategoryForm"; //OK
-import CategoryItem from "../components/CategoryItem";
-import CategoryDialog from "../components/CategoryDialog";
-import customFetch from "../utils/customFetch";
-import { toast } from "react-toastify";
+// Loader pour récupérer les catégories
+export async function loader() {
+  try {
+    const response = await customFetch.get("/categories");
+    return { data: response.data };
+  } catch (error) {
+    return {
+      error:
+        error.response?.data?.msg || "Erreur lors du chargement des catégories",
+    };
+  }
+}
 
-export const action = async ({ request, params }) => {
+// Action pour gérer les opérations CRUD
+export async function categoryAction({ request }) {
   const formData = await request.formData();
-  const dataForm = Object.fromEntries(formData);
+  const intent = formData.get("intent");
+  const categoryId = formData.get("categoryId");
+  const subcategoryId = formData.get("subcategoryId");
+  const categoryName = formData.get("categoryName");
 
   try {
-    // First POST request
-    const response1 = await customFetch.post("/categories", dataForm);
-    // console.log("🚀 ~ action ~ response1:", response1);
+    switch (intent) {
+      case "add-category":
+        await customFetch.post("/categories", { name: categoryName });
+        break;
 
-    // Notify success for the first request
-    toast.success("Категорія успішно створена");
-    return redirect(`/dashboard/categories`);
-  } catch (error) {
-    console.log("🚀 ~ action ~ error:", error);
-    toast.error(error?.response?.data?.msg || "An error occurred");
-    return error;
-  }
-};
+      case "add-subcategory":
+        await customFetch.post(`/categories/${categoryId}/sub-categories`, {
+          name: categoryName,
+        });
+        break;
 
-export const loader = async ({ params }) => {
-  try {
-    const { data } = await customFetch.get(`/categories`);
-    return data;
+      case "edit-category":
+        await customFetch.patch(`/categories/${categoryId}`, {
+          name: categoryName,
+        });
+        break;
+
+      case "edit-subcategory":
+        await customFetch.patch(
+          `/categories/${categoryId}/sub-categories/${subcategoryId}`,
+          { name: categoryName }
+        );
+        break;
+
+      case "delete-category":
+        await customFetch.delete(`/categories/${categoryId}`);
+        break;
+
+      case "delete-subcategory":
+        await customFetch.delete(
+          `/categories/${categoryId}/sub-categories/${subcategoryId}`
+        );
+        break;
+
+      default:
+        throw new Error("Action non reconnue");
+    }
+
+    return { success: true };
   } catch (error) {
-    console.log("🚀 ~ loader ~ error:", error);
-    toast.error(error?.response.data?.msg);
-    return error;
+    return {
+      error: error.response?.data?.msg || "Une erreur est survenue",
+      intent,
+    };
   }
-};
+}
 
 function CategoryManager() {
-  const data = useLoaderData();
-  const [newSubcategoryName, setNewSubcategoryName] = useState("");
-  // const [openDialog, setOpenDialog] = useState(false);
-  // const [selectedCategory, setSelectedCategory] = useState(null);
+  const { data, error } = useLoaderData();
+  const actionData = useActionData();
+  const navigation = useNavigation();
+  const submit = useSubmit();
 
   const [openDialog, setOpenDialog] = React.useState(false);
-  const [newCategoryName, setNewCategoryName] = React.useState("");
+  const [dialogMode, setDialogMode] = React.useState("");
   const [selectedCategory, setSelectedCategory] = React.useState(null);
-  const [isSubcategory, setIsSubcategory] = React.useState(false);
-  const [alertMessage, setAlertMessage] = React.useState("");
-  const [editMode, setEditMode] = React.useState(false);
-  const [editingCategory, setEditingCategory] = React.useState(null);
-  const [editingSubcategory, setEditingSubcategory] = React.useState(null);
-  const [urlCategoryId, setUrlCategoryId] = React.useState(null);
-  // console.log("window.location.pathname", window.location.pathname);
-  React.useEffect(() => {
-    const path = window.location.pathname;
+  const [selectedSubcategory, setSelectedSubcategory] = React.useState(null);
 
-    // Handle /edit route
-    if (path === "/edit") {
-      // Show all categories in edit mode
-      return;
-    }
+  const handleOpenDialog = (mode, category = null, subcategory = null) => {
+    setDialogMode(mode);
+    setSelectedCategory(category);
+    setSelectedSubcategory(subcategory);
+    setOpenDialog(true);
+  };
 
-    // Existing code for specific category edit
-    const match = path.match(/\/edit\/(\d+)/);
-    if (match) {
-      const categoryId = parseInt(match[1]);
-      const category = categories.find((cat) => cat.id === categoryId);
-      if (category) {
-        startEdit(category);
-        setUrlCategoryId(categoryId);
-      }
-    }
-  }, []);
-
-  const handleAddCategory = () => {
-    if (newCategoryName.trim() === "") {
-      setAlertMessage("Назва категорії не може бути порожньою");
-      return;
-    }
-
-    if (isSubcategory && selectedCategory) {
-      const updatedCategories = categories.map((cat) => {
-        if (cat.id === selectedCategory.id) {
-          return {
-            ...cat,
-            subcategories: [
-              ...cat.subcategories,
-              {
-                id: Date.now(),
-                name: newCategoryName,
-              },
-            ],
-          };
-        }
-        return cat;
-      });
-      setCategories(updatedCategories);
-    } else {
-      setCategories([
-        ...categories,
-        {
-          id: Date.now(),
-          name: newCategoryName,
-          subcategories: [],
-        },
-      ]);
-    }
-
-    setNewCategoryName("");
+  const handleCloseDialog = () => {
     setOpenDialog(false);
     setSelectedCategory(null);
-    setIsSubcategory(false);
-    setAlertMessage("Категорію успішно додано");
+    setSelectedSubcategory(null);
   };
 
-  const handleDeleteCategory = (categoryId, subcategoryId = null) => {
-    if (subcategoryId) {
-      const updatedCategories = categories.map((cat) => {
-        if (cat.id === categoryId) {
-          return {
-            ...cat,
-            subcategories: cat.subcategories.filter(
-              (sub) => sub.id !== subcategoryId
-            ),
-          };
-        }
-        return cat;
-      });
-      setCategories(updatedCategories);
-    } else {
-      setCategories(categories.filter((cat) => cat.id !== categoryId));
-    }
-    setAlertMessage("Категорію успішно видалено");
-  };
-
-  const handleEditCategory = () => {
-    if (newCategoryName.trim() === "") {
-      setAlertMessage("Назва категорії не може бути порожньою");
-      return;
-    }
-
-    const updatedCategories = categories.map((cat) => {
-      if (editingSubcategory) {
-        if (cat.id === editingCategory.id) {
-          return {
-            ...cat,
-            subcategories: cat.subcategories.map((sub) =>
-              sub.id === editingSubcategory.id
-                ? { ...sub, name: newCategoryName }
-                : sub
-            ),
-          };
-        }
-      } else if (cat.id === editingCategory.id) {
-        return { ...cat, name: newCategoryName };
-      }
-      return cat;
-    });
-
-    setCategories(updatedCategories);
-    setNewCategoryName("");
-    setOpenDialog(false);
-    setEditMode(false);
-    setEditingCategory(null);
-    setEditingSubcategory(null);
-    setAlertMessage("Назву успішно змінено");
-
-    if (urlCategoryId) {
-      window.history.pushState({}, "", "/");
-      setUrlCategoryId(null);
-    }
-  };
-
-  const startEdit = (category, subcategory = null) => {
-    setEditMode(true);
-    setEditingCategory(category);
-    setEditingSubcategory(subcategory);
-    setNewCategoryName(subcategory ? subcategory.name : category.name);
-    setOpenDialog(true);
-
-    if (!subcategory) {
-      window.history.pushState({}, "", `/edit/${category.id}`);
-    }
-  };
-
-  const handleAddSubcategory = () => {
-    if (newSubcategoryName.trim() && selectedCategory) {
-      setCategories(
-        categories.map((category) => {
-          if (category.id === selectedCategory.id) {
-            return {
-              ...category,
-              subcategories: [...category.subcategories, newSubcategoryName],
-            };
-          }
-          return category;
-        })
-      );
-      setNewSubcategoryName("");
-      setOpenDialog(false);
-    }
-  };
-
-  const handleDeleteSubcategory = (categoryId, subcategoryIndex) => {
-    setCategories(
-      categories.map((category) => {
-        if (category.id === categoryId) {
-          return {
-            ...category,
-            SubCategories: category.subcategories.filter(
-              (_, index) => index !== subcategoryIndex
-            ),
-          };
-        }
-        return category;
-      })
-    );
-  };
+  // Gestion des erreurs de chargement
+  if (error) {
+    return <Alert severity="error">{error}</Alert>;
+  }
 
   return (
-    <Box
-      component="div"
-      sx={{
-        display: "flex",
-        mb: 4,
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}
-    >
-      <Box component="main" sx={{ flex: 1, p: 3 }}>
-        <Typography variant="h4" gutterBottom>
-          Менеджер категорій
-        </Typography>
-        <CategoryForm newCategoryName="name" />
-        {data.map((category) => (
-          <CategoryItem
-            key={category.id}
-            category={category}
-            categories={data}
-            onAddSubcategory={(selectedCategory) => {
-              setSelectedCategory(selectedCategory);
-              setOpenDialog(true);
-            }}
-            onDeleteCategory={handleDeleteCategory}
-            onDeleteSubcategory={handleDeleteSubcategory}
-          />
-        ))}
-        <CategoryDialog
-          open={openDialog}
-          // onClose={
-          //   setOpenDialog(false)
-          //   setEditMode(false),
-          //   setNewCategoryName("")
-          // }
-          onClose={() => {
-            console.log("onClose");
+    <Form method="post">
+      <main className="main-content">
+        <Box
+          sx={{
+            mb: 4,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
-          newSubcategoryName={newSubcategoryName}
-          onAddSubcategory={handleAddSubcategory}
-          setNewSubcategoryName={setNewSubcategoryName}
-        />
-      </Box>
-    </Box>
+        >
+          <Typography variant="h4">Управління категоріями</Typography>
+          <Button
+            variant="contained"
+            startIcon={<span className="material-icons">add</span>}
+            onClick={() => handleOpenDialog("add-category")}
+          >
+            Додати категорію
+          </Button>
+        </Box>
+
+        {actionData?.error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {actionData.error}
+          </Alert>
+        )}
+
+        <Paper sx={{ p: "10px" }}>
+          {data.map((category) => (
+            <Box key={category.id}>
+              <Box
+                component="div"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  p: 1,
+                  borderRadius: "4px",
+                  m: "4px 0",
+                }}
+              >
+                <input type="hidden" name="categoryId" value={category.id} />
+                <span className="material-icons" style={{ marginRight: "8px" }}>
+                  folder
+                </span>
+                <Typography
+                  variant="subtitle1"
+                  className="category-name"
+                  sx={{
+                    flexGrow: 1,
+                    cursor: "pointer",
+                    borderRadius: "4px",
+                    p: "2px 4px",
+                  }}
+                  onClick={() => handleOpenDialog("edit-category", category)}
+                >
+                  {category.name}
+                </Typography>
+                <Button
+                  size="small"
+                  startIcon={<span className="material-icons">add</span>}
+                  onClick={() => handleOpenDialog("add-subcategory", category)}
+                >
+                  Додати підкатегорію
+                </Button>
+                <Button
+                  type="submit"
+                  name="intent"
+                  value="delete-category"
+                  sx={{ background: "none", border: "none", color: "red" }}
+                  startIcon={<Delete />}
+                ></Button>
+              </Box>
+              <Box component="div" sx={{ ml: 3 }}>
+                {category.SubCategories.map((sub) => (
+                  <Box
+                    component="div"
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      p: 1,
+                      borderRadius: "4px",
+                      m: "4px 0",
+                    }}
+                    key={sub.id}
+                  >
+                    <input
+                      type="hidden"
+                      name="categoryId"
+                      value={category.id}
+                    />
+                    <input type="hidden" name="subcategoryId" value={sub.id} />
+                    <span
+                      className="material-icons"
+                      style={{ marginRight: "8px" }}
+                    >
+                      subdirectory_arrow_right
+                    </span>
+                    <Typography
+                      variant="body1"
+                      className="category-name"
+                      onClick={() =>
+                        handleOpenDialog("edit-subcategory", category, sub)
+                      }
+                      sx={{
+                        flexGrow: 1,
+                        cursor: "pointer",
+                        p: "2px 4px",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      {sub.name}
+                    </Typography>
+                    <Button
+                      type="submit"
+                      size="large"
+                      name="intent"
+                      value="delete-subcategory"
+                      sx={{
+                        background: "none",
+                        border: "none",
+                        color: "red",
+                      }}
+                      startIcon={<Delete />}
+                    ></Button>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          ))}
+        </Paper>
+      </main>
+
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        component="form"
+        method="post"
+      >
+        <DialogTitle>
+          {dialogMode === "add-category"
+            ? "Додати категорію"
+            : dialogMode === "add-subcategory"
+              ? "Додати підкатегорію"
+              : "Змінити назву"}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            name="categoryName"
+            autoFocus
+            margin="dense"
+            label="Назва категорії"
+            fullWidth
+            variant="outlined"
+            defaultValue={
+              dialogMode === "edit-category"
+                ? selectedCategory?.name
+                : dialogMode === "edit-subcategory"
+                  ? selectedSubcategory?.name
+                  : ""
+            }
+          />
+          {selectedCategory && (
+            <input
+              type="hidden"
+              name="categoryId"
+              value={selectedCategory.id}
+            />
+          )}
+          {selectedSubcategory && (
+            <input
+              type="hidden"
+              name="subcategoryId"
+              value={selectedSubcategory.id}
+            />
+          )}
+          <input type="hidden" name="intent" value={dialogMode} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Скасувати</Button>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={navigation.state === "submitting"}
+          >
+            {dialogMode.startsWith("add") ? "Додати" : "Зберегти"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Form>
   );
 }
 

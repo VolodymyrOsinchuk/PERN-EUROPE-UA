@@ -182,12 +182,18 @@ exports.createAnnonce = async (req, res) => {
 exports.getAllAnnonces = async (req, res) => {
   try {
     const annonces = await Adv.findAll({
-      // include: [
-      //   {
-      //     model: Photo,
-      //     as: "photos",
-      //   },
-      // ],
+      include: [
+        {
+          model: Category,
+          as: "category",
+          attributes: ["id", "name"],
+        },
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "email"],
+        },
+      ],
     });
     res.status(200).json(annonces);
   } catch (error) {

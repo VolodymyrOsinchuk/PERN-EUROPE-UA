@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { Navbar, Footer } from '../components'
 import { Stack } from '@mui/material'
-import { CookieBanner } from '../components'
+import { Banner } from '../components'
 import { Loading } from '../components'
 
 const HomeLayout = () => {
@@ -26,7 +26,7 @@ const HomeLayout = () => {
         {isPageLoading ? <Loading /> : <Outlet />}
       </Stack>
       <Footer />
-      <CookieBanner onAccept={handleCookieAccept} />
+      <Banner onAccept={handleCookieAccept} />
     </>
   )
 }
