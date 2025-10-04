@@ -172,16 +172,19 @@ const CreateAdPage = () => {
     const fetchPhoneCode = async () => {
       if (!selectedCountry) return
       try {
-        const phoneCodes = await GetPhonecodes(selectedCountry)
-        if (phoneCodes) {
-          setPhoneCode(phoneCodes)
+        const countryObj = countries.find((c) => c.name === selectedCountry)
+        if (countryObj) {
+          const phoneCode = await GetPhonecodes(countryObj.id)
+          if (phoneCode) {
+            setPhoneCode(phoneCode)
+          }
         }
       } catch (error) {
         console.error('Error fetching phone code:', error)
       }
     }
     fetchPhoneCode()
-  }, [selectedCountry])
+  }, [selectedCountry, countries])
 
   const handleRemoveImage = useCallback((index) => {
     setPreviewImages((prevImages) => prevImages.filter((_, i) => i !== index))

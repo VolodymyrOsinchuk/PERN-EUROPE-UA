@@ -96,7 +96,7 @@ export async function profileLoader({ params }) {
   try {
     // Récupérer les annonces de l'utilisateur depuis la base de données
     const { data: ads } = await customFetch.get('/ads/user-ads')
-
+    console.log('ads from loader:', ads)
     return { ads }
   } catch (error) {
     console.error('Error loading profile data:', error)

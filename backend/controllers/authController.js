@@ -24,7 +24,13 @@ exports.register = async (req, res) => {
     }
 
     // Validation: Vérifier si les champs obligatoires sont présents
-    if (!email || !password || !firstName || !lastName || !phoneNumber) {
+    if (
+      !email ||
+      !password ||
+      !firstName ||
+      !lastName
+      // || !phoneNumber
+    ) {
       return res.status(400).json({
         message:
           'Les champs email, mot de passe, prénom et nom sont obligatoires',

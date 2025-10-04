@@ -24,7 +24,7 @@ const FormRowSelect = ({
         <FormControl
           fullWidth
           variant="outlined"
-          required
+          // required
           margin="normal"
           error={!!error}
         >

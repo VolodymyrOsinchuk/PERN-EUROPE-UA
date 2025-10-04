@@ -49,17 +49,16 @@ app.use('/api/v1/adv', advRoutes)
 app.use('/api/v1/categories', categoryRoutes)
 app.use('/api/v1/events', authMiddleware, eventRoutes)
 
-// Gestion des erreurs 404
-// app.use('*', (req, res) => {
-//   res.status(404).json({ msg: 'не знайдено' })
-// })
-
 // Gestion des erreurs 500
 app.use((err, req, res, next) => {
   console.error('Erreur interne du serveur:', err)
   res.status(500).json({ msg: 'Щось пішло не так!!!', error: err.message })
 })
 
+// Gestion des erreurs 404
+app.use(/.*/, (req, res) => {
+  res.status(404).json({ msg: 'не знайдено' })
+})
 const port = process.env.PORT || 5000
 
 const testDbConnection = async () => {
