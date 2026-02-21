@@ -1,4 +1,4 @@
-import React from "react";
+// React import not required with automatic JSX runtime
 import {
   List,
   ListItem,
@@ -12,7 +12,6 @@ import SubcategoryItem from "./SubcategoryItem";
 
 function CategoryItem({
   category,
-  onEditCategory,
   onAddSubcategory,
   onDeleteCategory,
   onDeleteSubcategory,

@@ -1,4 +1,4 @@
-import React from 'react';
+// React import not required when using the automatic JSX runtime
 
 const EditUser = () => {
   return (

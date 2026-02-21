@@ -1,6 +1,21 @@
-import React from "react";
 import { useLoaderData, Form, redirect } from "react-router-dom";
-import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+} from "@mui/material";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
 
@@ -40,7 +55,10 @@ export const action = async ({ request, params }) => {
 
   if (intent === "update") {
     try {
-      await customFetch.put(`/users/${formData.get("id")}`, Object.fromEntries(formData));
+      await customFetch.put(
+        `/users/${formData.get("id")}`,
+        Object.fromEntries(formData)
+      );
       toast.success("User updated successfully");
     } catch (error) {
       toast.error(error?.response?.data?.msg);
@@ -49,10 +67,15 @@ export const action = async ({ request, params }) => {
   }
 };
 
+import { useState } from "react";
+
 const Users = () => {
   const users = useLoaderData();
-  const [open, setOpen] = React.useState(false);
-  const [dialogData, setDialogData] = React.useState({ intent: "", user: null });
+  const [open, setOpen] = useState(false);
+  const [dialogData, setDialogData] = useState({
+    intent: "",
+    user: null,
+  });
 
   const handleClickOpen = (intent, user = null) => {
     setDialogData({ intent, user });
@@ -65,11 +88,22 @@ const Users = () => {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
         <Typography variant="h4" gutterBottom>
           User Management
         </Typography>
-        <Button variant="contained" color="primary" onClick={() => handleClickOpen("create")}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => handleClickOpen("create")}
+        >
           Create User
         </Button>
       </Box>
@@ -90,12 +124,23 @@ const Users = () => {
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.role}</TableCell>
                 <TableCell>
-                  <Button variant="contained" color="primary" sx={{ mr: 1 }} onClick={() => handleClickOpen("update", user)}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    sx={{ mr: 1 }}
+                    onClick={() => handleClickOpen("update", user)}
+                  >
                     Edit
                   </Button>
                   <Form method="post" style={{ display: "inline" }}>
                     <input type="hidden" name="id" value={user.id} />
-                    <Button variant="contained" color="secondary" type="submit" name="intent" value="delete">
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      type="submit"
+                      name="intent"
+                      value="delete"
+                    >
                       Delete
                     </Button>
                   </Form>
@@ -107,7 +152,9 @@ const Users = () => {
       </TableContainer>
 
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>{dialogData.intent === "create" ? "Create User" : "Edit User"}</DialogTitle>
+        <DialogTitle>
+          {dialogData.intent === "create" ? "Create User" : "Edit User"}
+        </DialogTitle>
         <Form method="post">
           <DialogContent>
             <TextField
@@ -142,7 +189,9 @@ const Users = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={handleClose}>Cancel</Button>
-            <Button type="submit" name="intent" value={dialogData.intent}>{dialogData.intent === "create" ? "Create" : "Update"}</Button>
+            <Button type="submit" name="intent" value={dialogData.intent}>
+              {dialogData.intent === "create" ? "Create" : "Update"}
+            </Button>
           </DialogActions>
         </Form>
       </Dialog>

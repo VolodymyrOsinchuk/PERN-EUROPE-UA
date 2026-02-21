@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import {
   Button,
   Typography,
@@ -9,75 +8,75 @@ import {
   TextField,
   Chip,
   IconButton,
-} from '@mui/material'
-import Grid from '@mui/material/Grid'
-import '../assets/css/publications.css'
-import { HeroSection } from '../components'
-const Publications = (props) => {
+} from "@mui/material";
+import Grid from "@mui/material/Grid";
+import "../assets/css/publications.css";
+import { HeroSection } from "../components";
+const Publications = () => {
   const categories = [
-    'Всі публікації',
-    'Документи',
-    'Робота',
-    'Житло',
-    'Освіта',
-    'Медицина',
-    'Культура',
-    'Інтеграція',
-  ]
+    "Всі публікації",
+    "Документи",
+    "Робота",
+    "Житло",
+    "Освіта",
+    "Медицина",
+    "Культура",
+    "Інтеграція",
+  ];
 
   const articles = [
     {
-      title: 'Як отримати дозвіл на проживання в Німеччині',
-      category: 'Документи',
-      date: '15.10.2023',
-      author: 'Марія Петренко',
-      image: 'https://example.com/germany-residence.jpg',
+      title: "Як отримати дозвіл на проживання в Німеччині",
+      category: "Документи",
+      date: "15.10.2023",
+      author: "Марія Петренко",
+      image: "https://example.com/germany-residence.jpg",
       description:
-        'Покроковий гід з отримання дозволу на проживання в Німеччині: необхідні документи, терміни та особливості процесу.',
-      readTime: '12 хв',
+        "Покроковий гід з отримання дозволу на проживання в Німеччині: необхідні документи, терміни та особливості процесу.",
+      readTime: "12 хв",
     },
     {
-      title: 'ТОП-10 сайтів для пошуку роботи в Польщі',
-      category: 'Робота',
-      date: '12.10.2023',
-      author: 'Олександр Коваленко',
-      image: 'https://example.com/work-search.jpg',
+      title: "ТОП-10 сайтів для пошуку роботи в Польщі",
+      category: "Робота",
+      date: "12.10.2023",
+      author: "Олександр Коваленко",
+      image: "https://example.com/work-search.jpg",
       description:
-        'Огляд найефективніших платформ для пошуку роботи в Польщі. Поради щодо створення резюме та проходження співбесід.',
-      readTime: '8 хв',
+        "Огляд найефективніших платформ для пошуку роботи в Польщі. Поради щодо створення резюме та проходження співбесід.",
+      readTime: "8 хв",
     },
     {
-      title: 'Медичне страхування в країнах ЄС',
-      category: 'Медицина',
-      date: '10.10.2023',
-      author: 'Ірина Василенко',
-      image: 'https://example.com/healthcare.jpg',
+      title: "Медичне страхування в країнах ЄС",
+      category: "Медицина",
+      date: "10.10.2023",
+      author: "Ірина Василенко",
+      image: "https://example.com/healthcare.jpg",
       description:
         "Все про системи охорони здоров'я в різних країнах ЄС, види страховок та як ними користуватися.",
-      readTime: '15 хв',
+      readTime: "15 хв",
     },
     {
-      title: 'Освіта за кордоном: можливості для українських студентів',
-      category: 'Освіта',
-      date: '08.10.2023',
-      author: 'Павло Мельник',
-      image: 'https://example.com/education.jpg',
+      title: "Освіта за кордоном: можливості для українських студентів",
+      category: "Освіта",
+      date: "08.10.2023",
+      author: "Павло Мельник",
+      image: "https://example.com/education.jpg",
       description:
-        'Огляд стипендіальних програм, грантів та можливостей навчання для українських студентів в європейських університетах.',
-      readTime: '10 хв',
+        "Огляд стипендіальних програм, грантів та можливостей навчання для українських студентів в європейських університетах.",
+      readTime: "10 хв",
     },
-  ]
+  ];
   return (
     <>
       <HeroSection
         title="Публікації"
-        typedStrings={['Корисні статті']}
+        typedStrings={["Корисні статті"]}
         subtitle="Корисні статті, дослідження та матеріали про життя українців у Європі"
         buttonText="Читати статті"
         buttonLink="/публікації"
         textAlign="left"
       />
-      <Container style={{ marginTop: '30px', marginBottom: '50px' }}>
+      <Container style={{ marginTop: "30px", marginBottom: "50px" }}>
         <Typography textAlign="center" variant="h4" gutterBottom>
           Публікації
         </Typography>
@@ -94,7 +93,7 @@ const Publications = (props) => {
                   startAdornment: (
                     <span
                       className="material-icons"
-                      style={{ marginRight: '8px' }}
+                      style={{ marginRight: "8px" }}
                     >
                       search
                     </span>
@@ -103,7 +102,7 @@ const Publications = (props) => {
               />
             </Grid>
             <Grid size={{ xs: 12 }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                 {categories.map((category) => (
                   <Chip
                     key={category}
@@ -111,7 +110,7 @@ const Publications = (props) => {
                     clickable
                     className="category-chip"
                     color={
-                      category === 'Всі публікації' ? 'primary' : 'default'
+                      category === "Всі публікації" ? "primary" : "default"
                     }
                   />
                 ))}
@@ -137,7 +136,7 @@ const Publications = (props) => {
                   <Chip
                     label={article.category}
                     size="small"
-                    style={{ marginBottom: '12px' }}
+                    style={{ marginBottom: "12px" }}
                   />
                   <Typography variant="body2" component="p">
                     {article.description}
@@ -159,14 +158,13 @@ const Publications = (props) => {
           ))}
         </Grid>
 
-        <div style={{ textAlign: 'center', marginTop: '40px' }}>
+        <div style={{ textAlign: "center", marginTop: "40px" }}>
           <Button variant="outlined" color="primary">
             Завантажити більше
           </Button>
         </div>
       </Container>
     </>
-  )
-}
-Publications.propTypes = {}
-export default Publications
+  );
+};
+export default Publications;

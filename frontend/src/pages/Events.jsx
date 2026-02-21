@@ -1,6 +1,5 @@
-import { useState } from 'react'
-import PropTypes from 'prop-types'
-import { HeroSection } from '../components'
+import { useState } from "react";
+import { HeroSection } from "../components";
 import {
   Button,
   Card,
@@ -15,61 +14,61 @@ import {
   Select,
   TextField,
   Typography,
-} from '@mui/material'
-import Grid from '@mui/material/Grid'
+} from "@mui/material";
+import Grid from "@mui/material/Grid";
 
-import '../assets/css/events.css'
-const Events = (props) => {
-  const [country, setCountry] = useState('')
-  const [eventType, setEventType] = useState('')
+import "../assets/css/events.css";
+const Events = () => {
+  const [country, setCountry] = useState("");
+  const [eventType, setEventType] = useState("");
 
   const events = [
     {
-      title: 'Українські вечорниці',
-      date: '2023-12-15',
-      location: 'Берлін, Німеччина',
-      type: 'Культурний захід',
-      image: 'https://example.com/event1.jpg',
+      title: "Українські вечорниці",
+      date: "2023-12-15",
+      location: "Берлін, Німеччина",
+      type: "Культурний захід",
+      image: "https://example.com/event1.jpg",
       description:
-        'Традиційні українські вечорниці з піснями, танцями та смачними стравами',
+        "Традиційні українські вечорниці з піснями, танцями та смачними стравами",
     },
     {
-      title: 'Виставка сучасного мистецтва',
-      date: '2023-12-20',
-      location: 'Париж, Франція',
-      type: 'Мистецтво',
-      image: 'https://example.com/event2.jpg',
-      description: 'Виставка робіт українських художників у Парижі',
+      title: "Виставка сучасного мистецтва",
+      date: "2023-12-20",
+      location: "Париж, Франція",
+      type: "Мистецтво",
+      image: "https://example.com/event2.jpg",
+      description: "Виставка робіт українських художників у Парижі",
     },
     {
-      title: 'Різдвяний ярмарок',
-      date: '2023-12-25',
-      location: 'Варшава, Польща',
-      type: 'Фестиваль',
-      image: 'https://example.com/event3.jpg',
-      description: 'Традиційний український різдвяний ярмарок',
+      title: "Різдвяний ярмарок",
+      date: "2023-12-25",
+      location: "Варшава, Польща",
+      type: "Фестиваль",
+      image: "https://example.com/event3.jpg",
+      description: "Традиційний український різдвяний ярмарок",
     },
     {
-      title: 'Концерт української музики',
-      date: '2023-12-30',
-      location: 'Прага, Чехія',
-      type: 'Концерт',
-      image: 'https://example.com/event4.jpg',
+      title: "Концерт української музики",
+      date: "2023-12-30",
+      location: "Прага, Чехія",
+      type: "Концерт",
+      image: "https://example.com/event4.jpg",
       description:
-        'Виступ українських музикантів з класичними та сучасними творами',
+        "Виступ українських музикантів з класичними та сучасними творами",
     },
-  ]
+  ];
   return (
     <>
       <HeroSection
         title="Афіша Подій"
-        typedStrings={['Культурні заходи та зустрічі діаспори']}
+        typedStrings={["Культурні заходи та зустрічі діаспори"]}
         subtitle="Простір для спілкування, обміну досвідом та підтримки"
         buttonText="Переглянути події"
         buttonLink="/events"
         textAlign="left"
       />
-      <Container style={{ marginTop: '30px' }}>
+      <Container style={{ marginTop: "30px" }}>
         <Typography variant="h4" gutterBottom>
           Афіша українських подій у Європі
         </Typography>
@@ -121,11 +120,11 @@ const Events = (props) => {
                 <CardMedia
                   component="div"
                   style={{
-                    height: '200px',
-                    backgroundColor: '#FFD700',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    height: "200px",
+                    backgroundColor: "#FFD700",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
                   <Typography variant="h6" color="textSecondary">
@@ -141,18 +140,18 @@ const Events = (props) => {
                   </Typography>
                   <Chip
                     icon={<span className="material-icons">event</span>}
-                    label={new Date(event.date).toLocaleDateString('uk-UA')}
-                    style={{ margin: '5px' }}
+                    label={new Date(event.date).toLocaleDateString("uk-UA")}
+                    style={{ margin: "5px" }}
                   />
                   <Chip
                     icon={<span className="material-icons">location_on</span>}
                     label={event.location}
-                    style={{ margin: '5px' }}
+                    style={{ margin: "5px" }}
                   />
                   <Chip
                     icon={<span className="material-icons">category</span>}
                     label={event.type}
-                    style={{ margin: '5px' }}
+                    style={{ margin: "5px" }}
                   />
                 </CardContent>
                 <CardActions>
@@ -169,7 +168,6 @@ const Events = (props) => {
         </Grid>
       </Container>
     </>
-  )
-}
-Events.propTypes = {}
-export default Events
+  );
+};
+export default Events;

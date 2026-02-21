@@ -1,6 +1,5 @@
-import PropTypes from "prop-types";
-
-import React, { useState } from "react";
+// Use named imports for hooks - default React import is not necessary
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Box, Toolbar } from "@mui/material";
 import { DrawerContainer } from "../components";
@@ -8,7 +7,7 @@ import AppBarComponent from "../components/AppBarComponent";
 // import { DrawerContainer, PermanentDrawer } from "../components/Drawer";
 const drawerWidth = 240;
 
-const DashboardLayout = (props) => {
+const DashboardLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleDrawerToggle = () => {
@@ -34,5 +33,4 @@ const DashboardLayout = (props) => {
     </Box>
   );
 };
-DashboardLayout.propTypes = {};
 export default DashboardLayout;

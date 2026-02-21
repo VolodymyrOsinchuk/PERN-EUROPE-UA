@@ -1,5 +1,16 @@
 import { useLoaderData, Form, redirect, Link } from "react-router-dom";
-import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Button,
+} from "@mui/material";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
 
@@ -31,11 +42,23 @@ const AdsManager = () => {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
         <Typography variant="h4" gutterBottom>
           Ads Management
         </Typography>
-        <Button variant="contained" color="primary" component={Link} to="/dashboard/create-ad">
+        <Button
+          variant="contained"
+          color="primary"
+          component={Link}
+          to="/dashboard/create-ad"
+        >
           Create Ad
         </Button>
       </Box>
@@ -56,7 +79,13 @@ const AdsManager = () => {
                 <TableCell>{ad.title}</TableCell>
                 <TableCell>{ad.status}</TableCell>
                 <TableCell>
-                  <Button variant="contained" color="primary" sx={{ mr: 1 }} component={Link} to={`/dashboard/edit-ad/${ad.id}`}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    sx={{ mr: 1 }}
+                    component={Link}
+                    to={`/dashboard/edit-ad/${ad.id}`}
+                  >
                     Edit
                   </Button>
                   <Form method="post" style={{ display: "inline" }}>

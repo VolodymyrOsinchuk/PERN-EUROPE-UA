@@ -1,4 +1,4 @@
-import React from "react";
+// Automatic JSX runtime - explicit React import not required
 import { useLoaderData, useSubmit } from "react-router-dom";
 import {
   Typography,

@@ -1,19 +1,14 @@
-import { useState } from 'react'
+import { useState } from "react";
 import {
   Button,
-  AppBar,
-  Toolbar,
   Typography,
   Container,
   Card,
   CardContent,
-  CardMedia,
   Chip,
   Box,
   Paper,
   Divider,
-  IconButton,
-  Avatar,
   List,
   ListItem,
   ListItemText,
@@ -24,48 +19,46 @@ import {
   DialogActions,
   TextField,
   MenuItem,
-  CircularProgress,
-} from '@mui/material'
-import Grid from '@mui/material/Grid'
-import PropTypes from 'prop-types'
-import { ImageGallery } from '../components'
-import '../assets/css/adDetailPage.css'
-import customFetch from '../utils/customFetch'
-import { toast } from 'react-toastify'
-import { useLoaderData } from 'react-router-dom'
-const apiUrl = import.meta.env.VITE_APP_API_URL
+} from "@mui/material";
+import Grid from "@mui/material/Grid";
+import { ImageGallery } from "../components";
+import "../assets/css/adDetailPage.css";
+import customFetch from "../utils/customFetch";
+import { toast } from "react-toastify";
+import { useLoaderData } from "react-router-dom";
+const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 export const loader = async ({ params }) => {
-  console.log('🚀 ~ loader ~  params:', params)
+  console.log("🚀 ~ loader ~  params:", params);
   try {
-    const { data } = await customFetch.get(`/adv/${params.id}`)
+    const { data } = await customFetch.get(`/adv/${params.id}`);
 
     // console.log("🚀 ~ loader ~ data :", data);
-    return data
+    return data;
   } catch (error) {
-    console.log('🚀 ~ loader ~ error:', error)
-    toast.error(error?.response.data?.msg)
-    return error
+    console.log("🚀 ~ loader ~ error:", error);
+    toast.error(error?.response.data?.msg);
+    return error;
   }
-}
+};
 
-const AdDetailPage = (props) => {
-  const ad = useLoaderData()
-  console.log('🚀 ~ AdDetailPage ~  ad :', ad)
+const AdDetailPage = () => {
+  const ad = useLoaderData();
+  console.log("🚀 ~ AdDetailPage ~  ad :", ad);
   // let serverPath = ad.photos;
   // const clientPath = serverPath.replace("public", "");
-  const [messageDialogOpen, setMessageDialogOpen] = useState(false)
-  const [reportDialogOpen, setReportDialogOpen] = useState(false)
+  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
   function MessageDialog({ open, onClose, recipient }) {
-    const [message, setMessage] = useState('')
+    const [message, setMessage] = useState("");
 
     const handleSubmit = (e) => {
-      e.preventDefault()
-      console.log('Sending message:', message)
-      setMessage('')
-      onClose()
-    }
+      e.preventDefault();
+      console.log("Sending message:", message);
+      setMessage("");
+      onClose();
+    };
 
     return (
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -92,28 +85,28 @@ const AdDetailPage = (props) => {
           </DialogActions>
         </form>
       </Dialog>
-    )
+    );
   }
 
   function ReportDialog({ open, onClose, adTitle }) {
-    const [reason, setReason] = useState('')
-    const [details, setDetails] = useState('')
+    const [reason, setReason] = useState("");
+    const [details, setDetails] = useState("");
 
     const reasons = [
-      'Шахрайство',
-      'Некоректна інформація',
-      'Образливий контент',
-      'Спам',
-      'Інше',
-    ]
+      "Шахрайство",
+      "Некоректна інформація",
+      "Образливий контент",
+      "Спам",
+      "Інше",
+    ];
 
     const handleSubmit = (e) => {
-      e.preventDefault()
-      console.log('Sending report:', { reason, details })
-      setReason('')
-      setDetails('')
-      onClose()
-    }
+      e.preventDefault();
+      console.log("Sending report:", { reason, details });
+      setReason("");
+      setDetails("");
+      onClose();
+    };
 
     return (
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -159,7 +152,7 @@ const AdDetailPage = (props) => {
           </DialogActions>
         </form>
       </Dialog>
-    )
+    );
   }
 
   // const ad = {
@@ -212,7 +205,7 @@ const AdDetailPage = (props) => {
               <Typography
                 variant="body1"
                 // paragraph
-                style={{ whiteSpace: 'pre-line' }}
+                style={{ whiteSpace: "pre-line" }}
               >
                 {ad.description}
               </Typography>
@@ -261,7 +254,7 @@ const AdDetailPage = (props) => {
           <Grid size={{ xs: 12, md: 4 }}>
             <Card className="contact-card" elevation={0}>
               <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                   {/* <Avatar sx={{ mr: 2 }}>{ad.author[0]}</Avatar> */}
                   <div>
                     <Typography variant="subtitle1">{ad.author}</Typography>
@@ -314,9 +307,9 @@ const AdDetailPage = (props) => {
               variant="caption"
               color="text.secondary"
               display="block"
-              sx={{ mt: 2, textAlign: 'center' }}
+              sx={{ mt: 2, textAlign: "center" }}
             >
-              Опубліковано: {new Date(ad.createdAt).toLocaleDateString('uk-UA')}
+              Опубліковано: {new Date(ad.createdAt).toLocaleDateString("uk-UA")}
             </Typography>
           </Grid>
         </Grid>
@@ -334,7 +327,6 @@ const AdDetailPage = (props) => {
         adTitle={ad.title}
       />
     </>
-  )
-}
-AdDetailPage.propTypes = {}
-export default AdDetailPage
+  );
+};
+export default AdDetailPage;

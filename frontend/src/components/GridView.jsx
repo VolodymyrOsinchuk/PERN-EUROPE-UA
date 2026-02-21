@@ -6,27 +6,23 @@ import {
   CardMedia,
   CardActions,
   Chip,
-} from '@mui/material'
-import Grid from '@mui/material/Grid'
-import { Link } from 'react-router-dom'
-const apiUrl = import.meta.env.VITE_APP_API_URL
-
-// import { ads } from "../components";
+} from "@mui/material";
+import Grid from "@mui/material/Grid";
+import { Link } from "react-router-dom";
+const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 const GridView = ({ ads }) => (
   <Grid container spacing={4}>
     {ads.map((ad, index) => {
-      console.log('🚀 ~ {ads.map ~ ad:', ad)
-      let serverPath = ad.photos[0]
-      const clientPath = serverPath.replace('public', '')
-      console.log('🚀 ~ clientPath:', clientPath)
+      let serverPath = ad.photos[0];
+      const clientPath = serverPath.replace("public", "");
       return (
         <Grid
           key={index}
           size={{ xs: 12, sm: 6, md: 4 }}
           component={Link}
           to={`/ads/${ad.id}`}
-          sx={{ textDecoration: 'none' }}
+          sx={{ textDecoration: "none" }}
         >
           <Card className="ad-card">
             <CardMedia
@@ -45,17 +41,17 @@ const GridView = ({ ads }) => (
               <Chip
                 icon={<span className="material-icons">category</span>}
                 label={ad.category}
-                style={{ margin: '5px' }}
+                style={{ margin: "5px" }}
               />
               <Chip
                 icon={<span className="material-icons">location_on</span>}
                 label={ad.location}
-                style={{ margin: '5px' }}
+                style={{ margin: "5px" }}
               />
               <Chip
                 icon={<span className="material-icons">event</span>}
-                label={new Date(ad.date).toLocaleDateString('uk-UA')}
-                style={{ margin: '5px' }}
+                label={new Date(ad.date).toLocaleDateString("uk-UA")}
+                style={{ margin: "5px" }}
               />
             </CardContent>
             <CardActions>
@@ -68,9 +64,9 @@ const GridView = ({ ads }) => (
             </CardActions>
           </Card>
         </Grid>
-      )
+      );
     })}
   </Grid>
-)
+);
 
-export default GridView
+export default GridView;

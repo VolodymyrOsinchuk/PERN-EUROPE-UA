@@ -21,7 +21,7 @@ function Sidebar() {
       <Divider />
       <List>
         {links.map((link) => {
-          const { text, path, icon, role } = link;
+          const { text, path, icon } = link;
           return (
             <ListItem key={text} component={Link} to={path}>
               <ListItemIcon>

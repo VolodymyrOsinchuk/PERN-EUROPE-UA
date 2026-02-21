@@ -1,24 +1,6 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
 
-import {
-  AppBar,
-  Box,
-  Button,
-  Drawer,
-  IconButton,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Toolbar,
-  Typography,
-} from "@mui/material";
-import {
-  Menu as MenuIcon,
-  Dashboard as DashboardIcon,
-  Settings as SettingsIcon,
-} from "@mui/icons-material";
+import { Box, Drawer } from "@mui/material";
 import Sidebar from "./Sidebar";
 
 const drawerWidth = 240;

@@ -1,10 +1,9 @@
-import React from "react";
+// React import not required with automatic JSX runtime
 import {
   Form,
   useLoaderData,
   useNavigation,
   useActionData,
-  useSubmit,
 } from "react-router-dom";
 import {
   Box,
@@ -90,16 +89,17 @@ export async function categoryAction({ request }) {
   }
 }
 
+import { useState } from "react";
+
 function CategoryManager() {
   const { data, error } = useLoaderData();
   const actionData = useActionData();
   const navigation = useNavigation();
-  const submit = useSubmit();
 
-  const [openDialog, setOpenDialog] = React.useState(false);
-  const [dialogMode, setDialogMode] = React.useState("");
-  const [selectedCategory, setSelectedCategory] = React.useState(null);
-  const [selectedSubcategory, setSelectedSubcategory] = React.useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [dialogMode, setDialogMode] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState(null);
 
   const handleOpenDialog = (mode, category = null, subcategory = null) => {
     setDialogMode(mode);

@@ -1,5 +1,5 @@
 // src/components/CategoryItem.js
-import React from "react";
+// Default React import not required with automatic JSX runtime
 import { Box, Typography, Button, IconButton } from "@mui/material";
 
 const CategoryItem = ({ category, onEdit, onAddSubcategory, onDelete }) => {

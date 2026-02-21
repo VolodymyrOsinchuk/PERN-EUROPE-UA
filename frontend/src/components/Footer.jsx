@@ -61,25 +61,23 @@
 // }
 // export default Footer
 
-import React from 'react'
-import { Box, Typography, Link } from '@mui/material'
+import { Box, Typography, Link } from "@mui/material";
 
 const Footer = () => {
   return (
     <Box
-      component="footer" // Ajout d'une spécification sémantique
+      component="footer"
       sx={{
-        backgroundColor: 'black',
+        backgroundColor: "black",
         py: 6,
-        // mt: 10,
         borderTop: 1,
-        borderColor: 'gray.200',
+        borderColor: "gray.200",
       }}
     >
-      <Box sx={{ textAlign: 'center' }}>
+      <Box sx={{ textAlign: "center" }}>
         <Typography
           variant="body2"
-          sx={{ color: 'white', fontSize: '0.875rem' }}
+          sx={{ color: "white", fontSize: "0.875rem" }}
         >
           {new Date().getFullYear()} Українці в Європі. Всі права захищені.
           <Box component="span" sx={{ mx: 2 }}>
@@ -87,13 +85,13 @@ const Footer = () => {
           </Box>
           <Link
             href="/privacy-policy"
-            component="a" // Spécifier le composant de base
+            component="a"
             sx={{
-              color: 'white',
-              textDecoration: 'none', // Optionnel: pour un style plus propre
-              '&:hover': {
-                color: 'blue',
-                textDecoration: 'underline', // Meilleure indication visuelle
+              color: "white",
+              textDecoration: "none",
+              "&:hover": {
+                color: "blue",
+                textDecoration: "underline",
               },
             }}
           >
@@ -102,7 +100,7 @@ const Footer = () => {
         </Typography>
       </Box>
     </Box>
-  )
-}
+  );
+};
 
-export default Footer
+export default Footer;

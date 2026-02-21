@@ -1,5 +1,4 @@
 import { Fragment, useEffect, useState } from "react";
-import PropTypes from "prop-types";
 import { Link, Form, redirect, useNavigation } from "react-router-dom";
 import {
   Button,
@@ -141,5 +140,4 @@ const Register = () => {
     </Fragment>
   );
 };
-Register.propTypes = {};
 export default Register;

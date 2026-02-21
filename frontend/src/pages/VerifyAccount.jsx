@@ -1,5 +1,5 @@
-import PropTypes from "prop-types";
-import React, { useEffect, useState } from "react";
+// Use named imports for hooks; default React import is unnecessary with the automatic JSX runtime
+import { useEffect, useState } from "react";
 import { Box, CircularProgress, Typography, Button } from "@mui/material";
 import {
   useParams,
@@ -93,5 +93,4 @@ const VerifyAccount = () => {
   );
 };
 
-VerifyAccount.propTypes = {};
 export default VerifyAccount;

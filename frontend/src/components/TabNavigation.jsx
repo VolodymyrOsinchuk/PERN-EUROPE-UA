@@ -1,4 +1,3 @@
-import React from "react";
 import { Tabs, Tab, Box } from "@mui/material";
 
 const TabNavigation = ({ value, handleChange }) => (

@@ -2,27 +2,13 @@ import { Typography, Container, Button } from "@mui/material";
 import { Link } from "react-router-dom";
 import { ReactTyped } from "react-typed";
 const HeroSection = ({
-  title,
   typedStrings = [],
   subtitle,
   buttonText,
   buttonLink,
-  backgroundImage,
-  textAlign = "center",
   textColor = "inherit",
 }) => {
-  const heroStyles = {
-    backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    color: textColor,
-    textAlign: textAlign,
-    padding: "100px 0",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: textAlign === "center" ? "center" : "flex-start",
-  };
+  // heroStyles removed (unused) — styling is handled in CSS
   return (
     <div
       // style={heroStyles}
@@ -38,8 +24,6 @@ const HeroSection = ({
             marginBottom: "20px",
           }}
         >
-          {/* {title}
-          {""} */}
           {typedStrings.length > 0 && (
             <ReactTyped
               strings={typedStrings}

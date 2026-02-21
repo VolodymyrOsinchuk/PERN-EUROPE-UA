@@ -1,6 +1,6 @@
 // src/components/SubcategoryItem.js
-import React from "react";
-import { Box, Typography, IconButton } from "@mui/material";
+// Default React import not required with automatic JSX runtime
+import { Typography, IconButton } from "@mui/material";
 
 const SubcategoryItem = ({ subcategory, onEdit, onDelete }) => {
   return (

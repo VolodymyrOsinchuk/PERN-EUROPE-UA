@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import {
   AdDetailPage,
   Users,
@@ -25,14 +25,14 @@ import {
   VerifyAccount,
   AdsManager,
   EventsManager,
-} from './pages'
+} from "./pages";
 
-import { CategoryForm, Loading } from './components'
+import { CategoryForm, Loading } from "./components";
 
-import { action as registerAction } from './pages/Register'
-import { action as loginAction } from './pages/Login'
-import { action as createAdAction } from './pages/CreateAdPage'
-import { action as updateProfileAction } from './pages/Profile'
+import { action as registerAction } from "./pages/Register";
+import { action as loginAction } from "./pages/Login";
+import { action as createAdAction } from "./pages/CreateAdPage";
+import { action as updateProfileAction } from "./pages/Profile";
 // import { action as categoryAction } from "./pages/CategoryManager";
 // import { action as categoryAction } from "./pages/CategoryMenager1";
 import {
@@ -40,25 +40,25 @@ import {
   // updateCategoryAction,
   // deleteCategoryAction,
   categoryAction,
-} from './pages/CategoryManager'
+} from "./pages/CategoryManager";
 
-import { loader as accountLoader } from './pages/VerifyAccount'
+import { loader as accountLoader } from "./pages/VerifyAccount";
 // import { loader as categoryLoader } from "./pages/CategoryManager";
-import { loader as categoryLoader } from './pages/CategoryManager'
-import { loader as adsLoader } from './pages/Ads'
-import { loader as adLoader } from './pages/AdDetailPage'
-import { loader as catLoader } from './pages/CreateAdPage'
-import { loader as profileLoader } from './layouts/ProfileLayout'
-import { loader as categoryDetailsLoader } from './pages/CategoryDetails'
-import { loader as dashboardLoader } from './pages/Dashboard'
-import { loader as usersLoader, action as usersAction } from './pages/Users'
-import { loader as adsManagerLoader } from './pages/AdsManager'
-import { loader as eventsManagerLoader } from './pages/EventsManager'
+import { loader as categoryLoader } from "./pages/CategoryManager";
+import { loader as adsLoader } from "./pages/Ads";
+import { loader as adLoader } from "./pages/AdDetailPage";
+import { loader as catLoader } from "./pages/CreateAdPage";
+import { loader as profileLoader } from "./layouts/ProfileLayout";
+import { loader as categoryDetailsLoader } from "./pages/CategoryDetails";
+import { loader as dashboardLoader } from "./pages/Dashboard";
+import { loader as usersLoader, action as usersAction } from "./pages/Users";
+import { loader as adsManagerLoader } from "./pages/AdsManager";
+import { loader as eventsManagerLoader } from "./pages/EventsManager";
 
 const router = createBrowserRouter(
   [
     {
-      path: '/',
+      path: "/",
       element: <AppLayout />,
       HydrateFallback: Loading,
       // loader: profileLoader,
@@ -70,69 +70,69 @@ const router = createBrowserRouter(
           HydrateFallback: Loading,
         },
         {
-          path: 'forum',
+          path: "forum",
           element: <Forum />,
           HydrateFallback: Loading,
         },
         {
-          path: 'news',
+          path: "news",
           element: <News />,
           HydrateFallback: Loading,
         },
         {
-          path: 'ads',
+          path: "ads",
           element: <Ads />,
           loader: adsLoader,
           HydrateFallback: Loading,
         },
         {
-          path: 'ads/:id',
+          path: "ads/:id",
           element: <AdDetailPage />,
           HydrateFallback: Loading,
 
           loader: adLoader,
         },
         {
-          path: 'login',
+          path: "login",
           element: <Login />,
           action: loginAction,
           HydrateFallback: Loading,
         },
         {
-          path: 'register',
+          path: "register",
           element: <Register />,
           action: registerAction,
           HydrateFallback: Loading,
         },
         {
-          path: 'verify-account/:token',
+          path: "verify-account/:token",
           element: <VerifyAccount />,
           loader: accountLoader,
         },
         {
-          path: 'events',
+          path: "events",
           element: <Events />,
           HydrateFallback: Loading,
         },
         {
-          path: 'contact',
+          path: "contact",
           element: <Contacts />,
           HydrateFallback: Loading,
         },
         {
-          path: 'publications',
+          path: "publications",
           element: <Publications />,
           HydrateFallback: Loading,
         },
         {
-          path: 'policy',
+          path: "policy",
           element: <Policy />,
           HydrateFallback: Loading,
         },
       ],
     },
     {
-      path: '/profile',
+      path: "/profile",
       element: <ProfileLayout />,
       HydrateFallback: Loading,
       loader: profileLoader,
@@ -144,7 +144,7 @@ const router = createBrowserRouter(
           action: updateProfileAction,
         },
         {
-          path: 'create-ad',
+          path: "create-ad",
           element: <CreateAdPage />,
           HydrateFallback: Loading,
           loader: catLoader,
@@ -153,7 +153,7 @@ const router = createBrowserRouter(
       ],
     },
     {
-      path: '/dashboard',
+      path: "/dashboard",
       element: <DashboardLayout />,
       children: [
         {
@@ -163,33 +163,33 @@ const router = createBrowserRouter(
           HydrateFallback: Loading,
         },
         {
-          path: 'users',
+          path: "users",
           element: <Users />,
           loader: usersLoader,
           action: usersAction,
           HydrateFallback: Loading,
         },
         {
-          path: 'ads',
+          path: "ads",
           element: <AdsManager />,
           loader: adsManagerLoader,
           HydrateFallback: Loading,
         },
         {
-          path: 'events',
+          path: "events",
           element: <EventsManager />,
           loader: eventsManagerLoader,
           HydrateFallback: Loading,
         },
         {
-          path: 'create-ad',
+          path: "create-ad",
           element: <CreateAdPage />,
           HydrateFallback: Loading,
 
           loader: catLoader,
         },
         {
-          path: 'categories',
+          path: "categories",
           element: <CategoryManager />,
           HydrateFallback: Loading,
 
@@ -228,7 +228,7 @@ const router = createBrowserRouter(
       v7_startTransition: true,
     },
   }
-)
+);
 
 const App = () => {
   return (
@@ -243,6 +243,6 @@ const App = () => {
         v7_startTransition: true,
       }}
     />
-  )
-}
-export default App
+  );
+};
+export default App;
