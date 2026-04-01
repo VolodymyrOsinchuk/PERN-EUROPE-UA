@@ -21,9 +21,9 @@ import {
   MenuItem,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { ImageGallery } from "../components";
-import "../assets/css/adDetailPage.css";
-import customFetch from "../utils/customFetch";
+import { ImageGallery } from "../../components";
+import "../../assets/css/adDetailPage.css";
+import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
 import { useLoaderData } from "react-router-dom";
 const apiUrl = import.meta.env.VITE_APP_API_URL;

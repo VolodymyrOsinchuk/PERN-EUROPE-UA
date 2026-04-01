@@ -7,6 +7,7 @@ const {
   getAnnonceById,
   deleteAnnonce,
   updateAnnonce,
+  getUserAnnonces,
 } = require("../controllers/advController");
 const upload = require("../middleware/multer");
 const checkOwnership = require("../middleware/checkOwnership");
@@ -16,6 +17,9 @@ router
   .route("/")
   .post(upload.array("photos", 5), authMiddleware, createAnnonce)
   .get(getAllAnnonces);
+router
+  .route("/user-ads")
+  .get(authMiddleware, getUserAnnonces);
 router
   .route("/:id")
   .get(getAnnonceById)

@@ -1,18 +1,18 @@
-import { useLoaderData } from 'react-router-dom'
-import { Box, Grid, Paper, Typography } from '@mui/material'
-import customFetch from '../utils/customFetch'
+import { useLoaderData } from "react-router-dom";
+import { Box, Grid, Paper, Typography } from "@mui/material";
+import customFetch from "../../utils/customFetch";
 
 export const loader = async () => {
   try {
-    const { data } = await customFetch.get('/users/stats')
-    return data
+    const { data } = await customFetch.get("/users/stats");
+    return data;
   } catch (error) {
-    return error
+    return error;
   }
-}
+};
 
 const Dashboard = () => {
-  const { users, ads, categories } = useLoaderData()
+  const { users, ads, categories } = useLoaderData();
 
   return (
     <Box>
@@ -40,7 +40,7 @@ const Dashboard = () => {
         </Grid>
       </Grid>
     </Box>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

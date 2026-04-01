@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { HeroSection } from "../components";
+import { HeroSection } from "../../components";
 import {
   Alert,
   Box,
@@ -11,7 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import "../assets/css/contact.css";
+import "../../assets/css/contact.css";
 const Contacts = () => {
   const [formStatus, setFormStatus] = useState(null);
   const [formData, setFormData] = useState({

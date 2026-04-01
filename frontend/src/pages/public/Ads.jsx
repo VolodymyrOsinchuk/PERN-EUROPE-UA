@@ -14,9 +14,9 @@ import {
   ToggleButtonGroup,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { GridView, HeroSection, ListView } from "../components/";
-import "../assets/css/ads.css";
-import customFetch from "../utils/customFetch";
+import { GridView, HeroSection, ListView } from "../../components";
+import "../../assets/css/ads.css";
+import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
 import { useLoaderData } from "react-router-dom";
 

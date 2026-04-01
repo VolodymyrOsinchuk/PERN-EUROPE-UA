@@ -1,8 +1,9 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import {
   AdDetailPage,
-  Users,
+  Admin,
   Ads,
+  AdsManager,
   AppLayout,
   CategoryDetails,
   CategoryManager,
@@ -12,45 +13,40 @@ import {
   DashboardLayout,
   ErrorPage,
   Events,
+  EventsManager,
   Forum,
   Home,
   HomeLayout,
   Login,
   News,
   Policy,
+  Posts,
   Profile,
   ProfileLayout,
   Publications,
   Register,
+  Settings,
+  Users,
   VerifyAccount,
-  AdsManager,
-  EventsManager,
-} from "./pages";
+} from "./pages/index";
 
-import { CategoryForm, Loading } from "./components";
+import { CategoryForm, Loading, SubcategoryItem } from "./components";
+import { SubcategoryItem1 } from "./components";
 
 import { action as registerAction } from "./pages/Register";
 import { action as loginAction } from "./pages/Login";
-import { action as createAdAction } from "./pages/CreateAdPage";
-import { action as updateProfileAction } from "./pages/Profile";
-// import { action as categoryAction } from "./pages/CategoryManager";
-// import { action as categoryAction } from "./pages/CategoryMenager1";
-import {
-  // createCategoryAction,
-  // updateCategoryAction,
-  // deleteCategoryAction,
-  categoryAction,
-} from "./pages/CategoryManager";
+import { action as createAdAction } from "./pages/profile/CreateAdPage";
+import { action as updateProfileAction } from "./pages/profile/Profile";
+import { categoryAction } from "./pages/CategoryManager";
 
 import { loader as accountLoader } from "./pages/VerifyAccount";
-// import { loader as categoryLoader } from "./pages/CategoryManager";
 import { loader as categoryLoader } from "./pages/CategoryManager";
-import { loader as adsLoader } from "./pages/Ads";
-import { loader as adLoader } from "./pages/AdDetailPage";
-import { loader as catLoader } from "./pages/CreateAdPage";
+import { loader as adsLoader } from "./pages/public/Ads";
+import { loader as adLoader } from "./pages/public/AdDetailPage";
+import { loader as catLoader } from "./pages/profile/CreateAdPage";
 import { loader as profileLoader } from "./layouts/ProfileLayout";
 import { loader as categoryDetailsLoader } from "./pages/CategoryDetails";
-import { loader as dashboardLoader } from "./pages/Dashboard";
+import { loader as dashboardLoader } from "./pages/dashboard/Dashboard";
 import { loader as usersLoader, action as usersAction } from "./pages/Users";
 import { loader as adsManagerLoader } from "./pages/AdsManager";
 import { loader as eventsManagerLoader } from "./pages/EventsManager";
@@ -196,25 +192,36 @@ const router = createBrowserRouter(
           loader: categoryLoader,
           action: categoryAction,
         },
-        // {
-        //   path: "categories/create",
-        //   element: <CategoryForm />,
-        //   action: createCategoryAction,
-        // },
-        // {
-        //   path: ":categoryId/edit",
-        //   element: <CategoryForm />,
-        //   action: updateCategoryAction,
-        //   // loader: singleCategoryLoader,
-        // },
-        // {
-        //   path: ":categoryId/delete",
-        //   action: deleteCategoryAction,
-        // },
-        // {
-        //   path: "action",
-        //   action: categoryAction,
-        // },
+        {
+          path: "categories/:id",
+          element: <CategoryDetails />,
+          HydrateFallback: Loading,
+        },
+        {
+          path: "categories/:categoryId/sub-categories",
+          element: <SubcategoryItem />,
+          HydrateFallback: Loading,
+        },
+        {
+          path: "categories/:categoryId/sub-categories/:id",
+          element: <SubcategoryItem1 />,
+          HydrateFallback: Loading,
+        },
+        {
+          path: "posts",
+          element: <Posts />,
+          HydrateFallback: Loading,
+        },
+        {
+          path: "settings",
+          element: <Settings />,
+          HydrateFallback: Loading,
+        },
+        {
+          path: "admin",
+          element: <Admin />,
+          HydrateFallback: Loading,
+        },
       ],
     },
   ],
@@ -227,7 +234,7 @@ const router = createBrowserRouter(
       v7_skipActionErrorRevalidation: true,
       v7_startTransition: true,
     },
-  }
+  },
 );
 
 const App = () => {

@@ -13,12 +13,12 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import Grid from "@mui/material/Grid";
-import Info from "../components/Info";
-import ProfileHeader from "../components/ProfileHeader";
-import AdCard from "../components/AdCard";
-import TabNavigation from "../components/TabNavigation";
-import DeleteDialog from "../components/DeleteDialog";
-import "../assets/css/profile.css";
+import Info from "../../components/Info";
+import ProfileHeader from "../../components/ProfileHeader";
+import AdCard from "../../components/AdCard";
+import TabNavigation from "../../components/TabNavigation";
+import DeleteDialog from "../../components/DeleteDialog";
+import "../../assets/css/profile.css";
 import {
   Link,
   useNavigate,
@@ -27,8 +27,8 @@ import {
   useLoaderData,
   useFetcher,
 } from "react-router-dom";
-import { useProfileContext } from "../layouts/ProfileLayout";
-import customFetch from "../utils/customFetch";
+import { useProfileContext } from "../../layouts/ProfileLayout";
+import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
 
 // Action pour mettre à jour le profil
@@ -229,14 +229,14 @@ const Profile = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
       setProfileImage(data.profilePicture);
       updateContextUser({ ...user, profilePicture: data.profilePicture });
       toast.success("Profile picture updated successfully!");
     } catch (error) {
       toast.error(
-        error?.response?.data?.msg || "Failed to update profile picture"
+        error?.response?.data?.msg || "Failed to update profile picture",
       );
     }
   };
@@ -364,7 +364,7 @@ const Profile = () => {
                   actionType: "deleteAd",
                   adId: selectedAd.id,
                 },
-                { method: "post" }
+                { method: "post" },
               );
             }
           }}

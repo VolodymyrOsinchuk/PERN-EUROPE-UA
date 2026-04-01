@@ -18,7 +18,7 @@ import {
   GetPhonecodes,
   GetState,
 } from "react-country-state-city";
-import "../assets/css/create-ad.css";
+import "../../assets/css/create-ad.css";
 import "react-country-state-city/dist/react-country-state-city.css";
 import {
   Form,
@@ -29,9 +29,9 @@ import {
   Link,
 } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
-import customFetch from "../utils/customFetch";
+import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
-import { FormRow } from "../components";
+import { FormRow } from "../../components";
 
 export const loader = async () => {
   try {

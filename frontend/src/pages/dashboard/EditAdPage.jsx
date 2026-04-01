@@ -1,6 +1,6 @@
 import { useLoaderData, Form, redirect } from "react-router-dom";
 import { Box, Typography, TextField, Button, Paper } from "@mui/material";
-import customFetch from "../utils/customFetch";
+import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
 
 export const loader = async ({ params }) => {
@@ -119,7 +119,12 @@ const EditAdPage = () => {
             variant="standard"
             defaultValue={ad.phone}
           />
-          <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            sx={{ mt: 2 }}
+          >
             Update Ad
           </Button>
         </Form>

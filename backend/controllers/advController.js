@@ -308,3 +308,23 @@ exports.deleteAnnonce = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.getUserAnnonces = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const annonces = await Adv.findAll({
+      where: { userId },
+      include: [
+        {
+          model: Category,
+          as: "category",
+          attributes: ["id", "name"],
+        },
+      ],
+      order: [["datePosted", "DESC"]],
+    });
+    res.status(200).json(annonces);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
