@@ -2,6 +2,7 @@ const { User } = require("../models/user");
 const crypto = require("crypto");
 const { sendVerificationEmail } = require("../utils/emailService");
 const { createJWT } = require("../utils/tokenUtils");
+const bcrypt = require("bcryptjs");
 
 exports.register = async (req, res) => {
   console.log("req.body >>>>>>", req.body);
@@ -93,6 +94,7 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
+  console.log("req.body", req.body);
   try {
     const { email, password } = req.body;
 
@@ -103,15 +105,19 @@ exports.login = async (req, res) => {
       //   exclude: ["password"],
       // },
     });
-
+    console.log("login user", user);
     if (!user) {
       return res.status(401).json({ message: "Identifiants invalides" });
     }
     // Vérifier le mot de passe
-    const isMatch = await user.validatePassword(password);
+    const isMatch = await bcrypt.compare(password, user.dataValues.password);
+    console.log("password reçu:", password);
+    console.log("hash en base:", user.dataValues.password);
+    console.log("isMatch:", isMatch);
     if (!isMatch) {
       return res.status(401).json({ message: "Identifiants invalides" });
     }
+    console.log("login isMatch", isMatch);
 
     // Vérifier si le compte est vérifié
     if (!user.isVerified) {
@@ -126,6 +132,7 @@ exports.login = async (req, res) => {
       email: user.email,
       role: user.role,
     });
+    console.log("login token", token);
 
     // Mettre à jour la dernière connexion
     await user.update({ lastLogin: new Date() });
@@ -139,8 +146,9 @@ exports.login = async (req, res) => {
       email: user.email,
       role: user.role,
     };
+    console.log("login userLogin", userLogin);
 
-    res.cookie("token", token, {
+    res.cookie("token", token, userLogin, {
       httpOnly: true,
       expires: new Date(Date.now() + oneDay),
       secure: process.env.NODE_ENV === "production",

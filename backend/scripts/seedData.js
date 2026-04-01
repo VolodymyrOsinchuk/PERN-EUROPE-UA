@@ -7,15 +7,14 @@ const sequelize = require("../config/db");
 
 async function seedDatabase() {
   try {
-    await sequelize.sync({ force: true }); // Be careful, this will drop all tables!
+    await sequelize.sync({ force: true });
 
-    // Create admin user
-    const hashedPassword = await bcrypt.hash("Admin123!", 10);
+    // Create admin user - laisser le hook beforeCreate hasher le mot de passe
     const adminUser = await User.create({
       firstName: "Admin",
       lastName: "User",
       email: "admin@example.com",
-      password: hashedPassword,
+      password: "Admin123!", // ✅ pas de hash manuel, le hook s'en charge
       phoneNumber: "+33123456789",
       country: "France",
       state: "Île-de-France",
@@ -49,37 +48,40 @@ async function seedDatabase() {
       { name: "Accessoires", categoryId: 5 },
     ]);
 
-    // Create regular users
-    const users = await User.bulkCreate([
-      {
-        firstName: "Jean",
-        lastName: "Dupont",
-        email: "jean.dupont@example.com",
-        password: "Password123!",
-        phoneNumber: "+33612345678",
-        country: "France",
-        state: "Occitanie",
-        location: "Toulouse",
-        about: "Passionné d'immobilier",
-        role: "user",
-        agreeToTerms: true,
-        isVerified: true,
-      },
-      {
-        firstName: "Marie",
-        lastName: "Martin",
-        email: "marie.martin@example.com",
-        password: "Password123!",
-        phoneNumber: "+33687654321",
-        country: "France",
-        state: "Provence-Alpes-Côte d'Azur",
-        location: "Marseille",
-        about: "Professionnelle de l'automobile",
-        role: "user",
-        agreeToTerms: true,
-        isVerified: true,
-      },
-    ]);
+    // Create regular users - individualHooks: true pour que beforeCreate hashe les mots de passe
+    const users = await User.bulkCreate(
+      [
+        {
+          firstName: "Jean",
+          lastName: "Dupont",
+          email: "jean.dupont@example.com",
+          password: "Password123!", // ✅ pas de hash manuel
+          phoneNumber: "+33612345678",
+          country: "France",
+          state: "Occitanie",
+          location: "Toulouse",
+          about: "Passionné d'immobilier",
+          role: "user",
+          agreeToTerms: true,
+          isVerified: true,
+        },
+        {
+          firstName: "Marie",
+          lastName: "Martin",
+          email: "marie.martin@example.com",
+          password: "Password123!", // ✅ pas de hash manuel
+          phoneNumber: "+33687654321",
+          country: "France",
+          state: "Provence-Alpes-Côte d'Azur",
+          location: "Marseille",
+          about: "Professionnelle de l'automobile",
+          role: "user",
+          agreeToTerms: true,
+          isVerified: true,
+        },
+      ],
+      { individualHooks: true }, // ✅ active beforeCreate pour chaque user
+    );
 
     // Create advertisements
     const advertisements = await Adv.bulkCreate([
@@ -139,5 +141,4 @@ async function seedDatabase() {
   }
 }
 
-// Exécuter le script
 seedDatabase();
