@@ -18,13 +18,16 @@ import "../assets/css/login.css";
 export const action = async ({ request }) => {
   const formData = await request.formData();
   const dataForm = Object.fromEntries(formData);
-  const rememberMe = dataForm.rememberMe;
+
   try {
-    const { data } = await customFetch.post("/auth/login", dataForm, {});
+    const { data } = await customFetch.post("/auth/login", dataForm, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
     toast.success("Ви увійшли успішно успішно");
     return redirect(`/profile`);
-    // return response;
   } catch (error) {
     console.log("🚀 ~ action ~ error:", error);
     toast.error(error?.response?.data?.message || "Une erreur est survenue");
