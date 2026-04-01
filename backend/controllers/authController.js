@@ -140,12 +140,13 @@ exports.login = async (req, res) => {
       role: user.role,
     };
 
-    res.cookie("token", token, userLogin, {
+    res.cookie("token", token, {
       httpOnly: true,
       expires: new Date(Date.now() + oneDay),
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
+
     res.status(200).json({ msg: "user logged in", token });
   } catch (error) {
     res
