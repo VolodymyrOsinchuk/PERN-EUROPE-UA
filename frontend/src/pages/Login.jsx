@@ -27,7 +27,7 @@ export const action = async ({ request }) => {
     // return response;
   } catch (error) {
     console.log("🚀 ~ action ~ error:", error);
-    toast.error(error?.response.data?.msg);
+    toast.error(error?.response?.data?.message || "Une erreur est survenue");
     return error;
   }
 };

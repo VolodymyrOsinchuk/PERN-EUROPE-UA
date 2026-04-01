@@ -7,11 +7,14 @@ const customFetch = axios.create({
 });
 
 customFetch.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(response);
+    return response;
+  },
   (error) => {
     console.error("Erreur Axios:", error);
     return Promise.reject(error);
-  }
+  },
 );
 
 export default customFetch;

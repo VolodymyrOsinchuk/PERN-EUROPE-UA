@@ -10,11 +10,12 @@ async function seedDatabase() {
     await sequelize.sync({ force: true }); // Be careful, this will drop all tables!
 
     // Create admin user
+    const hashedPassword = await bcrypt.hash("Admin123!", 10);
     const adminUser = await User.create({
       firstName: "Admin",
       lastName: "User",
       email: "admin@example.com",
-      password: "Admin123!",
+      password: hashedPassword,
       phoneNumber: "+33123456789",
       country: "France",
       state: "Île-de-France",
