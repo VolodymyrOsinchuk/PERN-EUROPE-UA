@@ -1,7 +1,19 @@
 import { useLoaderData, Form, redirect } from "react-router-dom";
-import { Box, Typography, TextField, Button, Paper } from "@mui/material";
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  Grid,
+  Divider,
+  CircularProgress,
+} from "@mui/material";
+import { useNavigation } from "react-router-dom";
+import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
+import PageHeader from "../PageHeader";
 
 export const loader = async ({ params }) => {
   try {
@@ -9,124 +21,186 @@ export const loader = async ({ params }) => {
     return data;
   } catch (error) {
     toast.error(error?.response?.data?.msg);
-    return error;
+    return {};
   }
 };
 
 export const action = async ({ request, params }) => {
   const formData = await request.formData();
-  const updatedAd = Object.fromEntries(formData);
-
   try {
-    await customFetch.put(`/adv/${params.id}`, updatedAd);
-    toast.success("Ad updated successfully");
+    await customFetch.put(`/adv/${params.id}`, Object.fromEntries(formData));
+    toast.success("Оголошення оновлено");
   } catch (error) {
     toast.error(error?.response?.data?.msg);
   }
   return redirect("/dashboard/posts");
 };
 
+const FieldSection = ({ title, children }) => (
+  <Box sx={{ mb: 3 }}>
+    <Typography
+      variant="caption"
+      sx={{
+        color: "#94A3B8",
+        fontWeight: 700,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        fontSize: "0.65rem",
+        display: "block",
+        mb: 1.5,
+      }}
+    >
+      {title}
+    </Typography>
+    {children}
+  </Box>
+);
+
 const EditAdPage = () => {
   const ad = useLoaderData();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Edit Ad
-      </Typography>
-      <Paper sx={{ p: 2 }}>
+      <PageHeader
+        title="Редагувати оголошення"
+        subtitle={ad.title}
+        breadcrumbs={[
+          { label: "Панель", to: "/dashboard" },
+          { label: "Оголошення", to: "/dashboard/posts" },
+          { label: "Редагувати" },
+        ]}
+      />
+
+      <Paper sx={{ p: 3, maxWidth: 860 }}>
         <Form method="post">
-          <TextField
-            margin="dense"
-            name="title"
-            label="Title"
-            type="text"
-            fullWidth
-            variant="standard"
-            defaultValue={ad.title}
-          />
-          <TextField
-            margin="dense"
-            name="description"
-            label="Description"
-            type="text"
-            fullWidth
-            multiline
-            rows={4}
-            variant="standard"
-            defaultValue={ad.description}
-          />
-          <TextField
-            margin="dense"
-            name="price"
-            label="Price"
-            type="number"
-            fullWidth
-            variant="standard"
-            defaultValue={ad.price}
-          />
-          <TextField
-            margin="dense"
-            name="country"
-            label="Country"
-            type="text"
-            fullWidth
-            variant="standard"
-            defaultValue={ad.country}
-          />
-          <TextField
-            margin="dense"
-            name="state"
-            label="State"
-            type="text"
-            fullWidth
-            variant="standard"
-            defaultValue={ad.state}
-          />
-          <TextField
-            margin="dense"
-            name="city"
-            label="City"
-            type="text"
-            fullWidth
-            variant="standard"
-            defaultValue={ad.city}
-          />
-          <TextField
-            margin="dense"
-            name="location"
-            label="Location"
-            type="text"
-            fullWidth
-            variant="standard"
-            defaultValue={ad.location}
-          />
-          <TextField
-            margin="dense"
-            name="email"
-            label="Email"
-            type="email"
-            fullWidth
-            variant="standard"
-            defaultValue={ad.email}
-          />
-          <TextField
-            margin="dense"
-            name="phone"
-            label="Phone"
-            type="text"
-            fullWidth
-            variant="standard"
-            defaultValue={ad.phone}
-          />
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            sx={{ mt: 2 }}
+          <FieldSection title="Основна інформація">
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12 }}>
+                <TextField
+                  name="title"
+                  label="Заголовок"
+                  fullWidth
+                  defaultValue={ad.title}
+                  required
+                />
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <TextField
+                  name="description"
+                  label="Опис"
+                  fullWidth
+                  multiline
+                  rows={4}
+                  defaultValue={ad.description}
+                  required
+                  inputProps={{ minLength: 10, maxLength: 5000 }}
+                  helperText="Від 10 до 5000 символів"
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  name="price"
+                  label="Ціна (€)"
+                  type="number"
+                  fullWidth
+                  defaultValue={ad.price}
+                  inputProps={{ min: 0, step: 0.01 }}
+                />
+              </Grid>
+            </Grid>
+          </FieldSection>
+
+          <Divider sx={{ mb: 3 }} />
+
+          <FieldSection title="Локалізація">
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  name="country"
+                  label="Країна"
+                  fullWidth
+                  defaultValue={ad.country}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  name="state"
+                  label="Регіон"
+                  fullWidth
+                  defaultValue={ad.state}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  name="city"
+                  label="Місто"
+                  fullWidth
+                  defaultValue={ad.city}
+                />
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <TextField
+                  name="location"
+                  label="Точна адреса"
+                  fullWidth
+                  defaultValue={ad.location}
+                />
+              </Grid>
+            </Grid>
+          </FieldSection>
+
+          <Divider sx={{ mb: 3 }} />
+
+          <FieldSection title="Контакти">
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  name="email"
+                  label="Email"
+                  type="email"
+                  fullWidth
+                  defaultValue={ad.email}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  name="phone"
+                  label="Телефон"
+                  fullWidth
+                  defaultValue={ad.phone}
+                />
+              </Grid>
+            </Grid>
+          </FieldSection>
+
+          <Box
+            sx={{ display: "flex", gap: 2, justifyContent: "flex-end", pt: 1 }}
           >
-            Update Ad
-          </Button>
+            <Button
+              variant="outlined"
+              color="inherit"
+              component="a"
+              href="/dashboard/posts"
+            >
+              Скасувати
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={isSubmitting}
+              startIcon={
+                isSubmitting ? (
+                  <CircularProgress size={15} />
+                ) : (
+                  <SaveOutlinedIcon />
+                )
+              }
+            >
+              {isSubmitting ? "Збереження..." : "Зберегти зміни"}
+            </Button>
+          </Box>
         </Form>
       </Paper>
     </Box>

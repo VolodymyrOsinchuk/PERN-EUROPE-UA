@@ -4,8 +4,6 @@ const { verifyJWT } = require("../utils/tokenUtils");
 
 const authMiddleware = async (req, res, next) => {
   const { token } = req.cookies;
-  console.log("🚀 ~ authMiddleware ~ token :", token);
-
   // If no authorization header
   if (!token) {
     return res.status(401).json({

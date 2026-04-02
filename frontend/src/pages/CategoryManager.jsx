@@ -1,39 +1,45 @@
-// React import not required with automatic JSX runtime
+import { useState } from "react";
 import {
   Form,
   useLoaderData,
-  useNavigation,
   useActionData,
+  useNavigation,
+  redirect,
 } from "react-router-dom";
 import {
   Box,
-  Typography,
   Button,
+  Typography,
   Paper,
+  Alert,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  Alert,
+  IconButton,
+  Tooltip,
+  Chip,
+  Collapse,
 } from "@mui/material";
-import { Delete } from "@mui/icons-material";
-import customFetch from "../utils/customFetch"; // Assurez-vous d'importer votre utilitaire fetch
+import AddIcon from "@mui/icons-material/Add";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
+import SubdirectoryArrowRightIcon from "@mui/icons-material/SubdirectoryArrowRight";
+import customFetch from "../utils/customFetch";
+import PageHeader from "./PageHeader";
 
-// Loader pour récupérer les catégories
 export async function loader() {
   try {
     const response = await customFetch.get("/categories");
     return { data: response.data };
   } catch (error) {
-    return {
-      error:
-        error.response?.data?.msg || "Erreur lors du chargement des catégories",
-    };
+    return { error: error.response?.data?.msg || "Помилка завантаження" };
   }
 }
 
-// Action pour gérer les opérations CRUD
 export async function categoryAction({ request }) {
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -46,40 +52,33 @@ export async function categoryAction({ request }) {
       case "add-category":
         await customFetch.post("/categories", { name: categoryName });
         break;
-
       case "add-subcategory":
         await customFetch.post(`/categories/${categoryId}/sub-categories`, {
           name: categoryName,
         });
         break;
-
       case "edit-category":
         await customFetch.patch(`/categories/${categoryId}`, {
           name: categoryName,
         });
         break;
-
       case "edit-subcategory":
         await customFetch.patch(
           `/categories/${categoryId}/sub-categories/${subcategoryId}`,
-          { name: categoryName }
+          { name: categoryName },
         );
         break;
-
       case "delete-category":
         await customFetch.delete(`/categories/${categoryId}`);
         break;
-
       case "delete-subcategory":
         await customFetch.delete(
-          `/categories/${categoryId}/sub-categories/${subcategoryId}`
+          `/categories/${categoryId}/sub-categories/${subcategoryId}`,
         );
         break;
-
       default:
-        throw new Error("Action non reconnue");
+        throw new Error("Action inconnue");
     }
-
     return { success: true };
   } catch (error) {
     return {
@@ -88,8 +87,6 @@ export async function categoryAction({ request }) {
     };
   }
 }
-
-import { useState } from "react";
 
 function CategoryManager() {
   const { data, error } = useLoaderData();
@@ -100,6 +97,7 @@ function CategoryManager() {
   const [dialogMode, setDialogMode] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
+  const [expandedIds, setExpandedIds] = useState({});
 
   const handleOpenDialog = (mode, category = null, subcategory = null) => {
     setDialogMode(mode);
@@ -107,207 +105,278 @@ function CategoryManager() {
     setSelectedSubcategory(subcategory);
     setOpenDialog(true);
   };
+  const handleCloseDialog = () => setOpenDialog(false);
 
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setSelectedCategory(null);
-    setSelectedSubcategory(null);
-  };
+  const toggleExpand = (id) =>
+    setExpandedIds((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  // Gestion des erreurs de chargement
-  if (error) {
-    return <Alert severity="error">{error}</Alert>;
-  }
+  if (error) return <Alert severity="error">{error}</Alert>;
 
   return (
-    <Form method="post">
-      <main className="main-content">
-        <Box
-          sx={{
-            mb: 4,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Typography variant="h4">Управління категоріями</Typography>
+    <Box>
+      <PageHeader
+        title="Категорії"
+        subtitle={`${data?.length ?? 0} категорій`}
+        breadcrumbs={[
+          { label: "Панель", to: "/dashboard" },
+          { label: "Категорії" },
+        ]}
+        action={
           <Button
             variant="contained"
-            startIcon={<span className="material-icons">add</span>}
+            startIcon={<AddIcon />}
             onClick={() => handleOpenDialog("add-category")}
           >
             Додати категорію
           </Button>
-        </Box>
+        }
+      />
 
-        {actionData?.error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {actionData.error}
-          </Alert>
+      {actionData?.error && (
+        <Alert severity="error" sx={{ mb: 2.5 }}>
+          {actionData.error}
+        </Alert>
+      )}
+
+      <Paper sx={{ overflow: "hidden" }}>
+        {data?.length === 0 && (
+          <Box sx={{ textAlign: "center", py: 8 }}>
+            <span
+              className="material-icons"
+              style={{ fontSize: 40, color: "#CBD5E1" }}
+            >
+              category
+            </span>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              Категорій ще немає
+            </Typography>
+          </Box>
         )}
 
-        <Paper sx={{ p: "10px" }}>
-          {data.map((category) => (
-            <Box key={category.id}>
-              <Box
-                component="div"
+        {data?.map((category, idx) => (
+          <Box
+            key={category.id}
+            sx={{
+              borderBottom:
+                idx < data.length - 1
+                  ? "1px solid rgba(15,23,42,0.06)"
+                  : "none",
+            }}
+          >
+            {/* Category row */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                px: 2.5,
+                py: 1.5,
+                gap: 1,
+                "&:hover": { bgcolor: "#F8FAFC" },
+              }}
+            >
+              <IconButton
+                size="small"
+                onClick={() => toggleExpand(category.id)}
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  p: 1,
-                  borderRadius: "4px",
-                  m: "4px 0",
+                  color: "#94A3B8",
+                  transform: expandedIds[category.id]
+                    ? "rotate(0deg)"
+                    : "rotate(-90deg)",
+                  transition: "transform 0.2s",
                 }}
               >
-                <input type="hidden" name="categoryId" value={category.id} />
-                <span className="material-icons" style={{ marginRight: "8px" }}>
-                  folder
-                </span>
-                <Typography
-                  variant="subtitle1"
-                  className="category-name"
-                  sx={{
-                    flexGrow: 1,
-                    cursor: "pointer",
-                    borderRadius: "4px",
-                    p: "2px 4px",
-                  }}
-                  onClick={() => handleOpenDialog("edit-category", category)}
-                >
-                  {category.name}
-                </Typography>
-                <Button
+                <ExpandMoreIcon fontSize="small" />
+              </IconButton>
+
+              <FolderOutlinedIcon sx={{ color: "#F59E0B", fontSize: 20 }} />
+
+              <Typography variant="body2" fontWeight={600} sx={{ flexGrow: 1 }}>
+                {category.name}
+              </Typography>
+
+              <Chip
+                label={`${category.SubCategories?.length ?? 0} підкат.`}
+                size="small"
+                sx={{
+                  bgcolor: "#F1F5F9",
+                  color: "#64748B",
+                  fontSize: "0.7rem",
+                }}
+              />
+
+              <Tooltip title="Додати підкатегорію">
+                <IconButton
                   size="small"
-                  startIcon={<span className="material-icons">add</span>}
                   onClick={() => handleOpenDialog("add-subcategory", category)}
                 >
-                  Додати підкатегорію
-                </Button>
-                <Button
-                  type="submit"
-                  name="intent"
-                  value="delete-category"
-                  sx={{ background: "none", border: "none", color: "red" }}
-                  startIcon={<Delete />}
-                ></Button>
-              </Box>
-              <Box component="div" sx={{ ml: 3 }}>
-                {category.SubCategories.map((sub) => (
-                  <Box
-                    component="div"
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      p: 1,
-                      borderRadius: "4px",
-                      m: "4px 0",
-                    }}
-                    key={sub.id}
+                  <AddIcon fontSize="small" sx={{ color: "#2563EB" }} />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title="Редагувати">
+                <IconButton
+                  size="small"
+                  onClick={() => handleOpenDialog("edit-category", category)}
+                >
+                  <EditOutlinedIcon
+                    fontSize="small"
+                    sx={{ color: "#64748B" }}
+                  />
+                </IconButton>
+              </Tooltip>
+
+              <Form method="post" style={{ display: "inline" }}>
+                <input type="hidden" name="categoryId" value={category.id} />
+                <Tooltip title="Видалити категорію">
+                  <IconButton
+                    size="small"
+                    type="submit"
+                    name="intent"
+                    value="delete-category"
                   >
+                    <DeleteOutlineIcon
+                      fontSize="small"
+                      sx={{ color: "#EF4444" }}
+                    />
+                  </IconButton>
+                </Tooltip>
+              </Form>
+            </Box>
+
+            {/* Subcategories */}
+            <Collapse in={expandedIds[category.id] ?? true}>
+              {category.SubCategories?.map((sub) => (
+                <Box
+                  key={sub.id}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    px: 2.5,
+                    pl: 6.5,
+                    py: 1.2,
+                    gap: 1,
+                    bgcolor: "#FAFAFA",
+                    borderTop: "1px solid rgba(15,23,42,0.04)",
+                    "&:hover": { bgcolor: "#F1F5F9" },
+                  }}
+                >
+                  <SubdirectoryArrowRightIcon
+                    sx={{ fontSize: 16, color: "#CBD5E1" }}
+                  />
+                  <Typography
+                    variant="body2"
+                    sx={{ flexGrow: 1, color: "#334155" }}
+                  >
+                    {sub.name}
+                  </Typography>
+
+                  <Tooltip title="Редагувати підкатегорію">
+                    <IconButton
+                      size="small"
+                      onClick={() =>
+                        handleOpenDialog("edit-subcategory", category, sub)
+                      }
+                    >
+                      <EditOutlinedIcon
+                        fontSize="small"
+                        sx={{ color: "#64748B" }}
+                      />
+                    </IconButton>
+                  </Tooltip>
+
+                  <Form method="post" style={{ display: "inline" }}>
                     <input
                       type="hidden"
                       name="categoryId"
                       value={category.id}
                     />
                     <input type="hidden" name="subcategoryId" value={sub.id} />
-                    <span
-                      className="material-icons"
-                      style={{ marginRight: "8px" }}
-                    >
-                      subdirectory_arrow_right
-                    </span>
-                    <Typography
-                      variant="body1"
-                      className="category-name"
-                      onClick={() =>
-                        handleOpenDialog("edit-subcategory", category, sub)
-                      }
-                      sx={{
-                        flexGrow: 1,
-                        cursor: "pointer",
-                        p: "2px 4px",
-                        borderRadius: "4px",
-                      }}
-                    >
-                      {sub.name}
-                    </Typography>
-                    <Button
-                      type="submit"
-                      size="large"
-                      name="intent"
-                      value="delete-subcategory"
-                      sx={{
-                        background: "none",
-                        border: "none",
-                        color: "red",
-                      }}
-                      startIcon={<Delete />}
-                    ></Button>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-          ))}
-        </Paper>
-      </main>
+                    <Tooltip title="Видалити підкатегорію">
+                      <IconButton
+                        size="small"
+                        type="submit"
+                        name="intent"
+                        value="delete-subcategory"
+                      >
+                        <DeleteOutlineIcon
+                          fontSize="small"
+                          sx={{ color: "#EF4444" }}
+                        />
+                      </IconButton>
+                    </Tooltip>
+                  </Form>
+                </Box>
+              ))}
+            </Collapse>
+          </Box>
+        ))}
+      </Paper>
 
+      {/* Dialog */}
       <Dialog
         open={openDialog}
         onClose={handleCloseDialog}
-        component="form"
-        method="post"
+        maxWidth="xs"
+        fullWidth
       >
         <DialogTitle>
-          {dialogMode === "add-category"
-            ? "Додати категорію"
-            : dialogMode === "add-subcategory"
-              ? "Додати підкатегорію"
-              : "Змінити назву"}
+          {dialogMode === "add-category" && "Нова категорія"}
+          {dialogMode === "add-subcategory" &&
+            `Підкатегорія → ${selectedCategory?.name}`}
+          {(dialogMode === "edit-category" ||
+            dialogMode === "edit-subcategory") &&
+            "Редагувати назву"}
         </DialogTitle>
-        <DialogContent>
-          <TextField
-            name="categoryName"
-            autoFocus
-            margin="dense"
-            label="Назва категорії"
-            fullWidth
-            variant="outlined"
-            defaultValue={
-              dialogMode === "edit-category"
-                ? selectedCategory?.name
-                : dialogMode === "edit-subcategory"
-                  ? selectedSubcategory?.name
-                  : ""
-            }
-          />
-          {selectedCategory && (
-            <input
-              type="hidden"
-              name="categoryId"
-              value={selectedCategory.id}
+        <Form method="post">
+          <DialogContent sx={{ pt: 1 }}>
+            <TextField
+              name="categoryName"
+              autoFocus
+              label="Назва"
+              fullWidth
+              defaultValue={
+                dialogMode === "edit-category"
+                  ? selectedCategory?.name
+                  : dialogMode === "edit-subcategory"
+                    ? selectedSubcategory?.name
+                    : ""
+              }
             />
-          )}
-          {selectedSubcategory && (
-            <input
-              type="hidden"
-              name="subcategoryId"
-              value={selectedSubcategory.id}
-            />
-          )}
-          <input type="hidden" name="intent" value={dialogMode} />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Скасувати</Button>
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={navigation.state === "submitting"}
-          >
-            {dialogMode.startsWith("add") ? "Додати" : "Зберегти"}
-          </Button>
-        </DialogActions>
+            {selectedCategory && (
+              <input
+                type="hidden"
+                name="categoryId"
+                value={selectedCategory.id}
+              />
+            )}
+            {selectedSubcategory && (
+              <input
+                type="hidden"
+                name="subcategoryId"
+                value={selectedSubcategory.id}
+              />
+            )}
+            <input type="hidden" name="intent" value={dialogMode} />
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2.5 }}>
+            <Button
+              onClick={handleCloseDialog}
+              variant="outlined"
+              color="inherit"
+            >
+              Скасувати
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={navigation.state === "submitting"}
+            >
+              {dialogMode?.startsWith("add") ? "Додати" : "Зберегти"}
+            </Button>
+          </DialogActions>
+        </Form>
       </Dialog>
-    </Form>
+    </Box>
   );
 }
 
