@@ -1,5 +1,5 @@
 import axios from "axios";
-const apiUrl = import.meta.env.VITE_APP_API_URL;
+export const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 const customFetch = axios.create({
   baseURL: `${apiUrl}/api/v1`,
@@ -8,7 +8,7 @@ const customFetch = axios.create({
 
 customFetch.interceptors.response.use(
   (response) => {
-    console.log(response);
+    console.log("response", response);
     return response;
   },
   (error) => {

@@ -148,14 +148,14 @@ exports.login = async (req, res) => {
     };
     console.log("login userLogin", userLogin);
 
-    res.cookie("token", token, userLogin, {
+    res.cookie("token", token, {
       httpOnly: true,
       expires: new Date(Date.now() + oneDay),
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
 
-    res.status(200).json({ msg: "user logged in", token });
+    res.status(200).json({ msg: "user logged in", user: userLogin, token });
   } catch (error) {
     res
       .status(500)
@@ -167,6 +167,8 @@ exports.logout = (req, res) => {
   res.cookie("token", "logout", {
     httpOnly: true,
     expires: new Date(Date.now()),
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   });
   res.status(200).json({ msg: "user logged out!" });
 };

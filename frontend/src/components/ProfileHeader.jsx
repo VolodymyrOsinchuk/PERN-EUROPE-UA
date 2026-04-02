@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import { Avatar, Typography, Container, IconButton } from "@mui/material";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import { useProfileContext } from "../layouts/ProfileLayout";
+import { apiUrl } from "../utils/customFetch";
 
 const ProfileHeader = ({ profileImage, handleImageChange }) => {
   const { user } = useProfileContext();
@@ -11,16 +12,25 @@ const ProfileHeader = ({ profileImage, handleImageChange }) => {
     fileInputRef.current.click();
   };
 
+  // Prepend backend URL if the path is relative (e.g. starting with /uploads)
+  const avatarSrc = profileImage
+    ? profileImage.startsWith("http")
+      ? profileImage
+      : `${apiUrl}${profileImage}`
+    : null;
+
   return (
     <div className="profile-header">
       <Container style={{ textAlign: "center" }}>
         <div style={{ position: "relative", display: "inline-block" }}>
           <Avatar
-            src={profileImage || "https://avatar.iran.liara.run/public"}
-            alt="Профіль користувача"
+            src={avatarSrc}
+            alt={user?.firstName || "Профіль користувача"}
             className="profile-avatar"
-            style={{ width: 150, height: 150, margin: "0 auto 20px" }}
-          />
+            sx={{ width: 150, height: 150, margin: "0 auto 20px", fontSize: "3rem" }}
+          >
+            {user?.firstName?.charAt(0)}
+          </Avatar>
           <input
             type="file"
             ref={fileInputRef}
@@ -43,10 +53,10 @@ const ProfileHeader = ({ profileImage, handleImageChange }) => {
           </IconButton>
         </div>
         <Typography variant="h4" gutterBottom>
-          {user.firstName + " " + user.lastName}
+          {(user?.firstName || "") + " " + (user?.lastName || "")}
         </Typography>
         <Typography variant="subtitle1">
-          Місце проживання:{user.state + " " + user.country}
+          Місце проживання: {(user?.state || "") + " " + (user?.country || "")}
         </Typography>
       </Container>
     </div>
