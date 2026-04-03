@@ -33,7 +33,7 @@ export const action = async ({ request }) => {
     // return response;
   } catch (error) {
     console.log("🚀 ~ action ~ error:", error);
-    toast.error(error?.response?.data?.message || "Une erreur est survenue");
+    toast.error(error?.response?.data?.message || "Сталася помилка");
     return error;
   }
 };
@@ -72,9 +72,16 @@ const Register = () => {
   };
 
   useEffect(() => {
-    GetCountries().then((result) => {
-      setCountries(result);
-    });
+    const fetchCountries = async () => {
+      try {
+        const result = await GetCountries();
+        setCountries(result);
+      } catch (error) {
+        console.error("Помилка завантаження країн:", error);
+        toast.error("Помилка завантаження країн");
+      }
+    };
+    fetchCountries();
   }, []);
 
   return (

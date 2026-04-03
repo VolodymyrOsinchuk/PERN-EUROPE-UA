@@ -30,7 +30,7 @@ export const action = async ({ request }) => {
     return redirect(`/profile`);
   } catch (error) {
     console.log("🚀 ~ action ~ error:", error);
-    toast.error(error?.response?.data?.message || "Une erreur est survenue");
+    toast.error(error?.response?.data?.message || "Сталася помилка");
     return error;
   }
 };
@@ -138,7 +138,7 @@ const Login = () => {
               fullWidth
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Зєднання..." : "Увійти"}
+              {isSubmitting ? "З'єднання..." : "Увійти"}
             </Button>
             <Typography
               variant="body2"

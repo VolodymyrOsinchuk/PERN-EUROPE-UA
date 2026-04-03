@@ -16,7 +16,7 @@ const Category = sequelize.define(
       unique: true,
       validate: {
         len: [2, 100], // Name between 2 and 100 characters
-        notEmpty: { msg: "Le nom de la catégorie est requis" },
+        notEmpty: { message: "Le nom de la catégorie est requis" },
       },
     },
   },
@@ -24,7 +24,7 @@ const Category = sequelize.define(
     tableName: "categories",
     timestamps: true,
     indexes: [{ fields: ["name"], unique: true }],
-  }
+  },
 );
 
 const SubCategory = sequelize.define(
@@ -51,7 +51,7 @@ const SubCategory = sequelize.define(
       },
     },
   },
-  { tableName: "subcategories", timestamps: true }
+  { tableName: "subcategories", timestamps: true },
 );
 
 SubCategory.belongsTo(Category, {

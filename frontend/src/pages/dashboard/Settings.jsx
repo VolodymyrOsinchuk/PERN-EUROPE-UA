@@ -88,8 +88,8 @@ const Settings = () => {
     sessionTimeout: "60",
   });
 
-  const showSuccess = (msg) =>
-    setSnackbar({ open: true, message: msg, severity: "success" });
+  const showSuccess = (message) =>
+    setSnackbar({ open: true, message: message, severity: "success" });
 
   const handleProfileSave = (e) => {
     e.preventDefault();

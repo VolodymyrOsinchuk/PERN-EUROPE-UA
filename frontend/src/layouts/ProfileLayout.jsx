@@ -1,25 +1,24 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback } from "react";
 import {
   Outlet,
   redirect,
   useLoaderData,
   useNavigate,
   useNavigation,
-} from 'react-router-dom';
-import customFetch from '../utils/customFetch';
-import { Loading, Navbar } from '../components';
-import { toast } from 'react-toastify';
-import { Box } from '@mui/material';
+} from "react-router-dom";
+import customFetch from "../utils/customFetch";
+import { Loading, Navbar } from "../components";
+import { toast } from "react-toastify";
+import { Box } from "@mui/material";
 
 export const loader = async () => {
   try {
-    const { data } = await customFetch.get('/users/current-user');
-    console.log('🚀 ~ loader ~  data:', data);
+    const { data } = await customFetch.get("/users/current-user");
     return data;
   } catch (error) {
-    console.log('🚀 ~ loader ~ error:', error);
+    console.log("🚀 ~ loader ~ error:", error);
     toast.error(error?.response?.data?.error || error?.response?.data?.message);
-    return redirect('/login');
+    return redirect("/login");
   }
 };
 
@@ -29,16 +28,16 @@ const ProfileLayout = () => {
   const [user, setUser] = useState(initialUser);
   const navigate = useNavigate();
   const navigation = useNavigation();
-  const isPageLoading = navigation.state === 'loading';
+  const isPageLoading = navigation.state === "loading";
 
   const logoutUser = async () => {
     try {
-      await customFetch.get('/auth/logout');
-      toast.success('Logged out successfully...');
-      navigate('/');
+      await customFetch.get("/auth/logout");
+      toast.success("Ви вийшли з системи...");
+      navigate("/");
     } catch (error) {
-      toast.error('Logout failed. Please try again.');
-      console.error('Logout error:', error);
+      toast.error("Помилка виходу. Спробуйте ще раз.");
+      console.error("Помилка виходу:", error);
     }
   };
 
@@ -49,7 +48,7 @@ const ProfileLayout = () => {
   return (
     <ProfileContext.Provider value={{ user, logoutUser, updateUser }}>
       <Box
-        sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
+        sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
       >
         <Navbar user={user} />
         {isPageLoading ? <Loading /> : <Outlet context={{ user }} />}
@@ -58,5 +57,5 @@ const ProfileLayout = () => {
   );
 };
 
-export const useProfileContext = () => useContext(ProfileContext)
-export default ProfileLayout
+export const useProfileContext = () => useContext(ProfileContext);
+export default ProfileLayout;

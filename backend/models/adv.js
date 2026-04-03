@@ -16,7 +16,7 @@ const Adv = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: false,
       validate: {
-        notEmpty: { msg: "Le titre ne peut pas être vide" },
+        notEmpty: { message: "Le titre ne peut pas être vide" },
         len: [3, 255], // Longueur minimale et maximale
       },
     },
@@ -24,21 +24,21 @@ const Adv = sequelize.define(
       type: DataTypes.STRING(100),
       allowNull: false,
       validate: {
-        notEmpty: { msg: "Le pays est requis" },
+        notEmpty: { message: "Le pays est requis" },
       },
     },
     state: {
       type: DataTypes.STRING(100),
       allowNull: false,
       validate: {
-        notEmpty: { msg: "La région/état est requise" },
+        notEmpty: { message: "La région/état est requise" },
       },
     },
     city: {
       type: DataTypes.STRING(100),
       allowNull: false,
       validate: {
-        notEmpty: { msg: "La ville est requise" },
+        notEmpty: { message: "La ville est requise" },
       },
     },
     // postalCode: {
@@ -61,7 +61,7 @@ const Adv = sequelize.define(
       allowNull: false,
       unique: true, // Empêche les doublons d'email
       validate: {
-        isEmail: { msg: "Format d'email invalide" },
+        isEmail: { message: "Format d'email invalide" },
       },
     },
     price: {
@@ -70,11 +70,11 @@ const Adv = sequelize.define(
       validate: {
         min: {
           args: [0],
-          msg: "Le prix doit être positif",
+          message: "Le prix doit être positif",
         },
         max: {
           args: [1000000], // Limite haute personnalisable
-          msg: "Prix trop élevé",
+          message: "Prix trop élevé",
         },
       },
     },
@@ -104,7 +104,7 @@ const Adv = sequelize.define(
         key: "id",
       },
       validate: {
-        notNull: { msg: "La catégorie est requise" },
+        notNull: { message: "La catégorie est requise" },
         async validateCategoryExists(value) {
           if (value) {
             const category = await Category.findByPk(value);
@@ -123,7 +123,7 @@ const Adv = sequelize.define(
     //     key: "id",
     //   },
     //   validate: {
-    //     notNull: { msg: "La sous-catégorie est requise" },
+    //     notNull: { message: "La sous-catégorie est requise" },
     //     async validateSubCategoryBelongsToCategory(value) {
     //       if (value && this.categoryId) {
     //         const subCategory = await SubCategory.findByPk(value);
@@ -194,7 +194,7 @@ const Adv = sequelize.define(
     // ],
     timestamps: true,
     tableName: "advs",
-  }
+  },
 );
 
 // Modèle Photo
@@ -235,7 +235,7 @@ const Photo = sequelize.define(
     tableName: "photos",
     timestamps: true,
     indexes: [{ fields: ["annonceId"] }],
-  }
+  },
 );
 
 // Définir les relations

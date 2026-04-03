@@ -1,12 +1,17 @@
 import { useLoaderData } from "react-router-dom";
 import { Box, Grid, Paper, Typography, Divider } from "@mui/material";
 import customFetch from "../../utils/customFetch";
+import { toast } from "react-toastify";
 
 export const loader = async () => {
   try {
     const { data } = await customFetch.get("/users/stats");
     return data;
   } catch (error) {
+    toast.error(
+      error?.response?.data?.message ||
+        "Помилка завантаження статистики панелі",
+    );
     return { users: 0, ads: 0, categories: 0 };
   }
 };

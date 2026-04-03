@@ -30,13 +30,17 @@ import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import SubdirectoryArrowRightIcon from "@mui/icons-material/SubdirectoryArrowRight";
 import customFetch from "../utils/customFetch";
 import PageHeader from "./PageHeader";
+import { toast } from "react-toastify";
 
 export async function loader() {
   try {
     const response = await customFetch.get("/categories");
-    return { data: response.data };
+    return { data: response.data || [] };
   } catch (error) {
-    return { error: error.response?.data?.msg || "Помилка завантаження" };
+    const errormessage =
+      error.response?.data?.message || "Помилка завантаження";
+    toast.error(errormessage);
+    return { error: errormessage, data: [] };
   }
 }
 
@@ -51,38 +55,46 @@ export async function categoryAction({ request }) {
     switch (intent) {
       case "add-category":
         await customFetch.post("/categories", { name: categoryName });
+        toast.success("Категорію додано");
         break;
       case "add-subcategory":
         await customFetch.post(`/categories/${categoryId}/sub-categories`, {
           name: categoryName,
         });
+        toast.success("Підкатегорію додано");
         break;
       case "edit-category":
-        await customFetch.patch(`/categories/${categoryId}`, {
+        await customFetch.put(`/categories/${categoryId}`, {
           name: categoryName,
         });
+        toast.success("Категорію оновлено");
         break;
       case "edit-subcategory":
-        await customFetch.patch(
+        await customFetch.put(
           `/categories/${categoryId}/sub-categories/${subcategoryId}`,
           { name: categoryName },
         );
+        toast.success("Підкатегорію оновлено");
         break;
       case "delete-category":
         await customFetch.delete(`/categories/${categoryId}`);
+        toast.success("Категорію видалено");
         break;
       case "delete-subcategory":
         await customFetch.delete(
           `/categories/${categoryId}/sub-categories/${subcategoryId}`,
         );
+        toast.success("Підкатегорію видалено");
         break;
       default:
-        throw new Error("Action inconnue");
+        throw new Error("Невідома дія");
     }
     return { success: true };
   } catch (error) {
+    const errormessage = error.response?.data?.message || "Сталася помилка";
+    toast.error(errormessage);
     return {
-      error: error.response?.data?.msg || "Une erreur est survenue",
+      error: errormessage,
       intent,
     };
   }
@@ -327,13 +339,14 @@ function CategoryManager() {
             dialogMode === "edit-subcategory") &&
             "Редагувати назву"}
         </DialogTitle>
-        <Form method="post">
+        <Form method="post" onSubmit={() => handleCloseDialog()}>
           <DialogContent sx={{ pt: 1 }}>
             <TextField
               name="categoryName"
               autoFocus
               label="Назва"
               fullWidth
+              required
               defaultValue={
                 dialogMode === "edit-category"
                   ? selectedCategory?.name

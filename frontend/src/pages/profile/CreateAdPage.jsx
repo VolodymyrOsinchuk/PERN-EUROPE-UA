@@ -67,7 +67,7 @@ export const action = async ({ request }) => {
       return redirect("/profile");
     }
   } catch (error) {
-    toast.error(error?.response?.data?.msg || "Помилка публікації");
+    toast.error(error?.response?.data?.message || "Помилка публікації");
     return error;
   }
 };
@@ -112,41 +112,67 @@ const CreateAdPage = () => {
   const [previewImages, setPreviewImages] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch countries (Europe only)
   useEffect(() => {
-    setLoading(true);
-    GetCountries()
-      .then((r) => setCountries(r.filter((c) => c.region === "Europe")))
-      .catch(() => toast.error("Помилка завантаження країн"))
-      .finally(() => setLoading(false));
+    const fetchCountries = async () => {
+      setLoading(true);
+      try {
+        const countriesList = await GetCountries();
+        setCountries(countriesList.filter((c) => c.region === "Europe"));
+      } catch (error) {
+        console.error("Помилка завантаження країн:", error);
+        toast.error("Помилка завантаження країн");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCountries();
   }, []);
 
   useEffect(() => {
     if (!selectedCountry) return;
-    setLoading(true);
-    const countryObj = countries.find((c) => c.name === selectedCountry);
-    if (countryObj) {
-      Promise.all([GetState(countryObj.id), GetPhonecodes(countryObj.id)])
-        .then(([statesList, code]) => {
+    const fetchStates = async () => {
+      setLoading(true);
+      try {
+        const countryObj = countries.find((c) => c.name === selectedCountry);
+        if (countryObj) {
+          const [statesList, code] = await Promise.all([
+            GetState(countryObj.id),
+            GetPhonecodes(countryObj.id),
+          ]);
           setStates(statesList);
           if (code) setPhoneCode(code);
-        })
-        .finally(() => setLoading(false));
-    }
+        }
+      } catch (error) {
+        console.error("Помилка завантаження регіонів:", error);
+        toast.error("Помилка завантаження регіонів");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStates();
     setSelectedState("");
     setCities([]);
   }, [selectedCountry, countries]);
 
   useEffect(() => {
     if (!selectedCountry || !selectedState) return;
-    setLoading(true);
-    const countryObj = countries.find((c) => c.name === selectedCountry);
-    const stateObj = states.find((s) => s.name === selectedState);
-    if (countryObj && stateObj) {
-      GetCity(countryObj.id, stateObj.id)
-        .then(setCities)
-        .finally(() => setLoading(false));
-    }
+    const fetchCities = async () => {
+      setLoading(true);
+      try {
+        const countryObj = countries.find((c) => c.name === selectedCountry);
+        const stateObj = states.find((s) => s.name === selectedState);
+        if (countryObj && stateObj) {
+          const citiesList = await GetCity(countryObj.id, stateObj.id);
+          setCities(citiesList);
+        }
+      } catch (error) {
+        console.error("Помилка завантаження міст:", error);
+        toast.error("Помилка завантаження міст");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCities();
     setSelectedCity("");
   }, [selectedState, selectedCountry, countries, states]);
 

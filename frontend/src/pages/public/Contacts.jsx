@@ -12,27 +12,33 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import "../../assets/css/contact.css";
+import { Form, useActionData, useNavigation } from "react-router-dom";
+import { toast } from "react-toastify";
+import customFetch from "../../utils/customFetch";
+
+export const action = async ({ request }) => {
+  const formData = await request.formData();
+  const data = Object.fromEntries(formData);
+
+  try {
+    // Assuming there is a /contact endpoint or similar
+    // await customFetch.post("/contact", data);
+    toast.success(
+      "Дякуємо за ваше повідомлення! Ми зв'яжемося з вами найближчим часом.",
+    );
+    return { success: true };
+  } catch (error) {
+    toast.error(
+      error?.response?.data?.message || "Помилка при відправці повідомлення",
+    );
+    return { error: error?.response?.data?.message || "Error" };
+  }
+};
+
 const Contacts = () => {
-  const [formStatus, setFormStatus] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setFormStatus("success");
-    // Here would be the actual form submission logic
-  };
-
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const actionData = useActionData();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
 
   return (
     <>
@@ -55,19 +61,22 @@ const Contacts = () => {
               <Typography variant="h5" gutterBottom>
                 Форма зворотного зв'язку
               </Typography>
-              {formStatus === "success" && (
+              {actionData?.success && (
                 <Alert severity="success" style={{ marginBottom: "20px" }}>
                   Дякуємо за ваше повідомлення! Ми зв'яжемося з вами найближчим
                   часом.
                 </Alert>
               )}
-              <form onSubmit={handleSubmit}>
+              {actionData?.error && (
+                <Alert severity="error" style={{ marginBottom: "20px" }}>
+                  {actionData.error}
+                </Alert>
+              )}
+              <Form method="post">
                 <TextField
                   fullWidth
                   label="Ім'я"
                   name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
                   margin="normal"
                   required
                 />
@@ -76,8 +85,6 @@ const Contacts = () => {
                   label="Email"
                   name="email"
                   type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
                   margin="normal"
                   required
                 />
@@ -85,8 +92,6 @@ const Contacts = () => {
                   fullWidth
                   label="Тема"
                   name="subject"
-                  value={formData.subject}
-                  onChange={handleInputChange}
                   margin="normal"
                   required
                 />
@@ -96,8 +101,6 @@ const Contacts = () => {
                   name="message"
                   multiline
                   rows={4}
-                  value={formData.message}
-                  onChange={handleInputChange}
                   margin="normal"
                   required
                 />
@@ -106,11 +109,12 @@ const Contacts = () => {
                   variant="contained"
                   color="primary"
                   size="large"
+                  disabled={isSubmitting}
                   style={{ marginTop: "20px" }}
                 >
-                  Надіслати
+                  {isSubmitting ? "Відправка..." : "Надіслати"}
                 </Button>
-              </form>
+              </Form>
             </Paper>
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>

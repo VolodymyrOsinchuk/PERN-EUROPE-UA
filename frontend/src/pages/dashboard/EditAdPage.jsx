@@ -20,7 +20,7 @@ export const loader = async ({ params }) => {
     const { data } = await customFetch.get(`/adv/${params.id}`);
     return data;
   } catch (error) {
-    toast.error(error?.response?.data?.msg);
+    toast.error(error?.response?.data?.message);
     return {};
   }
 };
@@ -31,7 +31,7 @@ export const action = async ({ request, params }) => {
     await customFetch.put(`/adv/${params.id}`, Object.fromEntries(formData));
     toast.success("Оголошення оновлено");
   } catch (error) {
-    toast.error(error?.response?.data?.msg);
+    toast.error(error?.response?.data?.message);
   }
   return redirect("/dashboard/posts");
 };

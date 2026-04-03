@@ -24,7 +24,7 @@ export const loader = async () => {
     const { data } = await customFetch.get("/adv");
     return data;
   } catch (error) {
-    toast.error(error?.response?.data?.msg);
+    toast.error(error?.response?.data?.message);
     return [];
   }
 };
@@ -35,7 +35,7 @@ export const action = async ({ request }) => {
     await customFetch.delete(`/adv/${formData.get("id")}`);
     toast.success("Оголошення видалено");
   } catch (error) {
-    toast.error(error?.response?.data?.msg);
+    toast.error(error?.response?.data?.message);
   }
   return redirect("/dashboard/posts");
 };

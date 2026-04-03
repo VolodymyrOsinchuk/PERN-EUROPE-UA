@@ -1,5 +1,10 @@
-// Automatic JSX runtime - explicit React import not required
-import { useLoaderData, useSubmit } from "react-router-dom";
+import {
+  useLoaderData,
+  useSubmit,
+  Form,
+  redirect,
+  useNavigation,
+} from "react-router-dom";
 import {
   Typography,
   List,
@@ -7,16 +12,22 @@ import {
   ListItemText,
   IconButton,
   Button,
+  Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Alert,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { toast } from "react-toastify";
 import customFetch from "../utils/customFetch";
+import { useState } from "react";
 
 export const loader = async ({ params }) => {
-  console.log("🚀 ~ loader ~  params:", params);
   try {
     const [categoryRes, subcategoriesRes] = await Promise.all([
       customFetch.get(`/categories/${params.id}`),
@@ -29,37 +40,88 @@ export const loader = async ({ params }) => {
     };
   } catch (error) {
     console.error("🚀 ~ loader ~ error:", error);
-
     if (error.response?.status === 404) {
-      return redirect("/categories");
+      toast.error("Категорію не знайдено");
+      return redirect("/dashboard/categories");
     }
-    toast.error(error?.response?.data?.msg || "Error loading data");
+    toast.error(error?.response?.data?.message || "Помилка завантаження даних");
     return { category: null, subcategories: [] };
+  }
+};
+
+export const action = async ({ request, params }) => {
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+  const subcategoryId = formData.get("subcategoryId");
+  const name = formData.get("name");
+  const description = formData.get("description");
+
+  try {
+    if (intent === "delete-subcategory") {
+      await customFetch.delete(
+        `/categories/${params.id}/sub-categories/${subcategoryId}`,
+      );
+      toast.success("Підкатегорію видалено");
+    } else if (intent === "add-subcategory") {
+      await customFetch.post(`/categories/${params.id}/sub-categories`, {
+        name,
+        description,
+      });
+      toast.success("Підкатегорію додано");
+    } else if (intent === "edit-subcategory") {
+      await customFetch.put(
+        `/categories/${params.id}/sub-categories/${subcategoryId}`,
+        { name, description },
+      );
+      toast.success("Підкатегорію оновлено");
+    }
+    return { success: true };
+  } catch (error) {
+    toast.error(error?.response?.data?.message || "Дія не виконана");
+    return { error: error?.response?.data?.message || "Дія не виконана" };
   }
 };
 
 const CategoryDetails = () => {
   const { category, subcategories } = useLoaderData();
-  console.log("🚀 ~ CategoryDetails ~  subcategories:", subcategories);
-  console.log("🚀 ~ CategoryDetails ~  category:", category);
-
   const submit = useSubmit();
+  const navigation = useNavigation();
+
+  const [openDialog, setOpenDialog] = useState(false);
+  const [dialogMode, setDialogMode] = useState("add"); // add or edit
+  const [selectedSubcategory, setSelectedSubcategory] = useState(null);
+
+  const handleOpenAdd = () => {
+    setDialogMode("add");
+    setSelectedSubcategory(null);
+    setOpenDialog(true);
+  };
+
+  const handleOpenEdit = (sub) => {
+    setDialogMode("edit");
+    setSelectedSubcategory(sub);
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
 
   const handleDeleteSubcategory = (id) => {
-    if (window.confirm("Delete this subcategory?")) {
+    if (window.confirm("Видалити цю підкатегорію?")) {
       const formData = new FormData();
-      formData.append("id", id);
-      formData.append("_method", "DELETE");
+      formData.append("subcategoryId", id);
+      formData.append("intent", "delete-subcategory");
       submit(formData, { method: "POST" });
     }
   };
 
   if (!category) {
-    return <Typography>Category not found</Typography>;
+    return <Typography>Категорію не знайдено</Typography>;
   }
 
   return (
-    <div>
+    <Box>
       <Typography variant="h4" gutterBottom>
         {category.name}
       </Typography>
@@ -71,10 +133,10 @@ const CategoryDetails = () => {
         variant="contained"
         color="primary"
         startIcon={<AddIcon />}
-        onClick={() => setOpenDialog(true)}
+        onClick={handleOpenAdd}
         sx={{ mb: 2 }}
       >
-        Add Subcategory
+        Додати підкатегорію
       </Button>
 
       <List>
@@ -82,8 +144,13 @@ const CategoryDetails = () => {
           <ListItem
             key={subcategory.id}
             secondaryAction={
-              <>
-                <IconButton edge="end" aria-label="edit" sx={{ mr: 1 }}>
+              <Box>
+                <IconButton
+                  edge="end"
+                  aria-label="edit"
+                  sx={{ mr: 1 }}
+                  onClick={() => handleOpenEdit(subcategory)}
+                >
                   <EditIcon />
                 </IconButton>
                 <IconButton
@@ -93,7 +160,7 @@ const CategoryDetails = () => {
                 >
                   <DeleteIcon />
                 </IconButton>
-              </>
+              </Box>
             }
           >
             <ListItemText
@@ -103,7 +170,70 @@ const CategoryDetails = () => {
           </ListItem>
         ))}
       </List>
-    </div>
+
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <Form method="post" onSubmit={() => handleCloseDialog()}>
+          <DialogTitle>
+            {dialogMode === "add"
+              ? "Додати підкатегорію"
+              : "Редагувати підкатегорію"}
+          </DialogTitle>
+          <DialogContent>
+            <input
+              type="hidden"
+              name="intent"
+              value={
+                dialogMode === "add" ? "add-subcategory" : "edit-subcategory"
+              }
+            />
+            {selectedSubcategory && (
+              <input
+                type="hidden"
+                name="subcategoryId"
+                value={selectedSubcategory.id}
+              />
+            )}
+            <TextField
+              autoFocus
+              margin="dense"
+              name="name"
+              label="Назва"
+              type="text"
+              fullWidth
+              variant="outlined"
+              defaultValue={selectedSubcategory?.name || ""}
+              required
+            />
+            <TextField
+              margin="dense"
+              name="description"
+              label="Опис"
+              type="text"
+              fullWidth
+              variant="outlined"
+              multiline
+              rows={3}
+              defaultValue={selectedSubcategory?.description || ""}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog}>Скасувати</Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={navigation.state === "submitting"}
+            >
+              {dialogMode === "add" ? "Додати" : "Зберегти"}
+            </Button>
+          </DialogActions>
+        </Form>
+      </Dialog>
+    </Box>
   );
 };
 

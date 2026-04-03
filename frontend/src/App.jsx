@@ -11,6 +11,7 @@ import {
   CreateAdPage,
   Dashboard,
   DashboardLayout,
+  EditAdPage,
   ErrorPage,
   Events,
   EventsManager,
@@ -38,18 +39,29 @@ import { action as loginAction } from "./pages/Login";
 import { action as createAdAction } from "./pages/profile/CreateAdPage";
 import { action as updateProfileAction } from "./pages/profile/Profile";
 import { categoryAction } from "./pages/CategoryManager";
+import { action as contactAction } from "./pages/public/Contacts";
 
 import { loader as accountLoader } from "./pages/VerifyAccount";
 import { loader as categoryLoader } from "./pages/CategoryManager";
 import { loader as adsLoader } from "./pages/public/Ads";
-import { loader as adLoader } from "./pages/public/AdDetailPage";
+import { loader as adLoader, action as adAction } from "./pages/public/AdDetailPage";
 import { loader as catLoader } from "./pages/profile/CreateAdPage";
 import { loader as profileLoader } from "./layouts/ProfileLayout";
 import { loader as categoryDetailsLoader } from "./pages/CategoryDetails";
 import { loader as dashboardLoader } from "./pages/dashboard/Dashboard";
 import { loader as usersLoader, action as usersAction } from "./pages/Users";
-import { loader as adsManagerLoader } from "./pages/AdsManager";
-import { loader as eventsManagerLoader } from "./pages/EventsManager";
+import {
+  loader as adsManagerLoader,
+  action as adsManagerAction,
+} from "./pages/AdsManager";
+import {
+  loader as eventsManagerLoader,
+  action as eventsManagerAction,
+} from "./pages/EventsManager";
+import {
+  loader as editAdLoader,
+  action as editAdAction,
+} from "./pages/dashboard/EditAdPage";
 
 const router = createBrowserRouter(
   [
@@ -57,7 +69,6 @@ const router = createBrowserRouter(
       path: "/",
       element: <AppLayout />,
       HydrateFallback: Loading,
-      // loader: profileLoader,
       errorElement: <ErrorPage />,
       children: [
         {
@@ -85,8 +96,8 @@ const router = createBrowserRouter(
           path: "ads/:id",
           element: <AdDetailPage />,
           HydrateFallback: Loading,
-
           loader: adLoader,
+          action: adAction,
         },
         {
           path: "login",
@@ -113,6 +124,7 @@ const router = createBrowserRouter(
         {
           path: "contact",
           element: <Contacts />,
+          action: contactAction,
           HydrateFallback: Loading,
         },
         {
@@ -146,6 +158,15 @@ const router = createBrowserRouter(
           loader: catLoader,
           action: createAdAction,
         },
+        {
+          // Fixed: new route — AdCard edit button links here
+          // Reuses EditAdPage, editAdLoader and editAdAction from the dashboard version
+          path: "edit-ad/:id",
+          element: <EditAdPage />,
+          HydrateFallback: Loading,
+          loader: editAdLoader,
+          action: editAdAction,
+        },
       ],
     },
     {
@@ -166,35 +187,46 @@ const router = createBrowserRouter(
           HydrateFallback: Loading,
         },
         {
+          // Fixed: added adsManagerLoader and adsManagerAction
+          // Previously both were missing — ads never loaded and delete never worked
           path: "ads",
           element: <AdsManager />,
           loader: adsManagerLoader,
+          action: adsManagerAction,
           HydrateFallback: Loading,
         },
         {
           path: "events",
           element: <EventsManager />,
           loader: eventsManagerLoader,
+          action: eventsManagerAction,
           HydrateFallback: Loading,
         },
         {
           path: "create-ad",
           element: <CreateAdPage />,
           HydrateFallback: Loading,
-
           loader: catLoader,
+        },
+        {
+          // Fixed: was missing — AdsManager edit button links here
+          path: "edit-ad/:id",
+          element: <EditAdPage />,
+          HydrateFallback: Loading,
+          loader: editAdLoader,
+          action: editAdAction,
         },
         {
           path: "categories",
           element: <CategoryManager />,
           HydrateFallback: Loading,
-
           loader: categoryLoader,
           action: categoryAction,
         },
         {
           path: "categories/:id",
           element: <CategoryDetails />,
+          loader: categoryDetailsLoader,
           HydrateFallback: Loading,
         },
         {
@@ -252,4 +284,5 @@ const App = () => {
     />
   );
 };
+
 export default App;

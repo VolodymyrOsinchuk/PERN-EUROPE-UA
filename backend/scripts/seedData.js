@@ -133,9 +133,9 @@ async function seedDatabase() {
       },
     ]);
 
-    console.log("Base de données peuplée avec succès !");
+    console.log("Базу даних успішно заповнено!");
   } catch (error) {
-    console.error("Erreur lors du peuplement de la base de données:", error);
+    console.error("Помилка заповнення бази даних:", error);
   } finally {
     await sequelize.close();
   }

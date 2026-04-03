@@ -25,6 +25,7 @@ export const loader = async () => {
     const { data } = await customFetch.get("/events");
     return data;
   } catch (error) {
+    toast.error(error?.response?.data?.message || "Помилка завантаження подій");
     return [];
   }
 };
@@ -35,7 +36,7 @@ export const action = async ({ request }) => {
     await customFetch.delete(`/events/${formData.get("id")}`);
     toast.success("Подію видалено");
   } catch (error) {
-    toast.error(error?.response?.data?.msg);
+    toast.error(error?.response?.data?.message);
   }
   return redirect("/dashboard/events");
 };

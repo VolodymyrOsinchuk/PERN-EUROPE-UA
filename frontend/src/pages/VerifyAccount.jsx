@@ -1,4 +1,3 @@
-// Use named imports for hooks; default React import is unnecessary with the automatic JSX runtime
 import { useEffect, useState } from "react";
 import { Box, CircularProgress, Typography, Button } from "@mui/material";
 import {
@@ -8,19 +7,21 @@ import {
   useNavigation,
   useLoaderData,
 } from "react-router-dom";
+import { toast } from "react-toastify";
 import customFetch from "../utils/customFetch";
 
 export const loader = async ({ params }) => {
   console.log("🚀 ~ loader ~ params :", params);
   try {
     const { data } = await customFetch.get(
-      `/auth/verify-email/${params.token}`
+      `/auth/verify-email/${params.token}`,
     );
     console.log("🚀 ~ loader ~  data:", data);
     return data;
   } catch (error) {
     console.log("🚀 ~ loader ~ error:", error);
-    toast.error(error?.response.data?.msg);
+    // Fixed: toast was called here but never imported — now imported above
+    toast.error(error?.response?.data?.message || "Помилка верифікації");
     return redirect("/register");
   }
 };
@@ -31,6 +32,8 @@ const VerifyAccount = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
+  // Fixed: error was referenced in JSX but never declared
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (data) {
@@ -39,6 +42,7 @@ const VerifyAccount = () => {
     } else {
       setIsVerified(false);
       setIsLoading(false);
+      setError("Посилання для верифікації недійсне або термін його дії минув.");
       navigate("/register");
     }
   }, [data, navigate]);
@@ -63,7 +67,7 @@ const VerifyAccount = () => {
       ) : isVerified ? (
         <Box sx={{ textAlign: "center", bgcolor: "white", p: 8 }} color="white">
           <Typography variant="h4" color="success.main">
-            Compte verifie avec succes
+            Акаунт успішно підтверджено
           </Typography>
           <Button
             variant="contained"
@@ -71,7 +75,7 @@ const VerifyAccount = () => {
             onClick={handleRedirect}
             sx={{ mt: 2 }}
           >
-            Se connecter
+            Увійти
           </Button>
         </Box>
       ) : (
@@ -85,7 +89,7 @@ const VerifyAccount = () => {
             onClick={handleRedirect}
             sx={{ mt: 2 }}
           >
-            Retour a la conection
+            Повернутися до входу
           </Button>
         </Box>
       )}

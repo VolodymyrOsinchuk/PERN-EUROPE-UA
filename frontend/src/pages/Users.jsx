@@ -29,7 +29,7 @@ export const loader = async () => {
     const { data } = await customFetch.get("/users");
     return data;
   } catch (error) {
-    toast.error(error?.response?.data?.msg);
+    toast.error(error?.response?.data?.message);
     return [];
   }
 };
@@ -53,7 +53,7 @@ export const action = async ({ request }) => {
       toast.success("Користувача оновлено");
     }
   } catch (error) {
-    toast.error(error?.response?.data?.msg);
+    toast.error(error?.response?.data?.message);
   }
   return redirect("/dashboard/users");
 };

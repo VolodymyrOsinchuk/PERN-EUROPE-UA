@@ -181,13 +181,14 @@ const Admin = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: "" });
   const [dialog, setDialog] = useState({ open: false, mode: "", data: null });
 
-  const showMsg = (msg) => setSnackbar({ open: true, message: msg });
+  const showmessage = (message) =>
+    setSnackbar({ open: true, message: message });
 
   const toggleAdminActive = (id) => {
     setAdmins((prev) =>
       prev.map((a) => (a.id === id ? { ...a, active: !a.active } : a)),
     );
-    showMsg("Статус оновлено");
+    showmessage("Статус оновлено");
   };
 
   const openDialog = (mode, data = null) =>
@@ -320,7 +321,7 @@ const Admin = () => {
                             setAdmins((prev) =>
                               prev.filter((a) => a.id !== admin.id),
                             );
-                            showMsg("Адміністратора видалено");
+                            showmessage("Адміністратора видалено");
                           }}
                         >
                           <DeleteOutlineIcon
@@ -557,7 +558,7 @@ const Admin = () => {
                   checked={maintenance}
                   onChange={(e) => {
                     setMaintenance(e.target.checked);
-                    showMsg(
+                    showmessage(
                       e.target.checked
                         ? "Режим обслуговування активовано"
                         : "Режим обслуговування вимкнено",
@@ -577,7 +578,7 @@ const Admin = () => {
                     delete_sweep
                   </span>
                 }
-                onClick={() => showMsg("Кеш очищено успішно")}
+                onClick={() => showmessage("Кеш очищено успішно")}
               >
                 Очистити кеш
               </Button>
@@ -592,7 +593,7 @@ const Admin = () => {
                     backup
                   </span>
                 }
-                onClick={() => showMsg("Резервну копію створено")}
+                onClick={() => showmessage("Резервну копію створено")}
               >
                 Резервна копія БД
               </Button>
@@ -635,7 +636,7 @@ const Admin = () => {
             variant="contained"
             onClick={() => {
               closeDialog();
-              showMsg(
+              showmessage(
                 dialog.mode === "add-admin"
                   ? "Адміністратора додано"
                   : "Дані оновлено",
@@ -678,7 +679,7 @@ const Admin = () => {
             variant="contained"
             onClick={() => {
               closeDialog();
-              showMsg("Дозволи оновлено");
+              showmessage("Дозволи оновлено");
             }}
           >
             Зберегти

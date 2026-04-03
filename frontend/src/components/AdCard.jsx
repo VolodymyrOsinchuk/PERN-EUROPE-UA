@@ -1,6 +1,6 @@
-// AdCard.js
 import React from "react";
 import { Card, CardContent, Typography, Box, Button } from "@mui/material";
+import { Link } from "react-router-dom";
 
 const AdCard = ({ ad, handleDeleteClick }) => (
   <Card key={ad.id} className="ad-card" style={{ marginBottom: "20px" }}>
@@ -36,6 +36,8 @@ const AdCard = ({ ad, handleDeleteClick }) => (
     <div className="ad-actions">
       <Button
         size="small"
+        component={Link}
+        to={`/profile/edit-ad/${ad.id}`}
         startIcon={<span className="material-icons">edit</span>}
         style={{ marginRight: "8px" }}
       >

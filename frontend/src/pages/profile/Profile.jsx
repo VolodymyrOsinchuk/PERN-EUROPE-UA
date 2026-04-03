@@ -54,7 +54,7 @@ export async function action({ request }) {
         return {
           success: true,
           data,
-          message: "Profile updated successfully!",
+          message: "Профіль успішно оновлено!",
         };
       }
 
@@ -64,7 +64,7 @@ export async function action({ request }) {
           newPassword: formData.get("newPassword"),
         };
         await customFetch.patch("/users/update-password", passwordData);
-        return { success: true, message: "Password updated successfully!" };
+        return { success: true, message: "Пароль успішно оновлено!" };
       }
 
       case "deleteAccount": {
@@ -72,27 +72,27 @@ export async function action({ request }) {
         await customFetch.delete(`/users/${userId}`);
         return {
           success: true,
-          message: "Account deleted successfully!",
+          message: "Акаунт успішно видалено!",
           redirect: "/register",
         };
       }
 
       case "deleteAd": {
         const adId = formData.get("adId");
-        await customFetch.delete(`/ads/${adId}`);
+        await customFetch.delete(`/adv/${adId}`); // Fixed: was /ads/:id
         return {
           success: true,
-          message: "Advertisement deleted successfully!",
+          message: "Оголошення успішно видалено!",
         };
       }
 
       default:
-        return { success: false, message: "Unknown action type" };
+        return { success: false, message: "Невідомий тип дії" };
     }
   } catch (error) {
     return {
       success: false,
-      message: error?.response?.data?.msg || "An error occurred",
+      message: error?.response?.data?.message || "Сталася помилка",
     };
   }
 }
@@ -100,12 +100,12 @@ export async function action({ request }) {
 // Loader pour récupérer les données du profil et les annonces
 export async function profileLoader({ params }) {
   try {
-    // Récupérer les annonces de l'utilisateur depuis la base de données
-    const { data: ads } = await customFetch.get("/ads/user-ads");
+    // Fixed: was /ads/user-ads — correct endpoint is /adv/user-ads
+    const { data: ads } = await customFetch.get("/adv/user-ads");
     console.log("ads from loader:", ads);
     return { ads };
   } catch (error) {
-    console.error("Error loading profile data:", error);
+    console.error("Помилка завантаження даних профілю:", error);
     return { ads: [] };
   }
 }
@@ -233,10 +233,10 @@ const Profile = () => {
       );
       setProfileImage(data.profilePicture);
       updateContextUser({ ...user, profilePicture: data.profilePicture });
-      toast.success("Profile picture updated successfully!");
+      toast.success("Фото профілю успішно оновлено!");
     } catch (error) {
       toast.error(
-        error?.response?.data?.msg || "Failed to update profile picture",
+        error?.response?.data?.message || "Не вдалося оновити фото профілю",
       );
     }
   };

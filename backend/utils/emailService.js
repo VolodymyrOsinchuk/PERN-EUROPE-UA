@@ -11,15 +11,15 @@ async function sendVerificationEmail(email, firstName, verificationToken) {
   );
 
   const mailOptions = {
-    from: '"europe-ukraine" <osinvolo@gmail.com>',
+    from: '"Українці в Європі" <osinvolo@gmail.com>',
     to: email,
-    subject: "Vérifiez votre adresse email",
+    subject: "Підтвердження електронної пошти",
     html: `
     <!DOCTYPE html/>
-    <html lang="fr">
+    <html lang="uk">
     <meta charSet="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vérification de votre compte</title>
+    <title>Підтвердження вашого акаунту</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -45,25 +45,25 @@ async function sendVerificationEmail(email, firstName, verificationToken) {
   </head>
   <body>
     <div className="container">
-      <h2>Bienvenue ${firstName} !</h2>
+      <h2>Вітаємо, ${firstName}!</h2>
       <p>
-        Merci de vous être inscrit sur notre site. Pour activer votre compte,
-        veuillez cliquer sur le bouton ci-dessous :
+        Дякуємо за реєстрацію на нашому сайті. Щоб активувати свій акаунт,
+        натисніть кнопку нижче:
       </p>
       <p>
-        <a href="${verificationLink}" className="button" target="_blank">Vérifier mon compte</a>
+        <a href="${verificationLink}" className="button" target="_blank">Підтвердити акаунт</a>
       </p>
       <p>
-        Si le bouton ne fonctionne pas, vous pouvez copier et coller le lien
-        suivant dans votre navigateur :
+        Якщо кнопка не працює, ви можете скопіювати та вставити наступне посилання
+        у свій браузер:
       </p>
       <p>${verificationLink}</p>
-      <p>Ce lien expirera dans 24 heures.</p>
+      <p>Це посилання буде дійсним протягом 24 годин.</p>
       <p>
-        Si vous n'avez pas créé de compte sur notre site, vous pouvez ignorer
-        cet email.
+        Якщо ви не створювали акаунт на нашому сайті, ви можете ігнорувати
+        цей лист.
       </p>
-      <p>Cordialement,<br />L'équipe de votre site</p>
+      <p>З повагою,<br />Команда сайту</p>
     </div>
   </body>
 </html>`,
@@ -71,10 +71,10 @@ async function sendVerificationEmail(email, firstName, verificationToken) {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log("Email de vérification envoyé", info.messageId);
+    console.log("Лист для підтвердження надіслано", info.messageId);
     return true;
   } catch (error) {
-    console.error("Erreur lors de l'envoi de l'email:", error);
+    console.error("Помилка надсилання листа:", error);
     return false;
   }
 }
