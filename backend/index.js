@@ -12,6 +12,9 @@ const categoryRoutes = require("./routes/categoryRouter");
 const authRoutes = require("./routes/authRouter");
 const userRoutes = require("./routes/userRouter");
 const eventRoutes = require("./routes/eventRouter");
+const newsRoutes = require("./routes/newsRouter");
+const publicationRoutes = require("./routes/publicationRouter");
+const forumRoutes = require("./routes/forumRouter");
 const config = require("./config/config");
 const { authMiddleware } = require("./middleware/authMiddleware");
 
@@ -47,6 +50,9 @@ app.use("/api/v1/users", authMiddleware, userRoutes);
 app.use("/api/v1/adv", advRoutes);
 app.use("/api/v1/categories", categoryRoutes);
 app.use("/api/v1/events", authMiddleware, eventRoutes);
+app.use("/api/v1/news", newsRoutes);
+app.use("/api/v1/publications", publicationRoutes);
+app.use("/api/v1/forum", forumRoutes);
 
 app.use((err, req, res, next) => {
   console.error("[ПОМИЛКА]", {
