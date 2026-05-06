@@ -4,6 +4,7 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const cron = require("node-cron");
 const app = express();
 
 const sequelize = require("./config/db");
@@ -95,6 +96,15 @@ app.use((req, res) => {
 });
 
 const port = process.env.PORT || 5000;
+
+cron.schedule("0 */6 * * *", async () => {
+  try {
+    await sequelize.authenticate();
+    console.log(`[${new Date().toISOString()}] База даних активна`);
+  } catch (err) {
+    console.error(`[${new Date().toISOString()}] Помилка пінгу БД:`, err.message);
+  }
+});
 
 const testDbConnection = async () => {
   try {
