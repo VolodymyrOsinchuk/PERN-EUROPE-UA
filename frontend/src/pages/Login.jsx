@@ -26,8 +26,9 @@ export const action = async ({ request }) => {
       },
     });
 
-    toast.success("Ви увійшли успішно успішно");
-    return redirect(`/profile`);
+    toast.success("Ви увійшли успішно");
+    window.location.href = "/profile";
+    return null;
   } catch (error) {
     console.log("🚀 ~ action ~ error:", error);
     toast.error(error?.response?.data?.message || "Сталася помилка");

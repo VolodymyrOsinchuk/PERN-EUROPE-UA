@@ -36,3 +36,4 @@ export { default as SubcategoryItem } from "../components/SubcategoryItem";
 export { default as SubcategoryItem1 } from "../components/SubcategoryItem1";
 export { default as Posts } from "./dashboard/Posts";
 export { default as Settings } from "./dashboard/Settings";
+export { default as NewsManager } from "./NewsManager";

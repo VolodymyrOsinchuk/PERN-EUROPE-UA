@@ -1,11 +1,11 @@
-import React, { useRef } from "react";
+import { useRef } from "react";
 import { Avatar, Typography, Container, IconButton } from "@mui/material";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
-import { useProfileContext } from "../layouts/ProfileLayout";
+import { useAuthContext } from "../context/AuthContext";
 import { apiUrl } from "../utils/customFetch";
 
 const ProfileHeader = ({ profileImage, handleImageChange }) => {
-  const { user } = useProfileContext();
+  const { user } = useAuthContext();
   const fileInputRef = useRef(null);
 
   const handleIconClick = () => {

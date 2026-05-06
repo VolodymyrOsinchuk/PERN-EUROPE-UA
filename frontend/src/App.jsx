@@ -288,6 +288,7 @@
 // export default App;
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
 import {
   AdDetailPage,
   Admin,
@@ -320,6 +321,10 @@ import {
   VerifyAccount,
   Landing,
   About,
+  NewsManager,
+  Stats,
+  EditUser,
+  AllAds,
 } from "./pages/index";
 
 import { CategoryForm, Loading, SubcategoryItem } from "./components";
@@ -344,7 +349,6 @@ import {
   action as adAction,
 } from "./pages/public/AdDetailPage";
 import { loader as catLoader } from "./pages/profile/CreateAdPage";
-import { loader as profileLoader_ } from "./layouts/ProfileLayout";
 import { loader as categoryDetailsLoader } from "./pages/CategoryDetails";
 import { loader as dashboardLoader } from "./pages/dashboard/Dashboard";
 import { loader as usersLoader, action as usersAction } from "./pages/Users";
@@ -360,22 +364,29 @@ import {
   loader as editAdLoader,
   action as editAdAction,
 } from "./pages/dashboard/EditAdPage";
+import {
+  loader as newsManagerLoader,
+  action as newsManagerAction,
+} from "./pages/NewsManager";
 
 const router = createBrowserRouter(
   [
-    // ─── PUBLIC LAYOUT ──────────────────────────────────────────
-    // Navbar + Footer + Banner cookie
+    // ─── ROOT AUTH PROVIDER ─────────────────────────────────────
     {
-      path: "/",
-      element: <HomeLayout />,
-      HydrateFallback: Loading,
-      errorElement: <ErrorPage />,
+      element: <AuthProvider />,
       children: [
+        // ─── PUBLIC LAYOUT ──────────────────────────────────────────
         {
-          index: true,
-          element: <Home />,
+          path: "/",
+          element: <HomeLayout />,
           HydrateFallback: Loading,
-        },
+          errorElement: <ErrorPage />,
+          children: [
+            {
+              index: true,
+              element: <Home />,
+              HydrateFallback: Loading,
+            },
         {
           path: "landing",
           element: <Landing />,
@@ -447,6 +458,11 @@ const router = createBrowserRouter(
           element: <Policy />,
           HydrateFallback: Loading,
         },
+        {
+          path: "all-ads",
+          element: <AllAds />,
+          HydrateFallback: Loading,
+        },
       ],
     },
 
@@ -473,7 +489,6 @@ const router = createBrowserRouter(
       path: "/profile",
       element: <ProfileLayout />,
       HydrateFallback: Loading,
-      loader: profileLoader_, // auth check + charge user courant
       children: [
         {
           index: true,
@@ -591,6 +606,25 @@ const router = createBrowserRouter(
           element: <Admin />,
           HydrateFallback: Loading,
         },
+        {
+          path: "stats",
+          element: <Stats />,
+          HydrateFallback: Loading,
+        },
+        {
+          path: "news",
+          element: <NewsManager />,
+          loader: newsManagerLoader,
+          action: newsManagerAction,
+          HydrateFallback: Loading,
+        },
+        {
+          path: "users/:id/edit",
+          element: <EditUser />,
+          HydrateFallback: Loading,
+        },
+      ],
+    },
       ],
     },
   ],

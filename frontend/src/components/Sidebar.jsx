@@ -17,6 +17,8 @@ const links = [
   { text: "Категорії", path: "/dashboard/categories", icon: "category" },
   { text: "Публікації", path: "/dashboard/posts", icon: "article" },
   { text: "Події", path: "/dashboard/events", icon: "event" },
+  { text: "Новини", path: "/dashboard/news", icon: "newspaper" },
+  { text: "Статистика", path: "/dashboard/stats", icon: "bar_chart" },
   { text: "Налаштування", path: "/dashboard/settings", icon: "tune" },
   {
     text: "Admin",
@@ -30,8 +32,8 @@ const links = [
 const groups = [
   { label: "Головна", items: links.slice(0, 1) },
   { label: "Управління", items: links.slice(1, 4) },
-  { label: "Контент", items: links.slice(4, 6) },
-  { label: "Система", items: links.slice(6) },
+  { label: "Контент", items: links.slice(4, 7) },
+  { label: "Система", items: links.slice(7) },
 ];
 
 function Sidebar() {

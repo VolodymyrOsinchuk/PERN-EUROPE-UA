@@ -296,7 +296,7 @@ import {
   Avatar,
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
-import { useProfileContext } from "../layouts/ProfileLayout";
+import { useAuthContext } from "../context/AuthContext";
 import "../assets/css/navbar.css";
 
 const Navbar = ({ user: userProp }) => {
@@ -307,13 +307,8 @@ const Navbar = ({ user: userProp }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
 
-  // FIX: useProfileContext() peut retourner null/undefined si Navbar est rendu
-  // hors d'un ProfileLayout (ex: HomeLayout, AppLayout).
-  // On sécurise avec ?. pour éviter le crash à la déstructuration.
-  const profileCtx = useProfileContext?.() ?? null;
-  const logoutUser = profileCtx?.logoutUser;
-  // user depuis context (profile) ou depuis prop (hors profile)
-  const user = profileCtx?.user ?? userProp ?? null;
+  const { user, logoutUser } = useAuthContext();
+  const activeUser = user ?? userProp ?? null;
 
   const handleLanguageClick = (event) => {
     setLanguageAnchor(event.currentTarget);
@@ -337,6 +332,7 @@ const Navbar = ({ user: userProp }) => {
         publications: "Публікації",
         forum: "Форум",
         contacts: "Контакт",
+        about: "Про нас",
         language: "Мова",
         dashboard: "Панель",
         profile: "Профіль",
@@ -355,6 +351,7 @@ const Navbar = ({ user: userProp }) => {
         publications: "Publications",
         forum: "Forum",
         contacts: "Contacts",
+        about: "About",
         language: "Language",
         dashboard: "Dashboard",
         profile: "Profile",
@@ -373,6 +370,7 @@ const Navbar = ({ user: userProp }) => {
         publications: "Publikacje",
         forum: "Forum",
         contacts: "Kontakt",
+        about: "O nas",
         language: "Język",
         dashboard: "Panel",
         profile: "Profil",
@@ -391,6 +389,7 @@ const Navbar = ({ user: userProp }) => {
         publications: "Publications",
         forum: "Forum",
         contacts: "Contact",
+        about: "À propos",
         language: "Langue",
         dashboard: "Tableau de bord",
         profile: "Profil",
@@ -409,6 +408,7 @@ const Navbar = ({ user: userProp }) => {
         publications: "Publikationen",
         forum: "Forum",
         contacts: "Kontakt",
+        about: "Über uns",
         language: "Sprache",
         dashboard: "Dashboard",
         profile: "Profil",
@@ -427,6 +427,7 @@ const Navbar = ({ user: userProp }) => {
         publications: "Pubblicazioni",
         forum: "Forum",
         contacts: "Contatti",
+        about: "Chi siamo",
         language: "Lingua",
         dashboard: "Dashboard",
         profile: "Profilo",
@@ -447,13 +448,14 @@ const Navbar = ({ user: userProp }) => {
     { text: t.menu.publications, href: "/publications" },
     { text: t.menu.forum, href: "/forum" },
     { text: t.menu.contacts, href: "/contact" },
+    { text: t.menu.about, href: "/about" },
   ];
 
   // Menu selon état d'authentification
-  const authMenuItems = user
+  const authMenuItems = activeUser
     ? [
         { text: t.menu.profile, href: "/profile" },
-        ...(user.role === "admin"
+        ...(activeUser.role === "admin"
           ? [{ text: t.menu.dashboard, href: "/dashboard" }]
           : []),
         { text: t.menu.logout, onClick: logoutUser },
@@ -464,8 +466,8 @@ const Navbar = ({ user: userProp }) => {
       ];
 
   const getUserInitials = () => {
-    if (!user) return null;
-    return (user.firstName?.[0] || user.email?.[0] || "U").toUpperCase();
+    if (!activeUser) return null;
+    return (activeUser.firstName?.[0] || activeUser.email?.[0] || "U").toUpperCase();
   };
 
   return (
@@ -553,7 +555,7 @@ const Navbar = ({ user: userProp }) => {
               </IconButton>
 
               {/* Auth section */}
-              {user ? (
+              {activeUser ? (
                 <>
                   <Button
                     color="inherit"
@@ -564,7 +566,7 @@ const Navbar = ({ user: userProp }) => {
                   >
                     {t.menu.profile}
                   </Button>
-                  {user.role === "admin" && (
+                  {activeUser.role === "admin" && (
                     <Button
                       color="inherit"
                       component={Link}

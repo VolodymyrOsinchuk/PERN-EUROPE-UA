@@ -27,7 +27,7 @@ import {
   useLoaderData,
   useFetcher,
 } from "react-router-dom";
-import { useProfileContext } from "../../layouts/ProfileLayout";
+import { useAuthContext } from "../../context/AuthContext";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
 
@@ -111,11 +111,7 @@ export async function profileLoader({ params }) {
 }
 
 const Profile = () => {
-  const {
-    user,
-    logoutUser,
-    updateUser: updateContextUser,
-  } = useProfileContext();
+  const { user, logoutUser, fetchUser } = useAuthContext();
 
   const navigate = useNavigate();
   const actionData = useActionData();
@@ -154,7 +150,7 @@ const Profile = () => {
         toast.success(actionData.message);
 
         if (actionData.data) {
-          updateContextUser(actionData.data);
+          fetchUser();
         }
 
         if (actionData.redirect) {
@@ -171,7 +167,7 @@ const Profile = () => {
         toast.error(actionData.message);
       }
     }
-  }, [actionData, updateContextUser, logoutUser, navigate]);
+  }, [actionData, fetchUser, logoutUser, navigate]);
 
   useEffect(() => {
     if (user?.profilePicture) {
@@ -232,7 +228,7 @@ const Profile = () => {
         },
       );
       setProfileImage(data.profilePicture);
-      updateContextUser({ ...user, profilePicture: data.profilePicture });
+      fetchUser();
       toast.success("Фото профілю успішно оновлено!");
     } catch (error) {
       toast.error(
