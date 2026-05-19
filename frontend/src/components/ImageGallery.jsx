@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 const apiUrl = import.meta.env.VITE_APP_API_URL;
-const ImageGallery = ({ photos }) => {
+const ImageGallery = ({ photos = [] }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [clientPaths, setClientPaths] = useState([]);
 
   useEffect(() => {
-    const processedPaths = photos.map((photo) => {
+    // Guard against undefined photos and undefined entries
+    const processedPaths = (photos || []).map((photo) => {
       const serverPath = photo;
-      const clientPath = serverPath.replace("public", "");
+      const clientPath = serverPath?.replace("public", "") || "";
       return clientPath;
     });
     setClientPaths(processedPaths);
@@ -29,7 +30,7 @@ const ImageGallery = ({ photos }) => {
     <div>
       <div className="image-gallery">
         <img
-          src={`${apiUrl}${clientPaths[currentIndex]}`}
+          src={`${apiUrl}${clientPaths[currentIndex] || ""}`}
           alt={`Фото ${currentIndex + 1}`}
           className="main-image"
         />
