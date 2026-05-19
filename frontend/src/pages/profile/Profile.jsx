@@ -793,7 +793,7 @@ export default function Profile() {
                     />
                   </Box>
 
-                  {/* Actions: Create Event / Create Publication / Edit */}
+                  {/* Actions: Create Event / Create Publication / Create Ad / Edit */}
                   <Box sx={{ display: "flex", gap: 1 }}>
                     <Button
                       startIcon={<AddIcon sx={{ fontSize: 16 }} />}
@@ -833,6 +833,26 @@ export default function Profile() {
                       }}
                     >
                       Створити публікацію
+                    </Button>
+
+                    <Button
+                      startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+                      component={Link}
+                      to="/profile/create-ad"
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontWeight: 700,
+                        textTransform: "none",
+                        fontSize: "0.85rem",
+                        color: "#0f172a",
+                        border: `1.5px solid rgba(15,23,42,0.06)`,
+                        borderRadius: "10px",
+                        px: 2,
+                        bgcolor: "#fff",
+                        "&:hover": { bgcolor: "#f1f5f9" },
+                      }}
+                    >
+                      Створити оголошення
                     </Button>
 
                     <Button

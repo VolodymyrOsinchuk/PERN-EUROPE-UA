@@ -1,4 +1,5 @@
 const { ForumTopic } = require("../models/forumTopic");
+const { ForumReply } = require("../models/forumReply");
 
 exports.getAllTopics = async (req, res) => {
   try {
@@ -23,6 +24,36 @@ exports.getTopicById = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.getReplies = async (req, res) => {
+  try {
+    const replies = await ForumReply.findAll({ where: { topicId: req.params.id }, order: [['createdAt', 'ASC']] });
+    res.status(200).json(replies);
+  } catch (error) {
+    console.error("Помилка getReplies:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.createReply = async (req, res) => {
+  try {
+    const topicId = req.params.id;
+    const { content } = req.body;
+    const author = req.user?.firstName ? `${req.user.firstName} ${req.user.lastName || ""}`.trim() : req.body.author || "Anonymous";
+
+    const newReply = await ForumReply.create({ topicId, content, author });
+
+    // Increment replies count and update lastUpdate on topic
+    await ForumTopic.increment('replies', { by: 1, where: { id: topicId } });
+    await ForumTopic.update({ lastUpdate: new Date() }, { where: { id: topicId } });
+
+    res.status(201).json(newReply);
+  } catch (error) {
+    console.error("Помилка createReply:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 exports.createTopic = async (req, res) => {
   try {

@@ -254,6 +254,9 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { useLoaderData, Form } from "react-router-dom";
+import customFetch from "../utils/customFetch";
+import { toast } from "react-toastify";
 
 const fontBody = "'Plus Jakarta Sans', sans-serif";
 const fontDisplay = "'Playfair Display', serif";
@@ -356,7 +359,31 @@ const FORUM_STATS = [
   { value: "24/7", label: "Підтримка", icon: "support_agent" },
 ];
 
-export default function Forum() {
+export async function loader() {
+  try {
+    const { data } = await customFetch.get("/forum");
+    return data;
+  } catch (error) {
+    toast.error(error?.response?.data?.message || "Не вдалося завантажити теми форуму");
+    return [];
+  }
+}
+
+export async function action({ request }) {
+  const formData = await request.formData();
+  const title = formData.get("title");
+  const content = formData.get("content");
+  const category = formData.get("category");
+
+  try {
+    const { data } = await customFetch.post("/forum", { title, content, category });
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, message: error?.response?.data?.message || "Помилка створення теми" };
+  }
+}
+
+export default function Forum() { const topics = useLoaderData() || [];
   return (
     <>
       <HeroSection
@@ -671,7 +698,7 @@ export default function Forum() {
               </Box>
 
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                {RECENT_TOPICS.map((topic) => {
+                {topics.map((topic) => {
                   const cfg = CAT_ICONS_COLOR[topic.category] || {
                     color: "#64748b",
                     bg: "#f1f5f9",

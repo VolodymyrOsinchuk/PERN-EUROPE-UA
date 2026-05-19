@@ -23,7 +23,8 @@
     "react-dropzone": "^15.0.0",
     "react-router-dom": "^7.14.0",
     "react-toastify": "^11.0.5",
-    "react-typed": "^2.0.12"
+    "react-typed": "^2.0.12",
+    "recharts": "^2.6.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.14",
