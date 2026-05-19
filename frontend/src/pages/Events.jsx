@@ -74,8 +74,8 @@
 //         </Typography>
 
 //         <div className="filter-section">
-//           <Grid container spacing={3}>
-//             <Grid size={{ xs: 12, md: 4 }}>
+//           <Grid  container spacing={3}>
+//             <Grid  size={{ xs: 12, md: 4 }}>
 //               <FormControl fullWidth>
 //                 <InputLabel>Країна</InputLabel>
 //                 <Select
@@ -91,7 +91,7 @@
 //                 </Select>
 //               </FormControl>
 //             </Grid>
-//             <Grid size={{ xs: 12, md: 4 }}>
+//             <Grid  size={{ xs: 12, md: 4 }}>
 //               <FormControl fullWidth>
 //                 <InputLabel>Тип події</InputLabel>
 //                 <Select
@@ -107,15 +107,15 @@
 //                 </Select>
 //               </FormControl>
 //             </Grid>
-//             <Grid size={{ xs: 12, md: 4 }}>
+//             <Grid  size={{ xs: 12, md: 4 }}>
 //               <TextField fullWidth label="Пошук за назвою" variant="outlined" />
 //             </Grid>
 //           </Grid>
 //         </div>
 
-//         <Grid container spacing={4}>
+//         <Grid  container spacing={4}>
 //           {events.map((event, index) => (
-//             <Grid size={{ xs: 12, md: 4, sm: 6 }} key={index}>
+//             <Grid  size={{ xs: 12, md: 4, sm: 6 }} key={index}>
 //               <Card className="event-card">
 //                 <CardMedia
 //                   component="div"
@@ -301,8 +301,8 @@ export default function Events() {
               boxShadow: "0 2px 16px rgba(0,87,184,.05)",
             }}
           >
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} sm={4}>
+            <Grid  container spacing={2} alignItems="center">
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <FormControl fullWidth size="small">
                   <InputLabel sx={{ fontFamily: fontBody }}>Країна</InputLabel>
                   <Select
@@ -324,7 +324,7 @@ export default function Events() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <FormControl fullWidth size="small">
                   <InputLabel sx={{ fontFamily: fontBody }}>
                     Тип події
@@ -349,7 +349,7 @@ export default function Events() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <TextField
                   fullWidth
                   size="small"
@@ -395,7 +395,7 @@ export default function Events() {
           </Box>
 
           {/* ── Grid ── */}
-          <Grid container spacing={3}>
+          <Grid  container spacing={3}>
             {filtered.map((event, i) => {
               const typeClr = TYPE_COLORS[event.type] || {
                 bg: "#f1f5f9",
@@ -403,12 +403,7 @@ export default function Events() {
               };
               const isUpcoming = new Date(event.date) > new Date();
               return (
-                <Grid
-                  item
-                  xs={12}
-                  sm={6}
-                  md={4}
-                  key={event.id}
+                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={event.id}
                   sx={{
                     animation: "fadeUp 0.5s ease both",
                     animationDelay: `${(i % 6) * 0.08}s`,
@@ -416,8 +411,7 @@ export default function Events() {
                       from: { opacity: 0, transform: "translateY(20px)" },
                       to: { opacity: 1, transform: "translateY(0)" },
                     },
-                  }}
-                >
+                  }}>
                   <Card
                     sx={{
                       height: "100%",

@@ -82,8 +82,8 @@
 //         </Typography>
 
 //         <div className="search-bar">
-//           <Grid container spacing={2} alignItems="center">
-//             <Grid size={{ xs: 12, md: 6 }}>
+//           <Grid  container spacing={2} alignItems="center">
+//             <Grid  size={{ xs: 12, md: 6 }}>
 //               <TextField
 //                 fullWidth
 //                 label="Пошук публікацій"
@@ -101,7 +101,7 @@
 //                 }}
 //               />
 //             </Grid>
-//             <Grid size={{ xs: 12 }}>
+//             <Grid  size={{ xs: 12 }}>
 //               <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
 //                 {categories.map((category) => (
 //                   <Chip
@@ -119,9 +119,9 @@
 //           </Grid>
 //         </div>
 
-//         <Grid container spacing={3}>
+//         <Grid  container spacing={3}>
 //           {articles.map((article, index) => (
-//             <Grid size={{ xs: 12, md: 6 }} key={index}>
+//             <Grid  size={{ xs: 12, md: 6 }} key={index}>
 //               <Card className="article-card">
 //                 <CardContent>
 //                   <Typography color="textSecondary" gutterBottom>
@@ -372,18 +372,14 @@ export default function Publications() {
           </Typography>
 
           {/* ── Cards grid ── */}
-          <Grid container spacing={3}>
+          <Grid  container spacing={3}>
             {filtered.map((article, i) => {
               const clr = CAT_COLORS[article.category] || {
                 bg: "#f1f5f9",
                 text: "#475569",
               };
               return (
-                <Grid
-                  item
-                  xs={12}
-                  md={6}
-                  key={article.id}
+                <Grid size={{ xs: 12, md: 6 }} key={article.id}
                   sx={{
                     animation: "fadeUp 0.5s ease both",
                     animationDelay: `${(i % 4) * 0.08}s`,
@@ -391,8 +387,7 @@ export default function Publications() {
                       from: { opacity: 0, transform: "translateY(20px)" },
                       to: { opacity: 1, transform: "translateY(0)" },
                     },
-                  }}
-                >
+                  }}>
                   <Card
                     sx={{
                       height: "100%",

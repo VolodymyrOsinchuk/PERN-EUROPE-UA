@@ -747,9 +747,9 @@ export default function AdDetailPage() {
 
       <Box sx={{ bgcolor: "#f8fafc", py: { xs: 4, md: 6 }, minHeight: "80vh" }}>
         <Container maxWidth="lg">
-          <Grid container spacing={4}>
+          <Grid  container spacing={4}>
             {/* ── LEFT: main content ── */}
-            <Grid item xs={12} md={8}>
+            <Grid size={{ xs: 12, md: 8 }}>
               {/* Title block */}
               <Box sx={{ mb: 4 }}>
                 <Box
@@ -1140,7 +1140,7 @@ export default function AdDetailPage() {
             </Grid>
 
             {/* ── RIGHT: contact card ── */}
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <ContactCard
                 ad={ad}
                 onMessage={() => setMessageOpen(true)}

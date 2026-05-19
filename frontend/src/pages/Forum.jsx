@@ -102,8 +102,8 @@
 //       />
 //       <Container style={{ marginTop: "30px", marginBottom: "50px" }}>
 //         <Paper elevation={0} style={{ padding: "20px", marginBottom: "30px" }}>
-//           <Grid container spacing={3} alignItems="center">
-//             <Grid size={{ xs: 12, md: 8 }}>
+//           <Grid  container spacing={3} alignItems="center">
+//             <Grid  size={{ xs: 12, md: 8 }}>
 //               <Typography variant="h4" gutterBottom>
 //                 Форум спільноти
 //               </Typography>
@@ -112,7 +112,7 @@
 //                 відповіді на свої запитання
 //               </Typography>
 //             </Grid>
-//             <Grid size={{ xs: 12, md: 4 }} style={{ textAlign: "right" }}>
+//             <Grid  size={{ xs: 12, md: 4 }} style={{ textAlign: "right" }}>
 //               <Button
 //                 variant="contained"
 //                 color="primary"
@@ -141,8 +141,8 @@
 //           />
 //         </Paper>
 
-//         <Grid container spacing={4}>
-//           <Grid size={{ xs: 12, md: 8 }}>
+//         <Grid  container spacing={4}>
+//           <Grid  size={{ xs: 12, md: 8 }}>
 //             <Typography variant="h5" gutterBottom>
 //               Категорії форуму
 //             </Typography>
@@ -179,7 +179,7 @@
 //             </Paper>
 //           </Grid>
 
-//           <Grid size={{ xs: 12, md: 4 }}>
+//           <Grid  size={{ xs: 12, md: 4 }}>
 //             <Typography variant="h5" gutterBottom>
 //               Останні обговорення
 //             </Typography>
@@ -371,13 +371,9 @@ export default function Forum() {
       {/* ── Stats strip ── */}
       <Box sx={{ bgcolor: "#fff", borderBottom: "1px solid #f1f5f9", py: 3 }}>
         <Container maxWidth="lg">
-          <Grid container spacing={0} justifyContent="center">
+          <Grid  container spacing={0} justifyContent="center">
             {FORUM_STATS.map((s, i) => (
-              <Grid
-                item
-                xs={6}
-                sm={3}
-                key={s.label}
+              <Grid size={{ xs: 6, sm: 3 }} key={s.label}
                 sx={{
                   textAlign: "center",
                   py: 1,
@@ -385,8 +381,7 @@ export default function Forum() {
                     i < FORUM_STATS.length - 1
                       ? { sm: "1px solid #f1f5f9" }
                       : "none",
-                }}
-              >
+                }}>
                 <span
                   className="material-icons"
                   style={{
@@ -482,9 +477,9 @@ export default function Forum() {
             </Button>
           </Box>
 
-          <Grid container spacing={4}>
+          <Grid  container spacing={4}>
             {/* ── Categories ── */}
-            <Grid item xs={12} md={7}>
+            <Grid size={{ xs: 12, md: 7 }}>
               <Box sx={{ mb: 3 }}>
                 <Typography
                   sx={{
@@ -638,7 +633,7 @@ export default function Forum() {
             </Grid>
 
             {/* ── Recent topics ── */}
-            <Grid item xs={12} md={5}>
+            <Grid size={{ xs: 12, md: 5 }}>
               <Box sx={{ mb: 3 }}>
                 <Typography
                   sx={{

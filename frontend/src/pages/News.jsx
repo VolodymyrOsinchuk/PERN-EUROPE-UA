@@ -118,8 +118,8 @@
 //       />
 
 //       <Container style={{ marginTop: "30px" }}>
-//         <Grid container spacing={3}>
-//           <Grid size={{ xs: 12 }}>
+//         <Grid  container spacing={3}>
+//           <Grid  size={{ xs: 12 }}>
 //             <Typography variant="h4" gutterBottom textAlign="center">
 //               Новини
 //             </Typography>
@@ -128,7 +128,7 @@
 //             </Typography>
 //           </Grid>
 
-//           <Grid size={{ xs: 12 }}>
+//           <Grid  size={{ xs: 12 }}>
 //             <TextField
 //               fullWidth
 //               variant="outlined"
@@ -143,7 +143,7 @@
 //             />
 //           </Grid>
 
-//           <Grid size={{ xs: 12 }}>
+//           <Grid  size={{ xs: 12 }}>
 //             <Button
 //               variant="outlined"
 //               onClick={handleFilterClick}
@@ -177,7 +177,7 @@
 //           </Grid>
 
 //           {newsItems.map((item, index) => (
-//             <Grid size={{ xs: 12 }} key={index}>
+//             <Grid  size={{ xs: 12 }} key={index}>
 //               <Card className="news-card">
 //                 <CardContent>
 //                   <Typography variant="h5" component="div" gutterBottom>
@@ -213,10 +213,9 @@
 //             </Grid>
 //           ))}
 
-//           <Grid
-//             size={{ xs: 12 }}
+//           <Grid  //             size={{ xs: 12 }}
 //             style={{ textAlign: "center", marginTop: "20px" }}
-//           >
+//>
 //             <Button
 //               variant="contained"
 //               color="primary"
@@ -459,18 +458,14 @@ export default function News() {
           </Typography>
 
           {/* ── News grid ── */}
-          <Grid container spacing={3}>
+          <Grid  container spacing={3}>
             {filtered.map((item, i) => {
               const catClr = CAT_COLORS[item.category] || {
                 bg: "#f1f5f9",
                 text: "#475569",
               };
               return (
-                <Grid
-                  item
-                  xs={12}
-                  md={6}
-                  key={item.id}
+                <Grid size={{ xs: 12, md: 6 }} key={item.id}
                   sx={{
                     animation: "fadeUp 0.5s ease both",
                     animationDelay: `${(i % 4) * 0.08}s`,
@@ -478,8 +473,7 @@ export default function News() {
                       from: { opacity: 0, transform: "translateY(20px)" },
                       to: { opacity: 1, transform: "translateY(0)" },
                     },
-                  }}
-                >
+                  }}>
                   <Card
                     sx={{
                       height: "100%",

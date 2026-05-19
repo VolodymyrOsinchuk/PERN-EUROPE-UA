@@ -280,8 +280,8 @@
 //         )}
 
 //         {value === 1 && (
-//           <Grid container spacing={3}>
-//             <Grid size={12}>
+//           <Grid  container spacing={3}>
+//             <Grid  size={12}>
 //               <Box
 //                 sx={{
 //                   display: "flex",
@@ -1205,29 +1205,29 @@ export default function Profile() {
       <Box sx={{ bgcolor: "#fff", borderBottom: "1px solid #f1f5f9" }}>
         <Container maxWidth="lg">
           <Box sx={{ py: 3, mt: -4, position: "relative", zIndex: 10 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={6} sm={3}>
+            <Grid  container spacing={2}>
+              <Grid size={{ xs: 6, sm: 3 }}>
                 <StatPill
                   icon="campaign"
                   label="Оголошень"
                   value={ads.length}
                 />
               </Grid>
-              <Grid item xs={6} sm={3}>
+              <Grid size={{ xs: 6, sm: 3 }}>
                 <StatPill
                   icon="visibility"
                   label="Переглядів"
                   value={ads.reduce((s, a) => s + (a.views || 0), 0)}
                 />
               </Grid>
-              <Grid item xs={6} sm={3}>
+              <Grid size={{ xs: 6, sm: 3 }}>
                 <StatPill
                   icon="calendar_today"
                   label="Член з"
                   value={memberSince}
                 />
               </Grid>
-              <Grid item xs={6} sm={3}>
+              <Grid size={{ xs: 6, sm: 3 }}>
                 <StatPill
                   icon="verified_user"
                   label="Статус"
@@ -1283,8 +1283,8 @@ export default function Profile() {
       <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
         {/* ── TAB 0: Personal Info ── */}
         {tab === 0 && (
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={8}>
+          <Grid  container spacing={4}>
+            <Grid size={{ xs: 12, md: 8 }}>
               <Paper
                 elevation={0}
                 sx={{
@@ -1343,7 +1343,7 @@ export default function Profile() {
                   </Button>
                 </Box>
 
-                <Grid container spacing={2.5}>
+                <Grid  container spacing={2.5}>
                   {[
                     { label: "Ім'я", value: user?.firstName, icon: "person" },
                     {
@@ -1365,7 +1365,7 @@ export default function Profile() {
                       icon: "location_city",
                     },
                   ].map((row) => (
-                    <Grid item xs={12} sm={6} key={row.label}>
+                    <Grid size={{ xs: 12, sm: 6 }} key={row.label}>
                       <Box
                         sx={{
                           p: 2,
@@ -1415,7 +1415,7 @@ export default function Profile() {
                     </Grid>
                   ))}
                   {user?.about && (
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                       <Box
                         sx={{
                           p: 2,
@@ -1455,7 +1455,7 @@ export default function Profile() {
             </Grid>
 
             {/* Right col: account details */}
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Paper
                 elevation={0}
                 sx={{
@@ -1742,8 +1742,8 @@ export default function Profile() {
 
         {/* ── TAB 2: Settings ── */}
         {tab === 2 && (
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={6}>
+          <Grid  container spacing={4}>
+            <Grid size={{ xs: 12, md: 6 }}>
               {/* Change password */}
               <Paper
                 elevation={0}
@@ -1923,7 +1923,7 @@ export default function Profile() {
             Редагувати профіль
           </DialogTitle>
           <DialogContent>
-            <Grid container spacing={2} sx={{ pt: 1 }}>
+            <Grid  container spacing={2} sx={{ pt: 1 }}>
               {[
                 { name: "firstName", label: "Ім'я", type: "text" },
                 { name: "lastName", label: "Прізвище", type: "text" },
@@ -1933,7 +1933,7 @@ export default function Profile() {
                 { name: "state", label: "Регіон", type: "text" },
                 { name: "location", label: "Місто", type: "text" },
               ].map((f) => (
-                <Grid item xs={12} sm={6} key={f.name}>
+                <Grid size={{ xs: 12, sm: 6 }} key={f.name}>
                   <TextField
                     margin="dense"
                     name={f.name}
@@ -1949,7 +1949,7 @@ export default function Profile() {
                   />
                 </Grid>
               ))}
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   margin="dense"
                   name="about"

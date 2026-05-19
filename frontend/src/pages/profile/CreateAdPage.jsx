@@ -502,8 +502,8 @@ export default function CreateAdPage() {
                   sx={inputSx}
                 />
 
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
+                <Grid  container spacing={2}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <FormControl fullWidth required>
                       <InputLabel sx={{ fontFamily: F_BODY }}>
                         Категорія
@@ -539,7 +539,7 @@ export default function CreateAdPage() {
                   </Grid>
 
                   {selectedCategoryId && (
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <FormControl fullWidth required>
                         <InputLabel sx={{ fontFamily: F_BODY }}>
                           Підкатегорія
@@ -621,8 +621,8 @@ export default function CreateAdPage() {
                   }}
                 />
               )}
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
+              <Grid  container spacing={2}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <FormControl fullWidth required>
                     <InputLabel sx={{ fontFamily: F_BODY }}>Країна</InputLabel>
                     <Select
@@ -647,7 +647,7 @@ export default function CreateAdPage() {
                 </Grid>
 
                 {selectedCountry && (
-                  <Grid item xs={12} sm={4}>
+                  <Grid size={{ xs: 12, sm: 4 }}>
                     <FormControl fullWidth required disabled={locationLoading}>
                       <InputLabel sx={{ fontFamily: F_BODY }}>
                         Регіон
@@ -674,7 +674,7 @@ export default function CreateAdPage() {
                 )}
 
                 {selectedState && (
-                  <Grid item xs={12} sm={4}>
+                  <Grid size={{ xs: 12, sm: 4 }}>
                     <FormControl
                       fullWidth
                       required
@@ -702,7 +702,7 @@ export default function CreateAdPage() {
                   </Grid>
                 )}
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     name="location"
                     label="Точна адреса або квартал"
@@ -722,8 +722,8 @@ export default function CreateAdPage() {
               subtitle="Як з вами зв'язатися"
               completed={step3Done}
             >
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+              <Grid  container spacing={2}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     name="email"
                     label="Email"
@@ -733,7 +733,7 @@ export default function CreateAdPage() {
                     sx={inputSx}
                   />
                 </Grid>
-                <Grid item xs={4} sm={2}>
+                <Grid size={{ xs: 4, sm: 2 }}>
                   <TextField
                     label="Код"
                     value={phoneCode ? `+${phoneCode}` : ""}
@@ -748,7 +748,7 @@ export default function CreateAdPage() {
                     }}
                   />
                 </Grid>
-                <Grid item xs={8} sm={4}>
+                <Grid size={{ xs: 8, sm: 4 }}>
                   <TextField
                     name="phone"
                     label="Телефон"

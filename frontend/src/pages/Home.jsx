@@ -32,15 +32,15 @@
 //       />
 //       <div className="search-section">
 //         <Container maxWidth="lg">
-//           <Grid container spacing={2} alignItems="center">
-//             <Grid size={{ xs: 12, md: 8 }}>
+//           <Grid  container spacing={2} alignItems="center">
+//             <Grid  size={{ xs: 12, md: 8 }}>
 //               <TextField
 //                 fullWidth
 //                 placeholder="Пошук послуг, подій або інформації..."
 //                 variant="outlined"
 //               />
 //             </Grid>
-//             <Grid size={{ xs: 12, md: 4 }}>
+//             <Grid  size={{ xs: 12, md: 4 }}>
 //               <Button variant="contained" color="primary" fullWidth>
 //                 Пошук
 //               </Button>
@@ -54,8 +54,8 @@
 //           Основні категорії
 //         </Typography>
 //         <SectionsGrid />
-//         {/* <Grid container spacing={4}>
-//           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+//         {/* <Grid  container spacing={4}>
+//           <Grid  size={{ xs: 12, sm: 6, md: 3 }}>
 //             <Card className="feature-card">
 //               <CardContent>
 //                 <div className="category-icon">
@@ -76,7 +76,7 @@
 //             </Card>
 //           </Grid>
 
-//           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+//           <Grid  size={{ xs: 12, sm: 6, md: 3 }}>
 //             <Card className="feature-card">
 //               <CardContent>
 //                 <div className="category-icon">
@@ -97,7 +97,7 @@
 //             </Card>
 //           </Grid>
 
-//           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+//           <Grid  size={{ xs: 12, sm: 6, md: 3 }}>
 //             <Card className="feature-card">
 //               <CardContent>
 //                 <div className="category-icon">
@@ -118,7 +118,7 @@
 //             </Card>
 //           </Grid>
 
-//           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+//           <Grid  size={{ xs: 12, sm: 6, md: 3 }}>
 //             <Card className="feature-card">
 //               <CardContent>
 //                 <div className="category-icon">
@@ -145,9 +145,9 @@
 //         <Typography variant="h4" className="section-title">
 //           Останні новини
 //         </Typography>
-//         <Grid container spacing={4}>
+//         <Grid  container spacing={4}>
 //           {[1, 2, 3].map((item) => (
-//             <Grid size={{ xs: 12, md: 4 }} key={item}>
+//             <Grid  size={{ xs: 12, md: 4 }} key={}>
 //               <Card className="news-card">
 //                 <CardContent>
 //                   <Typography variant="h6" gutterBottom>
@@ -264,21 +264,16 @@ export default function Home() {
         }}
       >
         <Container maxWidth="lg">
-          <Grid container spacing={0} justifyContent="center">
+          <Grid  container spacing={0} justifyContent="center">
             {STATS.map((s, i) => (
-              <Grid
-                item
-                xs={6}
-                sm={3}
-                key={s.label}
+              <Grid size={{ xs: 6, sm: 3 }} key={s.label}
                 sx={{
                   textAlign: "center",
                   py: 2,
                   px: 3,
                   borderRight:
                     i < STATS.length - 1 ? { sm: "1px solid #f1f5f9" } : "none",
-                }}
-              >
+                }}>
                 <Typography sx={{ fontSize: "1.8rem", mb: 0.5 }}>
                   {s.icon}
                 </Typography>
@@ -492,13 +487,9 @@ export default function Home() {
             </Button>
           </Box>
 
-          <Grid container spacing={3}>
+          <Grid  container spacing={3}>
             {NEWS_ITEMS.map((item, i) => (
-              <Grid
-                item
-                xs={12}
-                md={4}
-                key={i}
+              <Grid size={{ xs: 12, md: 4 }} key={i}
                 sx={{
                   animation: "fadeUp 0.5s ease both",
                   animationDelay: `${i * 0.1}s`,
@@ -506,8 +497,7 @@ export default function Home() {
                     from: { opacity: 0, transform: "translateY(20px)" },
                     to: { opacity: 1, transform: "translateY(0)" },
                   },
-                }}
-              >
+                }}>
                 <Card
                   sx={{
                     height: "100%",

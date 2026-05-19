@@ -300,8 +300,8 @@ export default function EditAdPage() {
           >
             {/* Section 1: Basic info */}
             <EditSection icon="edit_note" title="Основна інформація">
-              <Grid container spacing={2.5}>
-                <Grid item xs={12}>
+              <Grid  container spacing={2.5}>
+                <Grid size={12}>
                   <TextField
                     name="title"
                     label="Заголовок"
@@ -311,7 +311,7 @@ export default function EditAdPage() {
                     sx={inputSx}
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <TextField
                     name="description"
                     label="Опис"
@@ -325,7 +325,7 @@ export default function EditAdPage() {
                     sx={inputSx}
                   />
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <TextField
                     name="price"
                     label="Ціна (€)"
@@ -343,8 +343,8 @@ export default function EditAdPage() {
 
             {/* Section 2: Location */}
             <EditSection icon="location_on" title="Місцезнаходження">
-              <Grid container spacing={2.5}>
-                <Grid item xs={12} sm={4}>
+              <Grid  container spacing={2.5}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <TextField
                     name="country"
                     label="Країна"
@@ -353,7 +353,7 @@ export default function EditAdPage() {
                     sx={inputSx}
                   />
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <TextField
                     name="state"
                     label="Регіон"
@@ -362,7 +362,7 @@ export default function EditAdPage() {
                     sx={inputSx}
                   />
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <TextField
                     name="city"
                     label="Місто"
@@ -371,7 +371,7 @@ export default function EditAdPage() {
                     sx={inputSx}
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <TextField
                     name="location"
                     label="Точна адреса або квартал"
@@ -387,8 +387,8 @@ export default function EditAdPage() {
 
             {/* Section 3: Contacts */}
             <EditSection icon="contact_phone" title="Контактна інформація">
-              <Grid container spacing={2.5}>
-                <Grid item xs={12} sm={6}>
+              <Grid  container spacing={2.5}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     name="email"
                     label="Email"
@@ -398,7 +398,7 @@ export default function EditAdPage() {
                     sx={inputSx}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     name="phone"
                     label="Телефон"

@@ -51,8 +51,8 @@
 //         textAlign="left"
 //       />
 //       <Container className="content">
-//         <Grid container spacing={4}>
-//           <Grid size={{ xs: 12, md: 6 }}>
+//         <Grid  container spacing={4}>
+//           <Grid  size={{ xs: 12, md: 6 }}>
 //             <Paper
 //               elevation={3}
 //               className="contact-form"
@@ -117,7 +117,7 @@
 //               </Form>
 //             </Paper>
 //           </Grid>
-//           <Grid size={{ xs: 12, md: 6 }}>
+//           <Grid  size={{ xs: 12, md: 6 }}>
 //             <Paper elevation={3} className="contact-info">
 //               <Typography variant="h5" gutterBottom>
 //                 Наші контакти
@@ -270,9 +270,9 @@ export default function Contacts() {
 
       <Box sx={{ py: { xs: 6, md: 10 } }}>
         <Container maxWidth="lg">
-          <Grid container spacing={5} alignItems="flex-start">
+          <Grid  container spacing={5} alignItems="flex-start">
             {/* ── Form ── */}
-            <Grid item xs={12} md={7}>
+            <Grid size={{ xs: 12, md: 7 }}>
               <Box sx={{ mb: 4 }}>
                 <Typography
                   sx={{
@@ -402,7 +402,7 @@ export default function Contacts() {
             </Grid>
 
             {/* ── Info ── */}
-            <Grid item xs={12} md={5}>
+            <Grid size={{ xs: 12, md: 5 }}>
               <Box sx={{ mb: 4 }}>
                 <Typography
                   sx={{

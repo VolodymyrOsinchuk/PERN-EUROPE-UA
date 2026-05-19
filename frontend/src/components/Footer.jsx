@@ -1,110 +1,3 @@
-// import { Fragment } from 'react'
-// import {
-//   Typography,
-//   Container,
-//   Grid,
-//   IconButton,
-//   Stack,
-//   Box,
-// } from '@mui/material'
-// import '../assets/css/footer.css'
-// import { Link } from 'react-router-dom'
-
-// const Footer = () => {
-//   return (
-//     <Stack>
-//       <Box
-//         component="footer"
-//         sx={{
-//           backgroundColor: 'black',
-//           padding: '20px 0',
-//           marginTop: '40px',
-//           borderTop: '1px solid #e0e0e0',
-//         }}
-//       >
-//         <Container
-//           sx={{
-//             maxWidth: '800px',
-//             margin: '0 auto',
-//             padding: '0 20px',
-//             textAlign: 'center',
-//           }}
-//         >
-//           <Typography variant="body2" sx={{ color: 'white' }} align="center">
-//             © 2023 Українці в Європі. Усі права захищено.
-//             <Box component="span" mx={1}>
-//               •
-//             </Box>
-//             <Link
-//               to="/privacy-policy"
-//               style={{
-//                 color: '#666',
-//                 textDecoration: 'none',
-//                 margin: '0 10px',
-//                 '&:hover': {
-//                   color: '#2196f3',
-//                   textDecoration: 'underline',
-//                 },
-//               }}
-//               onClick={(e) => {
-//                 e.preventDefault()
-//                 window.location.href = '/privacy-policy'
-//               }}
-//             >
-//               Політика конфіденційності
-//             </Link>
-//           </Typography>
-//         </Container>
-//       </Box>
-//     </Stack>
-//   )
-// }
-// export default Footer
-
-// import { Box, Typography, Link } from "@mui/material";
-
-// const Footer = () => {
-//   return (
-//     <Box
-//       component="footer"
-//       sx={{
-//         backgroundColor: "black",
-//         py: 6,
-//         borderTop: 1,
-//         borderColor: "gray.200",
-//       }}
-//     >
-//       <Box sx={{ textAlign: "center" }}>
-//         <Typography
-//           variant="body2"
-//           sx={{ color: "white", fontSize: "0.875rem" }}
-//         >
-//           {new Date().getFullYear()} Українці в Європі. Всі права захищені.
-//           <Box component="span" sx={{ mx: 2 }}>
-//             •
-//           </Box>
-//           <Link
-//             href="/privacy-policy"
-//             component="a"
-//             sx={{
-//               color: "white",
-//               textDecoration: "none",
-//               "&:hover": {
-//                 color: "blue",
-//                 textDecoration: "underline",
-//               },
-//             }}
-//           >
-//             Політика конфіденційності
-//           </Link>
-//         </Typography>
-//       </Box>
-//     </Box>
-//   );
-// };
-
-// export default Footer;
-
 import {
   Box,
   Container,
@@ -166,7 +59,7 @@ export default function Footer() {
       <Container maxWidth="lg">
         <Grid container spacing={6}>
           {/* ── Brand col ── */}
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             {/* Logo */}
             <Box
               sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2.5 }}
@@ -259,7 +152,7 @@ export default function Footer() {
 
           {/* ── Links cols ── */}
           {FOOTER_LINKS.map((col) => (
-            <Grid item xs={6} sm={4} md={2.5} key={col.title}>
+            <Grid size={{ xs: 6, sm: 4, md: 2.5 }} key={col.title}>
               <Typography
                 sx={{
                   fontFamily: "'Plus Jakarta Sans',sans-serif",

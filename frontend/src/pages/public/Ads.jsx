@@ -117,13 +117,9 @@ export default function Ads() {
       {/* ── Stats strip ── */}
       <Box sx={{ bgcolor: "#fff", borderBottom: "1px solid #f1f5f9", py: 3 }}>
         <Container maxWidth="lg">
-          <Grid container>
+          <Grid  container>
             {QUICK_STATS.map((s, i) => (
-              <Grid
-                item
-                xs={6}
-                sm={3}
-                key={s.label}
+              <Grid size={{ xs: 6, sm: 3 }} key={s.label}
                 sx={{
                   textAlign: "center",
                   py: 1,
@@ -131,8 +127,7 @@ export default function Ads() {
                     i < QUICK_STATS.length - 1
                       ? { sm: "1px solid #f1f5f9" }
                       : "none",
-                }}
-              >
+                }}>
                 <span
                   className="material-icons"
                   style={{
@@ -292,7 +287,7 @@ export default function Ads() {
                 }}
               >
                 <ToggleButton value="grid">
-                  <GridViewOutlinedIcon sx={{ fontSize: 18 }} />
+                  <Grid  ViewOutlinedIcon sx={{ fontSize: 18 }} />
                 </ToggleButton>
                 <ToggleButton value="list">
                   <ViewListOutlinedIcon sx={{ fontSize: 18 }} />
@@ -319,9 +314,9 @@ export default function Ads() {
                 },
               }}
             >
-              <Grid container spacing={2}>
+              <Grid  container spacing={2}>
                 {/* Search */}
-                <Grid item xs={12} md={5}>
+                <Grid size={{ xs: 12, md: 5 }}>
                   <TextField
                     fullWidth
                     size="small"
@@ -347,7 +342,7 @@ export default function Ads() {
                 </Grid>
 
                 {/* Category */}
-                <Grid item xs={12} sm={6} md={3.5}>
+                <Grid size={{ xs: 12, sm: 6, md: 3.5 }}>
                   <FormControl fullWidth size="small">
                     <InputLabel sx={{ fontFamily: F_BODY }}>
                       Категорія
@@ -390,7 +385,7 @@ export default function Ads() {
                 </Grid>
 
                 {/* City */}
-                <Grid item xs={12} sm={6} md={3.5}>
+                <Grid size={{ xs: 12, sm: 6, md: 3.5 }}>
                   <FormControl fullWidth size="small">
                     <InputLabel sx={{ fontFamily: F_BODY }}>Місто</InputLabel>
                     <Select
@@ -561,7 +556,7 @@ export default function Ads() {
               }}
             >
               {viewMode === "grid" ? (
-                <GridView ads={filtered} />
+                <Grid  View ads={filtered} />
               ) : (
                 <ListView ads={filtered} />
               )}
