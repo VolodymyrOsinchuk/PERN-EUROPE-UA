@@ -3,6 +3,8 @@ const { User } = require("../models/user");
 const { Category, SubCategory } = require("../models/category");
 const { Adv } = require("../models/adv");
 const { Event } = require("../models/event");
+const { News } = require("../models/news");
+const { Publication } = require("../models/publication");
 const sequelize = require("../config/db");
 
 async function seedDatabase() {
@@ -130,6 +132,44 @@ async function seedDatabase() {
         description: "Rencontrez les entreprises qui recrutent dans la tech",
         date: new Date("2025-12-01"),
         location: "Station F, Paris",
+      },
+    ]);
+
+    // Create news
+    const news = await News.bulkCreate([
+      {
+        title: "Lancement du site",
+        content: "Nous sommes heureux d'annoncer le lancement de notre plateforme.",
+        category: "Annonce",
+        importance: "high",
+        date: new Date(),
+      },
+      {
+        title: "Mise à jour de sécurité",
+        content: "Une mise à jour de sécurité a été déployée.",
+        category: "Sécurité",
+        importance: "medium",
+        date: new Date(),
+      },
+    ]);
+
+    // Create publications
+    const publications = await Publication.bulkCreate([
+      {
+        title: "Guide d'achat immobilier",
+        content: "Conseils pour acheter un bien immobilier.",
+        category: "Immobilier",
+        author: "Rédaction",
+        readTime: "5 min",
+        date: new Date(),
+      },
+      {
+        title: "Tendances du marché auto 2025",
+        content: "Analyse des tendances du marché automobile pour 2025.",
+        category: "Automobile",
+        author: "Rédaction",
+        readTime: "7 min",
+        date: new Date(),
       },
     ]);
 

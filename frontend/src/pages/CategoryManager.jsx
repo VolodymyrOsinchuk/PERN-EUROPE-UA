@@ -29,8 +29,8 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import SubdirectoryArrowRightIcon from "@mui/icons-material/SubdirectoryArrowRight";
 import customFetch from "../utils/customFetch";
-import PageHeader from "./PageHeader";
 import { toast } from "react-toastify";
+import { PageHeader } from "../components";
 
 export async function loader() {
   try {

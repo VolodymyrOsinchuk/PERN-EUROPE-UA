@@ -26,8 +26,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
-import DataTable from "../DataTable";
-import PageHeader from "../PageHeader";
+import { DataTable, PageHeader } from "../../components";
 
 export const loader = async () => {
   try {

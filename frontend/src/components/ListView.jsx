@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { useState } from "react";
 import {
   Typography,
   Chip,
@@ -16,20 +16,27 @@ import { Link } from "react-router-dom";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
-const categoryColors = {
-  default: { bg: "#EEF2FF", text: "#4338CA" },
-  work: { bg: "#ECFDF5", text: "#065F46" },
-  housing: { bg: "#FFF7ED", text: "#9A3412" },
-  services: { bg: "#EFF6FF", text: "#1E40AF" },
-  education: { bg: "#FDF4FF", text: "#7E22CE" },
-  other: { bg: "#F8FAFC", text: "#475569" },
+const F_BODY = "'Plus Jakarta Sans', sans-serif";
+const F_DISPLAY = "'Playfair Display', serif";
+const BLUE = "#0057B8";
+
+const CAT_COLORS = {
+  default: { bg: "#eff6ff", text: "#1d4ed8" },
+  work: { bg: "#ecfdf5", text: "#065f46" },
+  housing: { bg: "#fff7ed", text: "#9a3412" },
+  services: { bg: "#eff6ff", text: "#1d4ed8" },
+  education: { bg: "#f5f3ff", text: "#6d28d9" },
+  other: { bg: "#f8fafc", text: "#475569" },
 };
 
-const ListCard = ({ ad, isLast }) => {
-  const serverPath = ad.photos[0];
-  const clientPath = serverPath.replace("public", "");
+function ListCard({ ad, isLast, index }) {
+  const [saved, setSaved] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+
+  const serverPath = ad.photos?.[0];
+  const clientPath = serverPath?.replace("public", "") || "";
   const catKey = ad.category?.slug || "default";
-  const catColor = categoryColors[catKey] || categoryColors.default;
+  const catColor = CAT_COLORS[catKey] || CAT_COLORS.default;
   const locationLabel =
     typeof ad.location === "object"
       ? `${ad.location.city}, ${ad.location.state}`
@@ -40,80 +47,102 @@ const ListCard = ({ ad, isLast }) => {
       <Box
         sx={{
           display: "flex",
-          gap: 2.5,
-          py: 2.5,
-          px: { xs: 0, sm: 1 },
+          gap: { xs: 2, sm: 3 },
+          py: 3,
+          px: { xs: 2.5, sm: 3 },
           alignItems: "flex-start",
-          transition: "background 0.15s",
-          borderRadius: "12px",
+          transition: "background 0.18s ease",
+          borderRadius: "14px",
+          cursor: "pointer",
+          animation: "fadeUp 0.45s ease both",
+          animationDelay: `${index * 0.05}s`,
+          "@keyframes fadeUp": {
+            from: { opacity: 0, transform: "translateY(16px)" },
+            to: { opacity: 1, transform: "translateY(0)" },
+          },
           "&:hover": {
-            bgcolor: "rgba(0,0,0,0.02)",
+            bgcolor: "#f8fafc",
+            "& .list-img": { transform: "scale(1.04)" },
+            "& .list-title": { color: BLUE },
           },
         }}
+        component={Link}
+        to={`/ads/${ad.id}`}
+        style={{ textDecoration: "none" }}
       >
-        {/* Image */}
+        {/* ── Thumbnail ── */}
         <Box
           sx={{
             flexShrink: 0,
-            width: { xs: 90, sm: 130, md: 160 },
-            height: { xs: 90, sm: 100, md: 110 },
-            borderRadius: "12px",
+            width: { xs: 96, sm: 140, md: 168 },
+            height: { xs: 80, sm: 108, md: 120 },
+            borderRadius: "14px",
             overflow: "hidden",
             position: "relative",
+            bgcolor: "#f1f5f9",
+            border: "1.5px solid #e2e8f0",
           }}
         >
-          <Box
-            component="img"
-            src={`${apiUrl}${clientPath}`}
-            alt={ad.title}
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              transition: "transform 0.35s ease",
-              "&:hover": { transform: "scale(1.06)" },
-            }}
-          />
-          {/* Category badge */}
+          {clientPath && (
+            <Box
+              className="list-img"
+              component="img"
+              src={`${apiUrl}${clientPath}`}
+              alt={ad.title}
+              onLoad={() => setImgLoaded(true)}
+              sx={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                transition:
+                  "transform 0.4s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease",
+                opacity: imgLoaded ? 1 : 0,
+              }}
+            />
+          )}
+
+          {/* Category dot */}
           <Box
             sx={{
               position: "absolute",
-              bottom: 6,
-              left: 6,
+              bottom: 7,
+              left: 7,
               px: 1,
-              py: 0.3,
-              borderRadius: "99px",
+              py: 0.25,
+              borderRadius: "6px",
               bgcolor: catColor.bg,
               color: catColor.text,
-              fontSize: "10px",
-              fontWeight: 600,
+              fontFamily: F_BODY,
+              fontWeight: 700,
+              fontSize: "0.6rem",
+              backdropFilter: "blur(6px)",
             }}
           >
             {ad.category?.name || "Інше"}
           </Box>
         </Box>
 
-        {/* Content */}
+        {/* ── Content ── */}
         <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+          {/* Top row: title + actions */}
           <Box
             sx={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-start",
               gap: 1,
-              mb: 0.5,
+              mb: 0.75,
             }}
           >
             <Typography
-              component={Link}
-              to={`/ads/${ad.id}`}
-              variant="subtitle1"
-              fontWeight={700}
+              className="list-title"
               sx={{
-                textDecoration: "none",
-                color: "text.primary",
+                fontFamily: F_DISPLAY,
+                fontWeight: 700,
+                fontSize: { xs: "0.95rem", sm: "1.05rem" },
+                color: "#0f172a",
                 lineHeight: 1.35,
-                "&:hover": { color: "primary.main" },
+                transition: "color 0.2s",
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: "vertical",
@@ -125,27 +154,65 @@ const ListCard = ({ ad, isLast }) => {
 
             {/* Actions */}
             <Box sx={{ display: "flex", gap: 0.5, flexShrink: 0 }}>
-              <Tooltip title="Зберегти">
-                <IconButton size="small">
-                  <BookmarkBorderIcon sx={{ fontSize: 17 }} />
+              <Tooltip title={saved ? "Збережено" : "Зберегти"}>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSaved((v) => !v);
+                  }}
+                  sx={{
+                    color: saved ? BLUE : "#94a3b8",
+                    border: `1px solid ${saved ? BLUE : "#e2e8f0"}`,
+                    borderRadius: "8px",
+                    width: 28,
+                    height: 28,
+                    "&:hover": {
+                      color: BLUE,
+                      borderColor: BLUE,
+                      bgcolor: "#eff6ff",
+                    },
+                    transition: "all 0.2s",
+                  }}
+                >
+                  <BookmarkBorderIcon sx={{ fontSize: 14 }} />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Відкрити">
-                <IconButton size="small" component={Link} to={`/ads/${ad.id}`}>
-                  <OpenInNewIcon sx={{ fontSize: 17 }} />
+                <IconButton
+                  size="small"
+                  onClick={(e) => e.stopPropagation()}
+                  component={Link}
+                  to={`/ads/${ad.id}`}
+                  sx={{
+                    color: "#94a3b8",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "8px",
+                    width: 28,
+                    height: 28,
+                    "&:hover": {
+                      color: BLUE,
+                      borderColor: BLUE,
+                      bgcolor: "#eff6ff",
+                    },
+                  }}
+                >
+                  <OpenInNewIcon sx={{ fontSize: 14 }} />
                 </IconButton>
               </Tooltip>
             </Box>
           </Box>
 
+          {/* Description */}
           <Typography
-            variant="body2"
-            color="text.secondary"
             sx={{
+              fontFamily: F_BODY,
+              fontSize: "0.82rem",
+              color: "#64748b",
+              lineHeight: 1.65,
               mb: 1.5,
-              lineHeight: 1.6,
               display: "-webkit-box",
-              WebkitLineClamp: 2,
+              WebkitLineClamp: { xs: 1, sm: 2 },
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
             }}
@@ -153,49 +220,104 @@ const ListCard = ({ ad, isLast }) => {
             {ad.description}
           </Typography>
 
-          {/* Meta */}
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.8 }}>
-            <Chip
-              icon={
-                <LocationOnOutlinedIcon sx={{ fontSize: "13px !important" }} />
-              }
-              label={locationLabel}
-              size="small"
-              sx={{ fontSize: "11px", bgcolor: "#F1F5F9", border: "none" }}
-            />
-            <Chip
-              icon={
+          {/* Meta + price row */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 1,
+            }}
+          >
+            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+              {locationLabel && (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <LocationOnOutlinedIcon
+                    sx={{ fontSize: 13, color: "#94a3b8" }}
+                  />
+                  <Typography
+                    sx={{
+                      fontFamily: F_BODY,
+                      fontSize: "0.75rem",
+                      color: "#64748b",
+                    }}
+                  >
+                    {locationLabel}
+                  </Typography>
+                </Box>
+              )}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                 <CalendarTodayOutlinedIcon
-                  sx={{ fontSize: "13px !important" }}
+                  sx={{ fontSize: 12, color: "#94a3b8" }}
                 />
-              }
-              label={new Date(ad.date).toLocaleDateString("uk-UA")}
-              size="small"
-              sx={{ fontSize: "11px", bgcolor: "#F1F5F9", border: "none" }}
-            />
+                <Typography
+                  sx={{
+                    fontFamily: F_BODY,
+                    fontSize: "0.75rem",
+                    color: "#64748b",
+                  }}
+                >
+                  {new Date(ad.date || ad.createdAt).toLocaleDateString(
+                    "uk-UA",
+                  )}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Price */}
+            {ad.price && (
+              <Box
+                sx={{
+                  px: 1.5,
+                  py: 0.4,
+                  borderRadius: "8px",
+                  background: "linear-gradient(135deg, #0057B8, #003d82)",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontFamily: F_BODY,
+                    fontWeight: 700,
+                    fontSize: "0.82rem",
+                    color: "#fff",
+                  }}
+                >
+                  €{Number(ad.price).toLocaleString("uk-UA")}
+                </Typography>
+              </Box>
+            )}
           </Box>
         </Box>
       </Box>
-      {!isLast && <Divider sx={{ opacity: 0.5 }} />}
+
+      {!isLast && (
+        <Divider sx={{ borderColor: "#f1f5f9", mx: { xs: 2.5, sm: 3 } }} />
+      )}
     </>
   );
-};
+}
 
-const ListView = ({ ads }) => (
-  <Paper
-    elevation={0}
-    sx={{
-      border: "1px solid",
-      borderColor: "divider",
-      borderRadius: "16px",
-      overflow: "hidden",
-      px: { xs: 1.5, sm: 2.5 },
-    }}
-  >
-    {ads.map((ad, index) => (
-      <ListCard key={index} ad={ad} isLast={index === ads.length - 1} />
-    ))}
-  </Paper>
-);
-
-export default ListView;
+export default function ListView({ ads }) {
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        border: "1.5px solid #e2e8f0",
+        borderRadius: "20px",
+        overflow: "hidden",
+        bgcolor: "#fff",
+        boxShadow: "0 2px 12px rgba(0,0,0,.04)",
+      }}
+    >
+      {ads.map((ad, i) => (
+        <ListCard
+          key={ad.id ?? i}
+          ad={ad}
+          index={i}
+          isLast={i === ads.length - 1}
+        />
+      ))}
+    </Paper>
+  );
+}

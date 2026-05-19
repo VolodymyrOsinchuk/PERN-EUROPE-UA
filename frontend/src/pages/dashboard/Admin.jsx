@@ -34,7 +34,7 @@ import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import StorageIcon from "@mui/icons-material/Storage";
 import BuildOutlinedIcon from "@mui/icons-material/BuildOutlined";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
-import PageHeader from "../PageHeader";
+import { PageHeader } from "../../components";
 
 // ── Mock data ──────────────────────────────────────────────
 const MOCK_ADMINS = [

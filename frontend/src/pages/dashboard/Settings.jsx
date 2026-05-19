@@ -1,440 +1,605 @@
-import { useState } from "react";
+import { Fragment, useEffect, useState, useCallback, useMemo } from "react";
 import {
   Box,
-  Paper,
   Typography,
   TextField,
-  Button,
-  Divider,
-  Switch,
-  FormControlLabel,
-  Grid,
-  Avatar,
-  Alert,
-  Snackbar,
-  Select,
   MenuItem,
+  Select,
   FormControl,
   InputLabel,
+  Button,
+  Paper,
+  Grid,
+  CircularProgress,
+  Divider,
+  IconButton,
   Chip,
+  Alert,
+  InputAdornment,
 } from "@mui/material";
-import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
-import LanguageIcon from "@mui/icons-material/Language";
-import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
-import PageHeader from "../PageHeader";
+import {
+  Form,
+  useLoaderData,
+  useNavigation,
+  useActionData,
+  redirect,
+  Link,
+} from "react-router-dom";
+import { useDropzone } from "react-dropzone";
+import {
+  GetCountries,
+  GetCity,
+  GetState,
+  GetPhonecodes,
+} from "react-country-state-city";
+import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
+import CloseIcon from "@mui/icons-material/Close";
+import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
+import EuroIcon from "@mui/icons-material/Euro";
+import customFetch from "../../utils/customFetch";
+import { toast } from "react-toastify";
+import { PageHeader } from "../../components";
 
-const SectionCard = ({ icon, title, subtitle, children }) => (
-  <Paper sx={{ mb: 3, overflow: "hidden" }}>
-    <Box
+export const loader = async () => {
+  try {
+    const { data } = await customFetch.get("/categories");
+    return data;
+  } catch (error) {
+    toast.error("Помилка завантаження категорій");
+    return [];
+  }
+};
+
+export const action = async ({ request }) => {
+  const formData = new FormData();
+  const data = await request.formData();
+  for (const [key, value] of data.entries()) {
+    if (key !== "photos") formData.append(key, value);
+  }
+  data.getAll("photos").forEach((photo) => formData.append("photos", photo));
+
+  try {
+    const response = await customFetch.post("/adv", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    if (response.status === 201) {
+      toast.success(response.data.message);
+      return redirect("/profile");
+    }
+  } catch (error) {
+    toast.error(error?.response?.data?.message || "Помилка публікації");
+    return error;
+  }
+};
+
+// ── Section wrapper ───────────────────────────────────────
+const Section = ({ title, children }) => (
+  <Box sx={{ mb: 0 }}>
+    <Typography
+      variant="caption"
       sx={{
-        px: 3,
-        py: 2.5,
-        display: "flex",
-        alignItems: "center",
-        gap: 1.5,
-        borderBottom: "1px solid rgba(15,23,42,0.07)",
-        bgcolor: "#FAFBFC",
+        color: "#94A3B8",
+        fontWeight: 700,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        fontSize: "0.65rem",
+        display: "block",
+        mb: 2,
       }}
     >
-      <Box
-        sx={{
-          width: 36,
-          height: 36,
-          borderRadius: "10px",
-          bgcolor: "#EFF6FF",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#2563EB",
-        }}
-      >
-        {icon}
-      </Box>
-      <Box>
-        <Typography variant="subtitle1">{title}</Typography>
-        {subtitle && (
-          <Typography variant="caption" color="text.secondary">
-            {subtitle}
-          </Typography>
-        )}
-      </Box>
-    </Box>
-    <Box sx={{ p: 3 }}>{children}</Box>
-  </Paper>
+      {title}
+    </Typography>
+    {children}
+  </Box>
 );
 
-const Settings = () => {
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
-  const [notifications, setNotifications] = useState({
-    newUser: true,
-    newAd: true,
-    newEvent: false,
-    systemAlerts: true,
-    weeklyReport: false,
-  });
-  const [profile, setProfile] = useState({
-    name: "Адміністратор",
-    email: "admin@diaspora.ua",
-    language: "uk",
-  });
-  const [security, setSecurity] = useState({
-    twoFactor: false,
-    sessionTimeout: "60",
+// ── Main component ────────────────────────────────────────
+const CreateAdPage = () => {
+  const categories = useLoaderData();
+  const navigation = useNavigation();
+  const actionData = useActionData();
+  const isSubmitting = navigation.state === "submitting";
+
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState("");
+  const [countries, setCountries] = useState([]);
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [phoneCode, setPhoneCode] = useState("");
+  const [previewImages, setPreviewImages] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchCountries = async () => {
+      setLoading(true);
+      try {
+        const countriesList = await GetCountries();
+        setCountries(countriesList.filter((c) => c.region === "Europe"));
+      } catch (error) {
+        console.error("Помилка завантаження країн:", error);
+        toast.error("Помилка завантаження країн");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCountries();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedCountry) return;
+    const fetchStates = async () => {
+      setLoading(true);
+      try {
+        const countryObj = countries.find((c) => c.name === selectedCountry);
+        if (countryObj) {
+          const [statesList, code] = await Promise.all([
+            GetState(countryObj.id),
+            GetPhonecodes(countryObj.id),
+          ]);
+          setStates(statesList);
+          if (code) setPhoneCode(code);
+        }
+      } catch (error) {
+        console.error("Помилка завантаження регіонів:", error);
+        toast.error("Помилка завантаження регіонів");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStates();
+    setSelectedState("");
+    setCities([]);
+  }, [selectedCountry, countries]);
+
+  useEffect(() => {
+    if (!selectedCountry || !selectedState) return;
+    const fetchCities = async () => {
+      setLoading(true);
+      try {
+        const countryObj = countries.find((c) => c.name === selectedCountry);
+        const stateObj = states.find((s) => s.name === selectedState);
+        if (countryObj && stateObj) {
+          const citiesList = await GetCity(countryObj.id, stateObj.id);
+          setCities(citiesList);
+        }
+      } catch (error) {
+        console.error("Помилка завантаження міст:", error);
+        toast.error("Помилка завантаження міст");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCities();
+    setSelectedCity("");
+  }, [selectedState, selectedCountry, countries, states]);
+
+  const handleRemoveImage = useCallback(
+    (index) => setPreviewImages((prev) => prev.filter((_, i) => i !== index)),
+    [],
+  );
+
+  const onDrop = useCallback((acceptedFiles) => {
+    const maxSize = 5 * 1024 * 1024;
+    const valid = acceptedFiles.filter((f) => {
+      if (f.size > maxSize) {
+        toast.error(`${f.name} > 5MB`);
+        return false;
+      }
+      return true;
+    });
+    if (valid.length > 0) {
+      setPreviewImages((prev) => {
+        const next = [...prev, ...valid.map((f) => URL.createObjectURL(f))];
+        if (next.length > 5) {
+          toast.warning("Максимум 5 фото");
+          return next.slice(0, 5);
+        }
+        return next;
+      });
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: { "image/*": [".jpg", ".jpeg", ".png", ".webp"] },
+    onDrop,
+    multiple: true,
+    maxFiles: 5,
   });
 
-  const showSuccess = (message) =>
-    setSnackbar({ open: true, message: message, severity: "success" });
+  const subcategories = useMemo(() => {
+    if (!Array.isArray(categories) || !selectedCategoryId) return [];
+    return (
+      categories.find((c) => c.id === selectedCategoryId)?.SubCategories || []
+    );
+  }, [categories, selectedCategoryId]);
 
-  const handleProfileSave = (e) => {
-    e.preventDefault();
-    showSuccess("Профіль оновлено успішно");
-  };
-
-  const handlePasswordSave = (e) => {
-    e.preventDefault();
-    showSuccess("Пароль змінено успішно");
-  };
-
-  const handleNotifSave = () => showSuccess("Налаштування сповіщень збережено");
-  const handleSecuritySave = () =>
-    showSuccess("Налаштування безпеки збережено");
+  const isFormValid =
+    selectedCategoryId &&
+    selectedSubCategoryId &&
+    selectedCountry &&
+    selectedState &&
+    selectedCity;
 
   return (
-    <Box sx={{ maxWidth: 780 }}>
+    <Fragment>
       <PageHeader
-        title="Налаштування"
-        subtitle="Керуйте профілем, безпекою та налаштуваннями системи"
+        title="Нове оголошення"
+        subtitle="Заповніть усі обов'язкові поля та опублікуйте оголошення"
         breadcrumbs={[
           { label: "Панель", to: "/dashboard" },
-          { label: "Налаштування" },
+          { label: "Оголошення", to: "/dashboard/posts" },
+          { label: "Нове оголошення" },
         ]}
       />
 
-      {/* Profile */}
-      <SectionCard
-        icon={
-          <span className="material-icons" style={{ fontSize: 18 }}>
-            person_outline
-          </span>
-        }
-        title="Профіль адміністратора"
-        subtitle="Ваші особисті дані та мова інтерфейсу"
-      >
-        <Box
-          component="form"
-          onSubmit={handleProfileSave}
-          sx={{ display: "flex", flexDirection: "column", gap: 0 }}
-        >
-          {/* Avatar row */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2.5, mb: 3 }}>
-            <Avatar
+      <Paper sx={{ p: { xs: 2.5, sm: 3.5 }, maxWidth: 860 }}>
+        <Form method="post" encType="multipart/form-data">
+          {actionData?.error && (
+            <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+              {actionData.error}
+            </Alert>
+          )}
+
+          {/* ── Basic info ── */}
+          <Section title="Основна інформація">
+            <Grid container spacing={2.5} sx={{ mb: 3 }}>
+              <Grid size={{ xs: 12 }}>
+                <TextField
+                  name="title"
+                  label="Заголовок оголошення"
+                  fullWidth
+                  required
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <FormControl fullWidth required size="small">
+                  <InputLabel>Категорія</InputLabel>
+                  <Select
+                    name="categoryId"
+                    label="Категорія"
+                    value={selectedCategoryId}
+                    onChange={(e) => {
+                      setSelectedCategoryId(e.target.value);
+                      setSelectedSubCategoryId("");
+                    }}
+                  >
+                    <MenuItem value="">
+                      <em>Виберіть категорію</em>
+                    </MenuItem>
+                    {Array.isArray(categories) &&
+                      categories.map((cat) => (
+                        <MenuItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {selectedCategoryId && (
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <FormControl fullWidth required size="small">
+                    <InputLabel>Підкатегорія</InputLabel>
+                    <Select
+                      name="subcategoryId"
+                      label="Підкатегорія"
+                      value={selectedSubCategoryId}
+                      onChange={(e) => setSelectedSubCategoryId(e.target.value)}
+                    >
+                      <MenuItem value="">
+                        <em>Виберіть підкатегорію</em>
+                      </MenuItem>
+                      {subcategories.map((sub) => (
+                        <MenuItem key={sub.id} value={sub.id}>
+                          {sub.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              )}
+
+              <Grid size={{ xs: 12 }}>
+                <TextField
+                  name="description"
+                  label="Опис"
+                  fullWidth
+                  required
+                  multiline
+                  rows={4}
+                  inputProps={{ minLength: 10, maxLength: 5000 }}
+                  helperText="Від 10 до 5000 символів"
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  name="price"
+                  label="Ціна (необов'язково)"
+                  type="number"
+                  fullWidth
+                  inputProps={{ min: 0, step: 0.01 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EuroIcon sx={{ fontSize: 16, color: "#94A3B8" }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+            </Grid>
+          </Section>
+
+          <Divider sx={{ my: 3 }} />
+
+          {/* ── Location ── */}
+          <Section title="Місцезнаходження">
+            <Grid container spacing={2.5} sx={{ mb: 3 }}>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <FormControl fullWidth required size="small">
+                  <InputLabel>Країна</InputLabel>
+                  <Select
+                    name="country"
+                    label="Країна"
+                    value={selectedCountry}
+                    onChange={(e) => setSelectedCountry(e.target.value)}
+                  >
+                    {countries.map((c) => (
+                      <MenuItem key={c.id} value={c.name}>
+                        {c.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {selectedCountry && (
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <FormControl fullWidth required size="small">
+                    <InputLabel>Регіон</InputLabel>
+                    <Select
+                      name="state"
+                      label="Регіон"
+                      value={selectedState}
+                      onChange={(e) => setSelectedState(e.target.value)}
+                    >
+                      {states.map((s) => (
+                        <MenuItem key={s.id} value={s.name}>
+                          {s.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              )}
+
+              {selectedState && (
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <FormControl
+                    fullWidth
+                    required
+                    size="small"
+                    disabled={cities.length === 0}
+                  >
+                    <InputLabel>Місто</InputLabel>
+                    <Select
+                      name="city"
+                      label="Місто"
+                      value={selectedCity}
+                      onChange={(e) => setSelectedCity(e.target.value)}
+                    >
+                      {cities.map((c) => (
+                        <MenuItem key={c.id} value={c.name}>
+                          {c.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              )}
+
+              {loading && (
+                <Grid size={{ xs: 12 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <CircularProgress size={14} />
+                    <Typography variant="caption" color="text.secondary">
+                      Завантаження...
+                    </Typography>
+                  </Box>
+                </Grid>
+              )}
+
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  name="location"
+                  label="Точна адреса або квартал"
+                  fullWidth
+                  required
+                />
+              </Grid>
+            </Grid>
+          </Section>
+
+          <Divider sx={{ my: 3 }} />
+
+          {/* ── Contact ── */}
+          <Section title="Контактна інформація">
+            <Grid container spacing={2.5} sx={{ mb: 3 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  name="email"
+                  label="Email"
+                  type="email"
+                  fullWidth
+                  required
+                />
+              </Grid>
+              <Grid size={{ xs: 4, sm: 2 }}>
+                <TextField
+                  label="Код"
+                  value={phoneCode ? `+${phoneCode}` : ""}
+                  disabled
+                  fullWidth
+                />
+              </Grid>
+              <Grid size={{ xs: 8, sm: 4 }}>
+                <TextField
+                  name="phone"
+                  label="Телефон"
+                  type="tel"
+                  fullWidth
+                  required
+                  helperText="Формат: 0123456789"
+                />
+              </Grid>
+            </Grid>
+          </Section>
+
+          <Divider sx={{ my: 3 }} />
+
+          {/* ── Photos ── */}
+          <Section title={`Фотографії (${previewImages.length}/5)`}>
+            <Box
+              {...getRootProps()}
               sx={{
-                width: 64,
-                height: 64,
-                bgcolor: "#EFF6FF",
-                color: "#2563EB",
-                fontSize: "1.4rem",
-                fontWeight: 700,
-                border: "3px solid #DBEAFE",
+                border: "2px dashed",
+                borderColor: isDragActive ? "#2563EB" : "rgba(15,23,42,0.15)",
+                borderRadius: 3,
+                p: 4,
+                textAlign: "center",
+                cursor: "pointer",
+                bgcolor: isDragActive ? "#EFF6FF" : "#FAFBFC",
+                transition: "all 0.2s",
+                "&:hover": { borderColor: "#2563EB", bgcolor: "#EFF6FF" },
               }}
             >
-              {profile.name?.[0] ?? "А"}
-            </Avatar>
-            <Box>
-              <Button variant="outlined" size="small" sx={{ mr: 1 }}>
-                Змінити фото
-              </Button>
+              <input {...getInputProps({ name: "photos" })} />
+              <CloudUploadOutlinedIcon
+                sx={{
+                  fontSize: 36,
+                  color: isDragActive ? "#2563EB" : "#94A3B8",
+                  mb: 1,
+                }}
+              />
               <Typography
-                variant="caption"
-                color="text.secondary"
-                display="block"
-                sx={{ mt: 0.5 }}
+                variant="body2"
+                fontWeight={600}
+                color={isDragActive ? "primary" : "text.primary"}
               >
-                JPG, PNG — до 2MB
+                {isDragActive
+                  ? "Відпустіть файли тут..."
+                  : "Клікніть або перетягніть фото"}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                JPG, PNG, WebP — до 5MB кожен, максимум 5 файлів
               </Typography>
             </Box>
-          </Box>
 
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                label="Ім'я"
-                fullWidth
-                value={profile.name}
-                onChange={(e) =>
-                  setProfile((p) => ({ ...p, name: e.target.value }))
-                }
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                label="Email"
-                type="email"
-                fullWidth
-                value={profile.email}
-                onChange={(e) =>
-                  setProfile((p) => ({ ...p, email: e.target.value }))
-                }
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Мова інтерфейсу</InputLabel>
-                <Select
-                  value={profile.language}
-                  label="Мова інтерфейсу"
-                  onChange={(e) =>
-                    setProfile((p) => ({ ...p, language: e.target.value }))
-                  }
-                >
-                  <MenuItem value="uk">🇺🇦 Українська</MenuItem>
-                  <MenuItem value="fr">🇫🇷 Français</MenuItem>
-                  <MenuItem value="en">🇬🇧 English</MenuItem>
-                  <MenuItem value="de">🇩🇪 Deutsch</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-
-          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
-            <Button
-              type="submit"
-              variant="contained"
-              startIcon={<SaveOutlinedIcon />}
-            >
-              Зберегти профіль
-            </Button>
-          </Box>
-        </Box>
-      </SectionCard>
-
-      {/* Password */}
-      <SectionCard
-        icon={<LockOutlinedIcon sx={{ fontSize: 18 }} />}
-        title="Зміна пароля"
-        subtitle="Використовуйте надійний пароль (мінімум 8 символів)"
-      >
-        <Box component="form" onSubmit={handlePasswordSave}>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12 }}>
-              <TextField
-                label="Поточний пароль"
-                type="password"
-                fullWidth
-                required
-                autoComplete="current-password"
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                label="Новий пароль"
-                type="password"
-                fullWidth
-                required
-                inputProps={{ minLength: 8 }}
-                helperText="Мінімум 8 символів"
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                label="Підтвердити пароль"
-                type="password"
-                fullWidth
-                required
-              />
-            </Grid>
-          </Grid>
-          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
-            <Button
-              type="submit"
-              variant="contained"
-              startIcon={<LockOutlinedIcon />}
-            >
-              Змінити пароль
-            </Button>
-          </Box>
-        </Box>
-      </SectionCard>
-
-      {/* Notifications */}
-      <SectionCard
-        icon={<NotificationsOutlinedIcon sx={{ fontSize: 18 }} />}
-        title="Сповіщення"
-        subtitle="Виберіть, про що ви хочете отримувати сповіщення"
-      >
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-          {[
-            {
-              key: "newUser",
-              label: "Новий користувач зареєстровано",
-              desc: "Email-сповіщення при реєстрації",
-            },
-            {
-              key: "newAd",
-              label: "Нове оголошення опубліковано",
-              desc: "Сповіщення при публікації оголошення",
-            },
-            {
-              key: "newEvent",
-              label: "Нова подія додана",
-              desc: "Сповіщення при додаванні події",
-            },
-            {
-              key: "systemAlerts",
-              label: "Системні сповіщення",
-              desc: "Помилки та попередження системи",
-            },
-            {
-              key: "weeklyReport",
-              label: "Щотижневий звіт",
-              desc: "Статистика за тиждень на email",
-            },
-          ].map(({ key, label, desc }) => (
-            <Box
-              key={key}
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                py: 1.5,
-                borderBottom: "1px solid rgba(15,23,42,0.05)",
-                "&:last-child": { borderBottom: "none" },
-              }}
-            >
-              <Box>
-                <Typography variant="body2" fontWeight={500}>
-                  {label}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {desc}
-                </Typography>
+            {previewImages.length > 0 && (
+              <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1.5 }}>
+                {previewImages.map((url, i) => (
+                  <Box
+                    key={i}
+                    sx={{
+                      position: "relative",
+                      width: 100,
+                      height: 100,
+                      borderRadius: 2,
+                      overflow: "hidden",
+                      border: "2px solid rgba(15,23,42,0.08)",
+                    }}
+                  >
+                    <img
+                      src={url}
+                      alt={`preview-${i}`}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                    {i === 0 && (
+                      <Chip
+                        label="Головна"
+                        size="small"
+                        sx={{
+                          position: "absolute",
+                          bottom: 4,
+                          left: 4,
+                          height: 16,
+                          fontSize: "0.6rem",
+                          bgcolor: "#2563EB",
+                          color: "#fff",
+                          fontWeight: 700,
+                        }}
+                      />
+                    )}
+                    <IconButton
+                      size="small"
+                      onClick={() => handleRemoveImage(i)}
+                      sx={{
+                        position: "absolute",
+                        top: 3,
+                        right: 3,
+                        width: 20,
+                        height: 20,
+                        bgcolor: "rgba(0,0,0,0.65)",
+                        color: "#fff",
+                        "&:hover": { bgcolor: "rgba(0,0,0,0.85)" },
+                      }}
+                    >
+                      <CloseIcon sx={{ fontSize: 12 }} />
+                    </IconButton>
+                  </Box>
+                ))}
               </Box>
-              <Switch
-                checked={notifications[key]}
-                onChange={(e) =>
-                  setNotifications((n) => ({ ...n, [key]: e.target.checked }))
-                }
-                size="small"
-              />
-            </Box>
-          ))}
-        </Box>
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2.5 }}>
-          <Button
-            variant="contained"
-            startIcon={<SaveOutlinedIcon />}
-            onClick={handleNotifSave}
-          >
-            Зберегти
-          </Button>
-        </Box>
-      </SectionCard>
+            )}
+          </Section>
 
-      {/* Security */}
-      <SectionCard
-        icon={<SecurityOutlinedIcon sx={{ fontSize: 18 }} />}
-        title="Безпека"
-        subtitle="Двофакторна автентифікація та управління сесіями"
-      >
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+          {/* ── Actions ── */}
           <Box
             sx={{
               display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              p: 2,
-              bgcolor: "#F8FAFC",
-              borderRadius: 2,
-              border: "1px solid rgba(15,23,42,0.07)",
+              gap: 2,
+              justifyContent: "flex-end",
+              mt: 4,
+              pt: 3,
+              borderTop: "1px solid rgba(15,23,42,0.07)",
             }}
           >
-            <Box>
-              <Typography variant="body2" fontWeight={600}>
-                Двофакторна автентифікація (2FA)
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Додатковий рівень захисту для вашого акаунта
-              </Typography>
-            </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              {security.twoFactor && (
-                <Chip
-                  label="Активно"
-                  size="small"
-                  sx={{
-                    bgcolor: "#ECFDF5",
-                    color: "#065F46",
-                    fontWeight: 600,
-                    fontSize: "0.7rem",
-                  }}
-                />
-              )}
-              <Switch
-                checked={security.twoFactor}
-                onChange={(e) =>
-                  setSecurity((s) => ({ ...s, twoFactor: e.target.checked }))
-                }
-              />
-            </Box>
-          </Box>
-
-          <Box sx={{ maxWidth: 280 }}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Тайм-аут сесії</InputLabel>
-              <Select
-                value={security.sessionTimeout}
-                label="Тайм-аут сесії"
-                onChange={(e) =>
-                  setSecurity((s) => ({ ...s, sessionTimeout: e.target.value }))
-                }
-              >
-                <MenuItem value="15">15 хвилин</MenuItem>
-                <MenuItem value="30">30 хвилин</MenuItem>
-                <MenuItem value="60">1 година</MenuItem>
-                <MenuItem value="240">4 години</MenuItem>
-                <MenuItem value="0">Без обмежень</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-
-          <Alert severity="info" sx={{ borderRadius: 2 }}>
-            Останній вхід: сьогодні о 09:42 з IP 185.234.xx.xx (Париж, Франція)
-          </Alert>
-
-          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
             <Button
-              variant="contained"
-              startIcon={<SaveOutlinedIcon />}
-              onClick={handleSecuritySave}
+              variant="outlined"
+              color="inherit"
+              component={Link}
+              to="/profile"
+              disabled={isSubmitting}
             >
-              Зберегти
+              Скасувати
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={isSubmitting || !isFormValid}
+              startIcon={
+                isSubmitting ? (
+                  <CircularProgress size={15} />
+                ) : (
+                  <SendOutlinedIcon />
+                )
+              }
+            >
+              {isSubmitting ? "Публікація..." : "Опублікувати"}
             </Button>
           </Box>
-        </Box>
-      </SectionCard>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-      >
-        <Alert
-          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-          severity={snackbar.severity}
-          sx={{ borderRadius: 2 }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+        </Form>
+      </Paper>
+    </Fragment>
   );
 };
 
-export default Settings;
+export default CreateAdPage;

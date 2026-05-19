@@ -12,26 +12,33 @@ import Grid from "@mui/material/Grid";
 import { Link } from "react-router-dom";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
-import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { useState } from "react";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
-const categoryColors = {
-  default: { bg: "#EEF2FF", text: "#4338CA" },
-  work: { bg: "#ECFDF5", text: "#065F46" },
-  housing: { bg: "#FFF7ED", text: "#9A3412" },
-  services: { bg: "#EFF6FF", text: "#1E40AF" },
-  education: { bg: "#FDF4FF", text: "#7E22CE" },
-  other: { bg: "#F8FAFC", text: "#475569" },
+const F_BODY = "'Plus Jakarta Sans', sans-serif";
+const F_DISPLAY = "'Playfair Display', serif";
+const BLUE = "#0057B8";
+
+const CAT_COLORS = {
+  default: { bg: "#eff6ff", text: "#1d4ed8" },
+  work: { bg: "#ecfdf5", text: "#065f46" },
+  housing: { bg: "#fff7ed", text: "#9a3412" },
+  services: { bg: "#eff6ff", text: "#1d4ed8" },
+  education: { bg: "#f5f3ff", text: "#6d28d9" },
+  other: { bg: "#f8fafc", text: "#475569" },
 };
 
-const AdCard = ({ ad }) => {
-  const serverPath = ad.photos[0];
-  const clientPath = serverPath.replace("public", "");
+function AdCard({ ad }) {
+  const [saved, setSaved] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+
+  const serverPath = ad.photos?.[0];
+  const clientPath = serverPath?.replace("public", "") || "";
   const catKey = ad.category?.slug || "default";
-  const catColor = categoryColors[catKey] || categoryColors.default;
+  const catColor = CAT_COLORS[catKey] || CAT_COLORS.default;
   const locationLabel =
     typeof ad.location === "object"
       ? `${ad.location.city}, ${ad.location.state}`
@@ -39,172 +46,273 @@ const AdCard = ({ ad }) => {
 
   return (
     <Card
+      component={Link}
+      to={`/ads/${ad.id}`}
       sx={{
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        borderRadius: "16px",
-        border: "1px solid",
-        borderColor: "divider",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+        borderRadius: "18px",
+        border: "1.5px solid #e2e8f0",
+        boxShadow: "0 1px 4px rgba(0,0,0,.04)",
         overflow: "hidden",
-        transition: "transform 0.22s ease, box-shadow 0.22s ease",
+        textDecoration: "none",
+        bgcolor: "#fff",
+        transition:
+          "transform 0.28s cubic-bezier(0.16,1,0.3,1), box-shadow 0.28s cubic-bezier(0.16,1,0.3,1)",
         "&:hover": {
-          transform: "translateY(-4px)",
-          boxShadow: "0 10px 32px rgba(0,0,0,0.10)",
+          transform: "translateY(-5px)",
+          boxShadow: "0 16px 48px rgba(0,87,184,.13)",
+          "& .ad-img": { transform: "scale(1.05)" },
+          "& .ad-arrow": { opacity: 1, transform: "translateX(0)" },
         },
       }}
     >
-      {/* Image */}
-      <Box sx={{ position: "relative", overflow: "hidden", height: 200 }}>
-        <CardMedia
-          component="img"
-          image={`${apiUrl}${clientPath}`}
-          alt={ad.title}
-          sx={{
-            height: "100%",
-            width: "100%",
-            objectFit: "cover",
-            transition: "transform 0.4s ease",
-            "&:hover": { transform: "scale(1.04)" },
-          }}
-        />
+      {/* ── Image ── */}
+      <Box
+        sx={{
+          position: "relative",
+          overflow: "hidden",
+          height: 200,
+          bgcolor: "#f1f5f9",
+        }}
+      >
+        {clientPath && (
+          <CardMedia
+            component="img"
+            className="ad-img"
+            image={`${apiUrl}${clientPath}`}
+            alt={ad.title}
+            onLoad={() => setImgLoaded(true)}
+            sx={{
+              height: "100%",
+              width: "100%",
+              objectFit: "cover",
+              transition: "transform 0.45s cubic-bezier(0.16,1,0.3,1)",
+              opacity: imgLoaded ? 1 : 0,
+              transition:
+                "opacity 0.3s ease, transform 0.45s cubic-bezier(0.16,1,0.3,1)",
+            }}
+          />
+        )}
+
         {/* Category badge */}
-        <Box
+        <Chip
+          label={ad.category?.name || "Інше"}
+          size="small"
           sx={{
             position: "absolute",
             top: 12,
             left: 12,
-            px: 1.5,
-            py: 0.4,
-            borderRadius: "99px",
             bgcolor: catColor.bg,
             color: catColor.text,
-            fontSize: "11px",
-            fontWeight: 600,
-            letterSpacing: "0.03em",
-            backdropFilter: "blur(6px)",
+            fontFamily: F_BODY,
+            fontWeight: 700,
+            fontSize: "0.7rem",
+            backdropFilter: "blur(8px)",
+            border: "none",
+            pointerEvents: "none",
           }}
-        >
-          {ad.category?.name || "Інше"}
-        </Box>
+        />
+
         {/* Bookmark */}
-        <Tooltip title="Зберегти">
+        <Tooltip title={saved ? "Збережено" : "Зберегти"}>
           <IconButton
             size="small"
+            onClick={(e) => {
+              e.preventDefault();
+              setSaved((v) => !v);
+            }}
             sx={{
               position: "absolute",
               top: 8,
               right: 8,
-              bgcolor: "rgba(255,255,255,0.88)",
+              bgcolor: "rgba(255,255,255,.9)",
               backdropFilter: "blur(6px)",
-              "&:hover": { bgcolor: "white" },
+              border: `1.5px solid ${saved ? BLUE : "rgba(255,255,255,.6)"}`,
+              color: saved ? BLUE : "#94a3b8",
+              width: 32,
+              height: 32,
+              transition: "all 0.2s",
+              "&:hover": { bgcolor: "#fff", color: BLUE, borderColor: BLUE },
             }}
           >
-            <BookmarkBorderIcon fontSize="small" />
+            <BookmarkBorderIcon sx={{ fontSize: 15 }} />
           </IconButton>
         </Tooltip>
+
+        {/* Price badge */}
+        {ad.price && (
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 12,
+              right: 12,
+              px: 1.5,
+              py: 0.5,
+              borderRadius: "8px",
+              background: "linear-gradient(135deg, #0057B8, #003d82)",
+              boxShadow: "0 2px 8px rgba(0,87,184,.4)",
+            }}
+          >
+            <Typography
+              sx={{
+                fontFamily: F_BODY,
+                fontWeight: 700,
+                fontSize: "0.85rem",
+                color: "#fff",
+              }}
+            >
+              €{Number(ad.price).toLocaleString("uk-UA")}
+            </Typography>
+          </Box>
+        )}
       </Box>
 
-      <CardContent sx={{ flexGrow: 1, p: 2.5 }}>
+      {/* ── Body ── */}
+      <CardContent sx={{ flexGrow: 1, p: 2.5, pb: "16px !important" }}>
         <Typography
-          variant="subtitle1"
-          fontWeight={700}
-          gutterBottom
           sx={{
+            fontFamily: F_DISPLAY,
+            fontWeight: 700,
+            fontSize: "1rem",
+            color: "#0f172a",
+            lineHeight: 1.35,
+            mb: 1,
             display: "-webkit-box",
             WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
-            lineHeight: 1.35,
-            mb: 1,
           }}
         >
           {ad.title}
         </Typography>
 
         <Typography
-          variant="body2"
-          color="text.secondary"
           sx={{
+            fontFamily: F_BODY,
+            fontSize: "0.82rem",
+            color: "#64748b",
+            lineHeight: 1.65,
+            mb: 2,
             display: "-webkit-box",
             WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
-            mb: 2,
-            lineHeight: 1.6,
           }}
         >
           {ad.description}
         </Typography>
 
         {/* Meta chips */}
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.8 }}>
-          <Chip
-            icon={
-              <LocationOnOutlinedIcon sx={{ fontSize: "13px !important" }} />
-            }
-            label={locationLabel}
-            size="small"
-            sx={{ fontSize: "11px", bgcolor: "#F1F5F9", border: "none" }}
-          />
-          <Chip
-            icon={
-              <CalendarTodayOutlinedIcon sx={{ fontSize: "13px !important" }} />
-            }
-            label={new Date(ad.date).toLocaleDateString("uk-UA")}
-            size="small"
-            sx={{ fontSize: "11px", bgcolor: "#F1F5F9", border: "none" }}
-          />
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
+          {locationLabel && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <LocationOnOutlinedIcon sx={{ fontSize: 13, color: "#94a3b8" }} />
+              <Typography
+                sx={{
+                  fontFamily: F_BODY,
+                  fontSize: "0.75rem",
+                  color: "#64748b",
+                }}
+              >
+                {locationLabel}
+              </Typography>
+            </Box>
+          )}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <CalendarTodayOutlinedIcon
+              sx={{ fontSize: 12, color: "#94a3b8" }}
+            />
+            <Typography
+              sx={{ fontFamily: F_BODY, fontSize: "0.75rem", color: "#64748b" }}
+            >
+              {new Date(ad.date || ad.createdAt).toLocaleDateString("uk-UA")}
+            </Typography>
+          </Box>
         </Box>
       </CardContent>
 
-      {/* Footer */}
+      {/* ── Footer ── */}
       <Box
         sx={{
           px: 2.5,
           py: 1.5,
-          borderTop: "1px solid",
-          borderColor: "divider",
+          borderTop: "1px solid #f1f5f9",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          bgcolor: "#fafbfc",
         }}
       >
         <Typography
-          component={Link}
-          to={`/ads/${ad.id}`}
-          variant="caption"
           sx={{
-            color: "primary.main",
-            fontWeight: 600,
-            textDecoration: "none",
-            fontSize: "12px",
-            "&:hover": { textDecoration: "underline" },
+            fontFamily: F_BODY,
+            fontWeight: 700,
+            fontSize: "0.8rem",
+            color: BLUE,
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
           }}
         >
           Переглянути
+          <ArrowForwardIconInline />
         </Typography>
-        <Box sx={{ display: "flex", gap: 0.5 }}>
-          <Tooltip title="Відкрити">
-            <IconButton size="small" component={Link} to={`/ads/${ad.id}`}>
-              <OpenInNewIcon sx={{ fontSize: 16 }} />
-            </IconButton>
-          </Tooltip>
-        </Box>
+        <IconButton
+          size="small"
+          onClick={(e) => e.stopPropagation()}
+          component={Link}
+          to={`/ads/${ad.id}`}
+          sx={{
+            color: "#94a3b8",
+            "&:hover": { color: BLUE, bgcolor: "#eff6ff" },
+          }}
+        >
+          <OpenInNewIcon sx={{ fontSize: 15 }} />
+        </IconButton>
       </Box>
     </Card>
   );
-};
+}
 
-const GridView = ({ ads }) => (
-  <Grid container spacing={3}>
-    {ads.map((ad, index) => (
-      <Grid key={index} size={{ xs: 12, sm: 6, md: 4 }}>
-        <AdCard ad={ad} />
-      </Grid>
-    ))}
-  </Grid>
-);
+/* Tiny inline arrow icon */
+function ArrowForwardIconInline() {
+  return (
+    <Box
+      className="ad-arrow"
+      component="span"
+      sx={{
+        display: "inline-flex",
+        opacity: 0,
+        transform: "translateX(-4px)",
+        transition: "all 0.2s ease",
+      }}
+    >
+      →
+    </Box>
+  );
+}
 
-export default GridView;
+export default function GridView({ ads }) {
+  return (
+    <Grid container spacing={3}>
+      {ads.map((ad, i) => (
+        <Grid
+          key={ad.id ?? i}
+          size={{ xs: 12, sm: 6, md: 4 }}
+          sx={{
+            animation: "fadeUp 0.5s ease both",
+            animationDelay: `${(i % 9) * 0.06}s`,
+            "@keyframes fadeUp": {
+              from: { opacity: 0, transform: "translateY(20px)" },
+              to: { opacity: 1, transform: "translateY(0)" },
+            },
+          }}
+        >
+          <AdCard ad={ad} />
+        </Grid>
+      ))}
+    </Grid>
+  );
+}
