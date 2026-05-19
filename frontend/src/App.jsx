@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import {
+  About,
   AdDetailPage,
   Admin,
   Ads,
@@ -12,29 +13,27 @@ import {
   Dashboard,
   DashboardLayout,
   EditAdPage,
+  EditUser,
   ErrorPage,
   Events,
   EventsManager,
   Forum,
   Home,
   HomeLayout,
+  Landing,
   Login,
   News,
+  NewsManager,
   Policy,
   Posts,
   Profile,
   ProfileLayout,
-  Publications,
+  PublicationsPublic,
   Register,
   Settings,
+  Stats,
   Users,
   VerifyAccount,
-  Landing,
-  About,
-  NewsManager,
-  Stats,
-  EditUser,
-  AllAds,
 } from "./pages/index";
 
 import { CategoryForm, Loading, SubcategoryItem } from "./components";
@@ -52,7 +51,34 @@ import { categoryAction } from "./pages/CategoryManager";
 import { action as contactAction } from "./pages/public/Contacts";
 
 import { loader as accountLoader } from "./pages/VerifyAccount";
+import TopicDetail, {
+  loader as topicLoader,
+  action as topicAction,
+} from "./pages/forum/TopicDetail";
+import { loader as forumLoader, action as forumAction } from "./pages/Forum";
 import { loader as categoryLoader } from "./pages/CategoryManager";
+import EventsProfile, {
+  loader as profileEventsLoader,
+  action as profileEventsAction,
+} from "./pages/profile/Events";
+import CreateEvent, {
+  action as createEventAction,
+} from "./pages/profile/CreateEvent";
+import EditEvent, {
+  loader as editEventLoader,
+  action as editEventAction,
+} from "./pages/profile/EditEvent";
+import PublicationsProfile, {
+  loader as publicationsLoader,
+  action as publicationsAction,
+} from "./pages/profile/Publications";
+import CreatePublication, {
+  action as createPublicationAction,
+} from "./pages/profile/CreatePublication";
+import EditPublication, {
+  loader as editPublicationLoader,
+  action as editPublicationAction,
+} from "./pages/profile/EditPublication";
 import { loader as adsLoader } from "./pages/public/Ads";
 import {
   loader as adLoader,
@@ -61,6 +87,7 @@ import {
 import { loader as catLoader } from "./pages/profile/CreateAdPage";
 import { loader as categoryDetailsLoader } from "./pages/CategoryDetails";
 import { loader as dashboardLoader } from "./pages/dashboard/Dashboard";
+import { loader as statsLoader } from "./pages/Stats";
 import { loader as usersLoader, action as usersAction } from "./pages/Users";
 import {
   loader as adsManagerLoader,
@@ -111,6 +138,15 @@ const router = createBrowserRouter(
             {
               path: "forum",
               element: <Forum />,
+              loader: forumLoader,
+              action: forumAction,
+              HydrateFallback: Loading,
+            },
+            {
+              path: "forum/:id",
+              element: <TopicDetail />,
+              loader: topicLoader,
+              action: topicAction,
               HydrateFallback: Loading,
             },
             {
@@ -161,17 +197,12 @@ const router = createBrowserRouter(
             },
             {
               path: "publications",
-              element: <Publications />,
+              element: <PublicationsPublic />,
               HydrateFallback: Loading,
             },
             {
               path: "policy",
               element: <Policy />,
-              HydrateFallback: Loading,
-            },
-            {
-              path: "all-ads",
-              element: <AllAds />,
               HydrateFallback: Loading,
             },
           ],
@@ -206,6 +237,46 @@ const router = createBrowserRouter(
               HydrateFallback: Loading,
               loader: editAdLoader,
               action: editAdAction,
+            },
+            {
+              path: "events",
+              element: <EventsProfile />,
+              loader: profileEventsLoader,
+              action: profileEventsAction,
+              HydrateFallback: Loading,
+            },
+            {
+              path: "events/create",
+              element: <CreateEvent />,
+              action: createEventAction,
+              HydrateFallback: Loading,
+            },
+            {
+              path: "events/edit/:id",
+              element: <EditEvent />,
+              loader: editEventLoader,
+              action: editEventAction,
+              HydrateFallback: Loading,
+            },
+            {
+              path: "publications",
+              element: <PublicationsProfile />,
+              loader: publicationsLoader,
+              action: publicationsAction,
+              HydrateFallback: Loading,
+            },
+            {
+              path: "publications/create",
+              element: <CreatePublication />,
+              action: createPublicationAction,
+              HydrateFallback: Loading,
+            },
+            {
+              path: "publications/edit/:id",
+              element: <EditPublication />,
+              loader: editPublicationLoader,
+              action: editPublicationAction,
+              HydrateFallback: Loading,
             },
           ],
         },
@@ -304,6 +375,7 @@ const router = createBrowserRouter(
             {
               path: "stats",
               element: <Stats />,
+              loader: statsLoader,
               HydrateFallback: Loading,
             },
             {
