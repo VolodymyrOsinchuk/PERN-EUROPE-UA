@@ -63,6 +63,10 @@ export const action = async ({ request, params }) => {
   const intent = formData.get("intent");
   try {
     if (intent === "message") {
+      const message = formData.get("message");
+      const recipientId = formData.get("recipientId");
+      const adId = formData.get("adId");
+      await customFetch.post("/messages", { adId, recipientId, message });
       toast.success("Повідомлення надіслано");
     } else if (intent === "report") {
       toast.success("Скаргу надіслано");
@@ -354,7 +358,7 @@ function ContactCard({ ad, onMessage, onReport }) {
   );
 }
 
-function MessageDialog({ open, onClose, recipient, isSubmitting }) {
+function MessageDialog({ open, onClose, recipient, recipientId, adId, isSubmitting }) {
   return (
     <Dialog
       open={open}
@@ -365,6 +369,8 @@ function MessageDialog({ open, onClose, recipient, isSubmitting }) {
     >
       <Form method="post" onSubmit={onClose}>
         <input type="hidden" name="intent" value="message" />
+        <input type="hidden" name="recipientId" value={recipientId} />
+        <input type="hidden" name="adId" value={adId} />
         <DialogTitle
           sx={{
             fontFamily: F_DISPLAY,
@@ -1156,6 +1162,8 @@ export default function AdDetailPage() {
         open={messageOpen}
         onClose={() => setMessageOpen(false)}
         recipient={recipient}
+        recipientId={ad.user?.id || ad.userId}
+        adId={ad.id}
         isSubmitting={isSubmitting}
       />
       <ReportDialog

@@ -152,7 +152,16 @@ exports.getAllAnnonces = async (req, res) => {
 
 exports.getAnnonceById = async (req, res) => {
   try {
-    const annonce = await Adv.findByPk(req.params.id);
+    const annonce = await Adv.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "firstName", "lastName", "email"],
+        },
+      ],
+    });
+
     if (annonce) {
       res.status(200).json(annonce);
     } else {

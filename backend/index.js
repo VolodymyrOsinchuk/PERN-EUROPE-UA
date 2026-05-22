@@ -16,6 +16,7 @@ const eventRoutes = require("./routes/eventRouter");
 const newsRoutes = require("./routes/newsRouter");
 const publicationRoutes = require("./routes/publicationRouter");
 const forumRoutes = require("./routes/forumRouter");
+const messageRoutes = require("./routes/messageRouter");
 const config = require("./config/config");
 const { authMiddleware } = require("./middleware/authMiddleware");
 
@@ -54,6 +55,7 @@ app.use("/api/v1/events", authMiddleware, eventRoutes);
 app.use("/api/v1/news", newsRoutes);
 app.use("/api/v1/publications", publicationRoutes);
 app.use("/api/v1/forum", forumRoutes);
+app.use("/api/v1/messages", authMiddleware, messageRoutes);
 
 app.use((err, req, res, next) => {
   console.error("[ПОМИЛКА]", {

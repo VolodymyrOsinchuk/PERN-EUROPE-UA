@@ -1,22 +1,21 @@
 const express = require("express");
 const router = express.Router();
-const publicationController = require("../controllers/publicationController");
+const eventController = require("../controllers/eventController");
 const { authMiddleware } = require("../middleware/authMiddleware");
 
 // Routes publiques
-router.get("/", publicationController.getAllPublications);
+router.get("/", eventController.getAllEvents);
 
-// Route authentifiée — IMPORTANT: "user-publications" AVANT "/:id"
+// Route authentifiée
 router.get(
-  "/user-publications",
+  "/user-events",
   authMiddleware,
-  publicationController.getUserPublications,
+  eventController.getUserEvents
 );
 
 // CRUD avec auth
-router.get("/:id", publicationController.getPublicationById);
-router.post("/", authMiddleware, publicationController.createPublication);
-router.put("/:id", authMiddleware, publicationController.updatePublication);
-router.delete("/:id", authMiddleware, publicationController.deletePublication);
+router.post("/", authMiddleware, eventController.createEvent);
+router.put("/:id", authMiddleware, eventController.updateEvent);
+router.delete("/:id", authMiddleware, eventController.deleteEvent);
 
 module.exports = router;
