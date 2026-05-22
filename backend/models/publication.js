@@ -34,11 +34,23 @@ const Publication = sequelize.define(
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
+    // userId permet de filtrer les publications par utilisateur
+    // et de protéger les mutations (update/delete)
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: true, // nullable pour les publications existantes sans userId
+      references: {
+        model: "users",
+        key: "id",
+      },
+      onUpdate: "CASCADE",
+      onDelete: "SET NULL",
+    },
   },
   {
     tableName: "publications",
     timestamps: true,
-  }
+  },
 );
 
 module.exports = { Publication };

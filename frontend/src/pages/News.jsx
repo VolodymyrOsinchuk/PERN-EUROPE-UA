@@ -1,248 +1,5 @@
-// import { useState } from "react";
-// import { HeroSection } from "../components";
-// import {
-//   Button,
-//   Card,
-//   CardActions,
-//   CardContent,
-//   Chip,
-//   CircularProgress,
-//   Container,
-//   InputAdornment,
-//   Menu,
-//   MenuItem,
-//   TextField,
-//   Typography,
-// } from "@mui/material";
-// import Grid from "@mui/material/Grid";
-// import "../assets/css/news.css";
-
-// const News = () => {
-//   const [languageAnchor, setLanguageAnchor] = useState(null);
-//   const [filterAnchor, setFilterAnchor] = useState(null);
-//   const [selectedCategory, setSelectedCategory] = useState("all");
-//   const [isLoading, setIsLoading] = useState(false);
-//   const [page, setPage] = useState(1);
-//   const [newsItems, setNewsItems] = useState([
-//     {
-//       title: "Нова програма допомоги для українських біженців у Франції",
-//       date: "15 Лис 2023",
-//       category: "Соціальна допомога",
-//       description: "Французький уряд запускає нову програму допомоги...",
-//       importance: "high",
-//     },
-//     {
-//       title: "Фестиваль української культури в Берліні",
-//       date: "12 Лис 2023",
-//       category: "Культура",
-//       description: "Великий фестиваль української культури відбудеться...",
-//       importance: "medium",
-//     },
-//     {
-//       title: "Можливості працевлаштування для українців у Німеччині",
-//       date: "10 Лис 2023",
-//       category: "Робота",
-//       description:
-//         "Нові можливості працевлаштування в технологічному секторі...",
-//       importance: "high",
-//     },
-//     {
-//       title: "Безкоштовні мовні курси онлайн",
-//       date: "8 Лис 2023",
-//       category: "Освіта",
-//       description: "Нова платформа пропонує безкоштовні мовні курси...",
-//       importance: "medium",
-//     },
-//   ]);
-
-//   const loadMoreNews = () => {
-//     setIsLoading(true);
-//     // Simulating API call
-//     setTimeout(() => {
-//       const newItems = [
-//         {
-//           title: "Нові правила перебування в ЄС",
-//           date: "7 Лис 2023",
-//           category: "Соціальна допомога",
-//           description: "Важливі зміни у правилах перебування українців в ЄС...",
-//           importance: "high",
-//         },
-//         {
-//           title: "Українська школа відкривається у Варшаві",
-//           date: "5 Лис 2023",
-//           category: "Освіта",
-//           description: "Нова українська школа починає роботу у Варшаві...",
-//           importance: "medium",
-//         },
-//       ];
-//       setNewsItems([...newsItems, ...newItems]);
-//       setPage(page + 1);
-//       setIsLoading(false);
-//     }, 1500);
-//   };
-
-//   const handleLanguageClick = (event) => {
-//     setLanguageAnchor(event.currentTarget);
-//   };
-
-//   const handleLanguageClose = () => {
-//     setLanguageAnchor(null);
-//   };
-
-//   const handleFilterClick = (event) => {
-//     setFilterAnchor(event.currentTarget);
-//   };
-
-//   const handleFilterClose = () => {
-//     setFilterAnchor(null);
-//   };
-
-//   const getCategoryColor = (category) => {
-//     const colors = {
-//       "Соціальна допомога": "#f44336",
-//       Культура: "#2196f3",
-//       Робота: "#4caf50",
-//       Освіта: "#ff9800",
-//     };
-//     return colors[category] || "#757575";
-//   };
-
-//   return (
-//     <>
-//       <HeroSection
-//         title="Останні Новини"
-//         typedStrings={["Актуальна інформація"]}
-//         subtitle="Актуальна інформація для українців в Європі"
-//         // backgroundImage="/path/to/news-background.jpg"
-//         textColor="white"
-//       />
-
-//       <Container style={{ marginTop: "30px" }}>
-//         <Grid  container spacing={3}>
-//           <Grid  size={{ xs: 12 }}>
-//             <Typography variant="h4" gutterBottom textAlign="center">
-//               Новини
-//             </Typography>
-//             <Typography variant="subtitle1" gutterBottom color="textSecondary">
-//               Будьте в курсі останніх новин про українську спільноту в Європі
-//             </Typography>
-//           </Grid>
-
-//           <Grid  size={{ xs: 12 }}>
-//             <TextField
-//               fullWidth
-//               variant="outlined"
-//               placeholder="Пошук новин..."
-//               InputProps={{
-//                 startAdornment: (
-//                   <InputAdornment position="start">
-//                     <span className="material-icons">search</span>
-//                   </InputAdornment>
-//                 ),
-//               }}
-//             />
-//           </Grid>
-
-//           <Grid  size={{ xs: 12 }}>
-//             <Button
-//               variant="outlined"
-//               onClick={handleFilterClick}
-//               startIcon={<span className="material-icons">filter_list</span>}
-//             >
-//               Фільтрувати за категорією
-//             </Button>
-//             <Menu
-//               anchorEl={filterAnchor}
-//               open={Boolean(filterAnchor)}
-//               onClose={handleFilterClose}
-//             >
-//               <MenuItem onClick={() => setSelectedCategory("all")}>
-//                 Всі категорії
-//               </MenuItem>
-//               <MenuItem
-//                 onClick={() => setSelectedCategory("Соціальна допомога")}
-//               >
-//                 Соціальна допомога
-//               </MenuItem>
-//               <MenuItem onClick={() => setSelectedCategory("Культура")}>
-//                 Культура
-//               </MenuItem>
-//               <MenuItem onClick={() => setSelectedCategory("Робота")}>
-//                 Робота
-//               </MenuItem>
-//               <MenuItem onClick={() => setSelectedCategory("Освіта")}>
-//                 Освіта
-//               </MenuItem>
-//             </Menu>
-//           </Grid>
-
-//           {newsItems.map((item, index) => (
-//             <Grid  size={{ xs: 12 }} key={index}>
-//               <Card className="news-card">
-//                 <CardContent>
-//                   <Typography variant="h5" component="div" gutterBottom>
-//                     {item.title}
-//                   </Typography>
-//                   <Chip
-//                     label={item.category}
-//                     style={{
-//                       backgroundColor: getCategoryColor(item.category),
-//                       color: "white",
-//                       marginBottom: "10px",
-//                     }}
-//                   />
-//                   <Typography variant="body2" color="text.secondary">
-//                     {item.date}
-//                   </Typography>
-//                   <Typography variant="body1" style={{ marginTop: "10px" }}>
-//                     {item.description}
-//                   </Typography>
-//                 </CardContent>
-//                 <CardActions>
-//                   <Button size="small" color="primary">
-//                     Читати далі
-//                   </Button>
-//                   <Button
-//                     size="small"
-//                     startIcon={<span className="material-icons">share</span>}
-//                   >
-//                     Поділитися
-//                   </Button>
-//                 </CardActions>
-//               </Card>
-//             </Grid>
-//           ))}
-
-//           <Grid  //             size={{ xs: 12 }}
-//             style={{ textAlign: "center", marginTop: "20px" }}
-//>
-//             <Button
-//               variant="contained"
-//               color="primary"
-//               onClick={loadMoreNews}
-//               disabled={isLoading}
-//             >
-//               {isLoading ? (
-//                 <>
-//                   Завантаження...
-//                   <CircularProgress
-//                     size={20}
-//                     color="inherit"
-//                     className="loading-spinner"
-//                   />
-//                 </>
-//               ) : (
-//                 "Завантажити більше новин"
-//               )}
-//             </Button>
-//           </Grid>
-//         </Grid>
-//       </Container>
-//     </>
-//   );
-// };
-// export default News;
 import { useState } from "react";
+import { useLoaderData } from "react-router-dom";
 import { HeroSection } from "../components";
 import {
   Box,
@@ -260,6 +17,8 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import customFetch from "../utils/customFetch";
+import { toast } from "react-toastify";
 
 const fontBody = "'Plus Jakarta Sans', sans-serif";
 const fontDisplay = "'Playfair Display', serif";
@@ -279,69 +38,25 @@ const CAT_COLORS = {
   Освіта: { bg: "#fff7ed", text: "#9a3412" },
 };
 
-const INITIAL_NEWS = [
-  {
-    id: 1,
-    title: "Нова програма допомоги для українців у Франції",
-    date: "15 Лис 2023",
-    category: "Соціальна допомога",
-    description:
-      "Французький уряд запускає нову програму підтримки для переселенців.",
-    importance: "high",
-  },
-  {
-    id: 2,
-    title: "Фестиваль української культури в Берліні",
-    date: "12 Лис 2023",
-    category: "Культура",
-    description:
-      "Великий фестиваль з концертами, виставками та майстер-класами.",
-    importance: "medium",
-  },
-  {
-    id: 3,
-    title: "Нові можливості працевлаштування в Німеччині",
-    date: "10 Лис 2023",
-    category: "Робота",
-    description: "IT-компанії активно шукають фахівців серед українців.",
-    importance: "high",
-  },
-  {
-    id: 4,
-    title: "Безкоштовні мовні курси для діаспори",
-    date: "8 Лис 2023",
-    category: "Освіта",
-    description: "Нова платформа пропонує безкоштовне навчання мовам ЄС.",
-    importance: "medium",
-  },
-];
-
-const NEW_ARTICLES = [
-  {
-    id: 5,
-    title: "Нові правила перебування в ЄС",
-    date: "7 Лис 2023",
-    category: "Соціальна допомога",
-    description: "Важливі зміни у правилах для тимчасового захисту.",
-    importance: "high",
-  },
-  {
-    id: 6,
-    title: "Українська школа відкривається у Варшаві",
-    date: "5 Лис 2023",
-    category: "Освіта",
-    description: "Нова українська школа з повною програмою навчання.",
-    importance: "medium",
-  },
-];
+// ── Loader — récupère les vraies données depuis l'API ──
+export async function loader() {
+  try {
+    const { data } = await customFetch.get("/news");
+    return { news: data, error: null };
+  } catch (error) {
+    toast.error("Помилка завантаження новин");
+    return { news: [], error: error?.message };
+  }
+}
 
 export default function News() {
+  const { news: initialNews } = useLoaderData();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [search, setSearch] = useState("");
-  const [news, setNews] = useState(INITIAL_NEWS);
-  const [isLoading, setIsLoading] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(6);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  const filtered = news.filter((item) => {
+  const filtered = initialNews.filter((item) => {
     const matchCat =
       selectedCategory === "all" || item.category === selectedCategory;
     const matchSearch =
@@ -349,12 +64,15 @@ export default function News() {
     return matchCat && matchSearch;
   });
 
+  const visible = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
+
   const loadMore = () => {
-    setIsLoading(true);
+    setIsLoadingMore(true);
     setTimeout(() => {
-      setNews((prev) => [...prev, ...NEW_ARTICLES]);
-      setIsLoading(false);
-    }, 1200);
+      setVisibleCount((v) => v + 6);
+      setIsLoadingMore(false);
+    }, 400);
   };
 
   return (
@@ -362,13 +80,13 @@ export default function News() {
       <HeroSection
         title="Останні новини"
         typedStrings={["Актуальна інформація"]}
-        subtitle="Будьте в курсі подій для украiнської спільноти в Європі"
+        subtitle="Будьте в курсі подій для української спільноти в Європі"
         size="sm"
       />
 
       <Box sx={{ py: { xs: 6, md: 8 } }}>
         <Container maxWidth="lg">
-          {/* ── Filter bar ── */}
+          {/* Filter bar */}
           <Box
             sx={{
               bgcolor: "#fff",
@@ -387,7 +105,6 @@ export default function News() {
                 alignItems: "center",
               }}
             >
-              {/* Search */}
               <TextField
                 placeholder="Пошук новин..."
                 value={search}
@@ -411,8 +128,6 @@ export default function News() {
                   ),
                 }}
               />
-
-              {/* Category filters */}
               <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
                 {CATEGORIES.map((cat) => (
                   <Chip
@@ -444,7 +159,7 @@ export default function News() {
             </Box>
           </Box>
 
-          {/* ── Count ── */}
+          {/* Count */}
           <Typography
             sx={{
               fontFamily: fontBody,
@@ -457,23 +172,51 @@ export default function News() {
             {filtered.length} новин знайдено
           </Typography>
 
-          {/* ── News grid ── */}
-          <Grid  container spacing={3}>
-            {filtered.map((item, i) => {
+          {/* Empty state */}
+          {filtered.length === 0 && (
+            <Box sx={{ textAlign: "center", py: 10 }}>
+              <Typography
+                sx={{
+                  fontFamily: fontDisplay,
+                  fontSize: "1.4rem",
+                  color: "#94a3b8",
+                  mb: 1,
+                }}
+              >
+                Новин не знайдено
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: fontBody,
+                  fontSize: "0.875rem",
+                  color: "#cbd5e1",
+                }}
+              >
+                Спробуйте змінити фільтри або пошуковий запит
+              </Typography>
+            </Box>
+          )}
+
+          {/* News grid */}
+          <Grid container spacing={3}>
+            {visible.map((item, i) => {
               const catClr = CAT_COLORS[item.category] || {
                 bg: "#f1f5f9",
                 text: "#475569",
               };
               return (
-                <Grid size={{ xs: 12, md: 6 }} key={item.id}
+                <Grid
+                  key={item.id ?? i}
+                  size={{ xs: 12, md: 6 }}
                   sx={{
                     animation: "fadeUp 0.5s ease both",
-                    animationDelay: `${(i % 4) * 0.08}s`,
+                    animationDelay: `${(i % 6) * 0.08}s`,
                     "@keyframes fadeUp": {
                       from: { opacity: 0, transform: "translateY(20px)" },
                       to: { opacity: 1, transform: "translateY(0)" },
                     },
-                  }}>
+                  }}
+                >
                   <Card
                     sx={{
                       height: "100%",
@@ -499,7 +242,7 @@ export default function News() {
                         }}
                       >
                         <Chip
-                          label={item.category}
+                          label={item.category || "Загальне"}
                           size="small"
                           sx={{
                             bgcolor: catClr.bg,
@@ -533,7 +276,16 @@ export default function News() {
                               color: "#94a3b8",
                             }}
                           >
-                            {item.date}
+                            {item.date
+                              ? new Date(item.date).toLocaleDateString(
+                                  "uk-UA",
+                                  {
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "numeric",
+                                  },
+                                )
+                              : "—"}
                           </Typography>
                         </Box>
                       </Box>
@@ -566,7 +318,7 @@ export default function News() {
                           overflow: "hidden",
                         }}
                       >
-                        {item.description}
+                        {item.content}
                       </Typography>
                     </CardContent>
 
@@ -627,36 +379,40 @@ export default function News() {
             })}
           </Grid>
 
-          {/* ── Load more ── */}
-          <Box sx={{ textAlign: "center", mt: 6 }}>
-            <Button
-              onClick={loadMore}
-              disabled={isLoading}
-              sx={{
-                fontFamily: fontBody,
-                fontWeight: 700,
-                textTransform: "none",
-                bgcolor: isLoading ? "#f1f5f9" : "#0057B8",
-                color: isLoading ? "#94a3b8" : "#fff",
-                borderRadius: "12px",
-                px: 4,
-                py: 1.4,
-                fontSize: "0.9rem",
-                boxShadow: isLoading ? "none" : "0 4px 14px rgba(0,87,184,.3)",
-                "&:hover": { bgcolor: "#003d82" },
-                transition: "all 0.25s ease",
-              }}
-            >
-              {isLoading ? (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                  <CircularProgress size={16} sx={{ color: "#94a3b8" }} />
-                  Завантаження...
-                </Box>
-              ) : (
-                "Завантажити більше новин"
-              )}
-            </Button>
-          </Box>
+          {/* Load more */}
+          {hasMore && (
+            <Box sx={{ textAlign: "center", mt: 6 }}>
+              <Button
+                onClick={loadMore}
+                disabled={isLoadingMore}
+                sx={{
+                  fontFamily: fontBody,
+                  fontWeight: 700,
+                  textTransform: "none",
+                  bgcolor: isLoadingMore ? "#f1f5f9" : "#0057B8",
+                  color: isLoadingMore ? "#94a3b8" : "#fff",
+                  borderRadius: "12px",
+                  px: 4,
+                  py: 1.4,
+                  fontSize: "0.9rem",
+                  boxShadow: isLoadingMore
+                    ? "none"
+                    : "0 4px 14px rgba(0,87,184,.3)",
+                  "&:hover": { bgcolor: "#003d82" },
+                  transition: "all 0.25s ease",
+                }}
+              >
+                {isLoadingMore ? (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                    <CircularProgress size={16} sx={{ color: "#94a3b8" }} />
+                    Завантаження...
+                  </Box>
+                ) : (
+                  `Завантажити ще (${filtered.length - visibleCount})`
+                )}
+              </Button>
+            </Box>
+          )}
         </Container>
       </Box>
     </>

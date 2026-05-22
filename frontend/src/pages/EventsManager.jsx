@@ -1,4 +1,4 @@
-import { useLoaderData, Form, redirect } from "react-router-dom";
+import { useLoaderData, Form, redirect, Link } from "react-router-dom";
 import {
   Box,
   Button,
@@ -8,6 +8,10 @@ import {
   Typography,
   InputAdornment,
   TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { useState } from "react";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -31,9 +35,12 @@ export const loader = async () => {
 
 export const action = async ({ request }) => {
   const formData = await request.formData();
+  const intent = formData.get("intent");
   try {
-    await customFetch.delete(`/events/${formData.get("id")}`);
-    toast.success("Подію видалено");
+    if (intent === "delete") {
+      await customFetch.delete(`/events/${formData.get("id")}`);
+      toast.success("Подію видалено");
+    }
   } catch (error) {
     toast.error(error?.response?.data?.message);
   }
@@ -43,6 +50,7 @@ export const action = async ({ request }) => {
 const EventsManager = () => {
   const events = useLoaderData();
   const [search, setSearch] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
 
   const filtered = events.filter(
     (e) =>
@@ -118,15 +126,26 @@ const EventsManager = () => {
       width: 110,
       render: (row) => (
         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
+          {/* Edit — pointe vers la page dédiée */}
           <Tooltip title="Редагувати">
-            <IconButton size="small">
+            <IconButton
+              size="small"
+              component={Link}
+              to={`/dashboard/events/edit/${row.id}`}
+            >
               <EditOutlinedIcon fontSize="small" sx={{ color: "#64748B" }} />
             </IconButton>
           </Tooltip>
+          {/* Delete via Form */}
           <Form method="post" style={{ display: "inline" }}>
             <input type="hidden" name="id" value={row.id} />
             <Tooltip title="Видалити">
-              <IconButton size="small" type="submit">
+              <IconButton
+                size="small"
+                type="submit"
+                name="intent"
+                value="delete"
+              >
                 <DeleteOutlineIcon fontSize="small" sx={{ color: "#EF4444" }} />
               </IconButton>
             </Tooltip>
@@ -146,7 +165,11 @@ const EventsManager = () => {
           { label: "Події" },
         ]}
         action={
-          <Button variant="contained" startIcon={<AddIcon />}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setCreateOpen(true)}
+          >
             Нова подія
           </Button>
         }
@@ -173,6 +196,53 @@ const EventsManager = () => {
         rows={filtered}
         emptyMessage="Подій не знайдено"
       />
+
+      {/* Dialog de création rapide */}
+      <Dialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Нова подія</DialogTitle>
+        <Form method="post" onSubmit={() => setCreateOpen(false)}>
+          <input type="hidden" name="intent" value="create" />
+          <DialogContent
+            sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}
+          >
+            <TextField name="title" label="Назва" fullWidth required />
+            <TextField
+              name="date"
+              label="Дата"
+              type="date"
+              fullWidth
+              required
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField name="location" label="Місце" fullWidth required />
+            <TextField
+              name="description"
+              label="Опис"
+              fullWidth
+              required
+              multiline
+              rows={3}
+            />
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2.5 }}>
+            <Button
+              onClick={() => setCreateOpen(false)}
+              variant="outlined"
+              color="inherit"
+            >
+              Скасувати
+            </Button>
+            <Button type="submit" variant="contained">
+              Créer
+            </Button>
+          </DialogActions>
+        </Form>
+      </Dialog>
     </Box>
   );
 };

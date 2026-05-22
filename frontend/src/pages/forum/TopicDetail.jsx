@@ -1,74 +1,3 @@
-// import { useLoaderData, Form } from "react-router-dom";
-// import { Box, Container, Typography, Paper, TextField, Button, Avatar } from "@mui/material";
-// import customFetch from "../../utils/customFetch";
-// import { toast } from "react-toastify";
-
-// export async function loader({ params }) {
-//   try {
-//     const { data: topic } = await customFetch.get(`/forum/${params.id}`);
-//     const { data: replies } = await customFetch.get(`/forum/${params.id}/replies`);
-//     return { topic, replies };
-//   } catch (error) {
-//     console.error(error);
-//     return { topic: null, replies: [] };
-//   }
-// }
-
-// export async function action({ request, params }) {
-//   const formData = await request.formData();
-//   const content = formData.get("content");
-
-//   try {
-//     const { data } = await customFetch.post(`/forum/${params.id}/replies`, { content });
-//     return { success: true, data };
-//   } catch (error) {
-//     return { success: false, message: error?.response?.data?.message || "Помилка" };
-//   }
-// }
-
-// export default function TopicDetail() {
-//   const { topic, replies } = useLoaderData();
-
-//   if (!topic) {
-//     return (
-//       <Container>
-//         <Typography variant="h6">Тему не знайдено</Typography>
-//       </Container>
-//     );
-//   }
-
-//   return (
-//     <Container maxWidth="md" sx={{ py: 4 }}>
-//       <Paper sx={{ p: 3, mb: 3 }}>
-//         <Typography variant="h5" sx={{ mb: 1 }}>
-//           {topic.title}
-//         </Typography>
-//         <Typography sx={{ color: "text.secondary", mb: 2 }}>{topic.author} · {new Date(topic.lastUpdate).toLocaleString()}</Typography>
-//         <Typography sx={{ whiteSpace: "pre-wrap" }}>{topic.content}</Typography>
-//       </Paper>
-
-//       <Paper sx={{ p: 2, mb: 3 }}>
-//         <Typography variant="h6">Відповіді ({replies.length})</Typography>
-//         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-//           {replies.map((r) => (
-//             <Paper key={r.id} sx={{ p: 2 }}>
-//               <Typography sx={{ fontWeight: 700 }}>{r.author}</Typography>
-//               <Typography sx={{ color: "text.secondary", fontSize: "0.85rem", mb: 1 }}>{new Date(r.createdAt).toLocaleString()}</Typography>
-//               <Typography sx={{ whiteSpace: "pre-wrap" }}>{r.content}</Typography>
-//             </Paper>
-//           ))}
-//         </Box>
-//       </Paper>
-
-//       <Paper sx={{ p: 2 }}>
-//         <Form method="post">
-//           <TextField name="content" label="Ваша відповідь" multiline rows={4} fullWidth sx={{ mb: 2 }} />
-//           <Button type="submit" variant="contained">Відправити відповідь</Button>
-//         </Form>
-//       </Paper>
-//     </Container>
-//   );
-// }
 import { useState, useEffect } from "react";
 import { useLoaderData, Form, useActionData, Link } from "react-router-dom";
 import {
@@ -81,17 +10,18 @@ import {
   Avatar,
   Chip,
   Divider,
-  CircularProgress,
+  Alert,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
+import { useAuthContext } from "../../context/AuthContext";
 
-/* ── Design tokens (shared with Forum.jsx) ── */
 const F_BODY = "'Plus Jakarta Sans', sans-serif";
 const F_DISPLAY = "'Playfair Display', serif";
 const BLUE = "#0057B8";
@@ -106,7 +36,6 @@ const CAT_COLORS = {
   Спільнота: { bg: "#fdf4ff", text: "#7e22ce" },
 };
 
-/* ── Loader / Action ── */
 export async function loader({ params }) {
   try {
     const [{ data: topic }, { data: replies }] = await Promise.all([
@@ -130,6 +59,11 @@ export async function action({ request, params }) {
     toast.success("Відповідь додано!");
     return { success: true, data };
   } catch (error) {
+    // 401 = non connecté, message explicite
+    if (error?.response?.status === 401) {
+      toast.error("Увійдіть в акаунт, щоб відповісти");
+      return { success: false, unauthorized: true };
+    }
     toast.error(error?.response?.data?.message || "Помилка");
     return {
       success: false,
@@ -138,7 +72,6 @@ export async function action({ request, params }) {
   }
 }
 
-/* ── Reply card ── */
 function ReplyCard({ reply, index }) {
   const initials = reply.author
     ? reply.author
@@ -224,14 +157,13 @@ function ReplyCard({ reply, index }) {
   );
 }
 
-/* ── Main Component ── */
 export default function TopicDetail() {
   const { topic, replies: initialReplies } = useLoaderData();
   const actionData = useActionData();
+  const { user } = useAuthContext(); // ← guard auth
   const [replyText, setReplyText] = useState("");
-  const [replies, setReplies] = useState(initialReplies || []);
+  const [replies] = useState(initialReplies || []);
 
-  /* Clear textarea after successful submit */
   useEffect(() => {
     if (actionData?.success) setReplyText("");
   }, [actionData]);
@@ -287,7 +219,7 @@ export default function TopicDetail() {
 
   return (
     <Box sx={{ bgcolor: "#f8fafc", minHeight: "100vh" }}>
-      {/* ── Hero strip ── */}
+      {/* Hero strip */}
       <Box
         sx={{
           background:
@@ -337,19 +269,21 @@ export default function TopicDetail() {
           >
             Назад до форуму
           </Button>
-          <Chip
-            label={topic.category}
-            size="small"
-            sx={{
-              bgcolor: "rgba(255,255,255,.15)",
-              color: "#fff",
-              fontFamily: F_BODY,
-              fontWeight: 700,
-              fontSize: "0.72rem",
-              mb: 1.5,
-              border: "1px solid rgba(255,255,255,.2)",
-            }}
-          />
+          {topic.category && (
+            <Chip
+              label={topic.category}
+              size="small"
+              sx={{
+                bgcolor: "rgba(255,255,255,.15)",
+                color: "#fff",
+                fontFamily: F_BODY,
+                fontWeight: 700,
+                fontSize: "0.72rem",
+                mb: 1.5,
+                border: "1px solid rgba(255,255,255,.2)",
+              }}
+            />
+          )}
           <Typography
             sx={{
               fontFamily: F_DISPLAY,
@@ -405,7 +339,7 @@ export default function TopicDetail() {
 
       <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
         <Box sx={{ maxWidth: 800, mx: "auto" }}>
-          {/* ── Original post ── */}
+          {/* Original post */}
           <Paper
             elevation={0}
             sx={{
@@ -469,7 +403,7 @@ export default function TopicDetail() {
             </Typography>
           </Paper>
 
-          {/* ── Replies ── */}
+          {/* Replies */}
           {replies.length > 0 && (
             <Box sx={{ mb: 4 }}>
               <Box sx={{ mb: 2.5 }}>
@@ -516,7 +450,7 @@ export default function TopicDetail() {
             </Box>
           )}
 
-          {/* ── Reply form ── */}
+          {/* Reply form — affiché seulement si connecté */}
           <Paper
             elevation={0}
             sx={{
@@ -548,62 +482,131 @@ export default function TopicDetail() {
                 Поділіться своїм досвідом або поставте питання
               </Typography>
             </Box>
-            <Form method="post">
-              <TextField
-                name="content"
-                label="Ваша відповідь"
-                multiline
-                rows={4}
-                fullWidth
-                required
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                placeholder="Напишіть вашу відповідь тут..."
+
+            {/* ── Guard : utilisateur non connecté ── */}
+            {!user ? (
+              <Alert
+                severity="info"
+                icon={<LockOutlinedIcon fontSize="small" />}
                 sx={{
-                  mb: 2,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "12px",
-                    fontFamily: F_BODY,
-                    bgcolor: "#f8fafc",
-                    "& fieldset": { borderColor: "#e2e8f0" },
-                    "&:hover fieldset": { borderColor: BLUE },
-                    "&.Mui-focused fieldset": {
-                      borderColor: BLUE,
-                      borderWidth: "1.5px",
-                    },
-                  },
-                  "& .MuiInputLabel-root.Mui-focused": { color: BLUE },
-                  "& .MuiInputLabel-root": { fontFamily: F_BODY },
+                  borderRadius: "12px",
+                  fontFamily: F_BODY,
+                  fontSize: "0.875rem",
                 }}
-              />
-              <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={!replyText.trim()}
-                  startIcon={<SendOutlinedIcon />}
+                action={
+                  <Button
+                    component={Link}
+                    to="/login"
+                    size="small"
+                    variant="contained"
+                    sx={{
+                      fontFamily: F_BODY,
+                      fontWeight: 700,
+                      textTransform: "none",
+                      borderRadius: "8px",
+                      bgcolor: BLUE,
+                      "&:hover": { bgcolor: "#003d82" },
+                    }}
+                  >
+                    Увійти
+                  </Button>
+                }
+              >
+                Щоб відповісти, потрібно{" "}
+                <Box
+                  component={Link}
+                  to="/login"
                   sx={{
-                    fontFamily: F_BODY,
+                    color: BLUE,
                     fontWeight: 700,
-                    textTransform: "none",
-                    bgcolor: BLUE,
-                    borderRadius: "12px",
-                    px: 3,
-                    py: 1.2,
-                    boxShadow: "0 4px 14px rgba(0,87,184,.3)",
-                    "&:hover": {
-                      bgcolor: "#003d82",
-                      transform: "translateY(-1px)",
-                      boxShadow: "0 6px 20px rgba(0,87,184,.4)",
-                    },
-                    "&:disabled": { bgcolor: "#94a3b8", boxShadow: "none" },
-                    transition: "all 0.25s ease",
+                    textDecoration: "none",
+                    "&:hover": { textDecoration: "underline" },
                   }}
                 >
-                  Відправити відповідь
-                </Button>
-              </Box>
-            </Form>
+                  увійти в акаунт
+                </Box>
+                .
+              </Alert>
+            ) : (
+              /* ── Form affiché uniquement si connecté ── */
+              <Form method="post">
+                <TextField
+                  name="content"
+                  label="Ваша відповідь"
+                  multiline
+                  rows={4}
+                  fullWidth
+                  required
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Напишіть вашу відповідь тут..."
+                  sx={{
+                    mb: 2,
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "12px",
+                      fontFamily: F_BODY,
+                      bgcolor: "#f8fafc",
+                      "& fieldset": { borderColor: "#e2e8f0" },
+                      "&:hover fieldset": { borderColor: BLUE },
+                      "&.Mui-focused fieldset": {
+                        borderColor: BLUE,
+                        borderWidth: "1.5px",
+                      },
+                    },
+                    "& .MuiInputLabel-root.Mui-focused": { color: BLUE },
+                    "& .MuiInputLabel-root": { fontFamily: F_BODY },
+                  }}
+                />
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: F_BODY,
+                      fontSize: "0.78rem",
+                      color: "#94a3b8",
+                    }}
+                  >
+                    Відповідаєте як{" "}
+                    <Box
+                      component="span"
+                      sx={{ fontWeight: 700, color: "#334155" }}
+                    >
+                      {user.firstName} {user.lastName}
+                    </Box>
+                  </Typography>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={!replyText.trim()}
+                    startIcon={<SendOutlinedIcon />}
+                    sx={{
+                      fontFamily: F_BODY,
+                      fontWeight: 700,
+                      textTransform: "none",
+                      bgcolor: BLUE,
+                      borderRadius: "12px",
+                      px: 3,
+                      py: 1.2,
+                      boxShadow: "0 4px 14px rgba(0,87,184,.3)",
+                      "&:hover": {
+                        bgcolor: "#003d82",
+                        transform: "translateY(-1px)",
+                        boxShadow: "0 6px 20px rgba(0,87,184,.4)",
+                      },
+                      "&:disabled": { bgcolor: "#94a3b8", boxShadow: "none" },
+                      transition: "all 0.25s ease",
+                    }}
+                  >
+                    Відправити відповідь
+                  </Button>
+                </Box>
+              </Form>
+            )}
           </Paper>
         </Box>
       </Container>

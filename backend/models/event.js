@@ -26,11 +26,23 @@ const Event = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: false,
     },
+    // userId permet de filtrer les événements par utilisateur
+    // et de protéger les mutations (update/delete)
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: true, // nullable pour les événements déjà créés sans userId
+      references: {
+        model: "users",
+        key: "id",
+      },
+      onUpdate: "CASCADE",
+      onDelete: "SET NULL",
+    },
   },
   {
     tableName: "events",
     timestamps: true,
-  }
+  },
 );
 
 module.exports = { Event };

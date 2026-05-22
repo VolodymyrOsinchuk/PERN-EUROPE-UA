@@ -1,4 +1,4 @@
-import { useLoaderData, Form, redirect } from "react-router-dom";
+import { useLoaderData, Form, redirect, Link } from "react-router-dom";
 import {
   Box,
   Button,
@@ -8,6 +8,14 @@ import {
   Chip,
   InputAdornment,
   TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import { useState } from "react";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -17,7 +25,6 @@ import SearchIcon from "@mui/icons-material/Search";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
 import { DataTable, PageHeader } from "../components";
-
 
 export const loader = async () => {
   try {
@@ -31,18 +38,54 @@ export const loader = async () => {
 
 export const action = async ({ request }) => {
   const formData = await request.formData();
+  const intent = formData.get("intent");
   try {
-    await customFetch.delete(`/news/${formData.get("id")}`);
-    toast.success("Новину видалено");
+    if (intent === "delete") {
+      await customFetch.delete(`/news/${formData.get("id")}`);
+      toast.success("Новину видалено");
+    } else if (intent === "create") {
+      await customFetch.post("/news", {
+        title: formData.get("title"),
+        content: formData.get("content"),
+        category: formData.get("category"),
+        importance: formData.get("importance"),
+      });
+      toast.success("Новину створено");
+    } else if (intent === "update") {
+      await customFetch.put(`/news/${formData.get("id")}`, {
+        title: formData.get("title"),
+        content: formData.get("content"),
+        category: formData.get("category"),
+        importance: formData.get("importance"),
+      });
+      toast.success("Новину оновлено");
+    }
   } catch (error) {
-    toast.error(error?.response?.data?.message);
+    toast.error(error?.response?.data?.message || "Помилка операції");
   }
   return redirect("/dashboard/news");
+};
+
+const IMPORTANCE_COLORS = {
+  high: { bg: "#FEF2F2", color: "#991B1B", label: "Висока" },
+  medium: { bg: "#FFF7ED", color: "#9A3412", label: "Середня" },
+  low: { bg: "#F0FDF4", color: "#166534", label: "Низька" },
 };
 
 const NewsManager = () => {
   const news = useLoaderData();
   const [search, setSearch] = useState("");
+  const [dialog, setDialog] = useState({
+    open: false,
+    mode: "create",
+    item: null,
+  });
+
+  const openCreate = () =>
+    setDialog({ open: true, mode: "create", item: null });
+  const openEdit = (item) => setDialog({ open: true, mode: "edit", item });
+  const closeDialog = () =>
+    setDialog({ open: false, mode: "create", item: null });
 
   const filtered = news.filter(
     (n) =>
@@ -70,7 +113,7 @@ const NewsManager = () => {
       label: "Категорія",
       width: 150,
       render: (row) => (
-        <Chip label={row.category || "Без категорії"} size="small" variant="outlined" />
+        <Chip label={row.category || "—"} size="small" variant="outlined" />
       ),
     },
     {
@@ -78,12 +121,21 @@ const NewsManager = () => {
       label: "Важливість",
       width: 120,
       render: (row) => {
-        const colors = { high: "error", medium: "warning", low: "info" };
+        const cfg = IMPORTANCE_COLORS[row.importance] || {
+          bg: "#F1F5F9",
+          color: "#64748B",
+          label: row.importance,
+        };
         return (
           <Chip
-            label={row.importance}
+            label={cfg.label}
             size="small"
-            color={colors[row.importance] || "default"}
+            sx={{
+              bgcolor: cfg.bg,
+              color: cfg.color,
+              fontWeight: 600,
+              fontSize: "0.72rem",
+            }}
           />
         );
       },
@@ -93,9 +145,7 @@ const NewsManager = () => {
       label: "Дата",
       width: 130,
       render: (row) =>
-        row.date
-          ? new Date(row.date).toLocaleDateString("uk-UA")
-          : "—",
+        row.date ? new Date(row.date).toLocaleDateString("uk-UA") : "—",
     },
     {
       id: "actions",
@@ -104,15 +154,22 @@ const NewsManager = () => {
       width: 110,
       render: (row) => (
         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
+          {/* Edit — ouvre le dialog pré-rempli */}
           <Tooltip title="Редагувати">
-            <IconButton size="small">
+            <IconButton size="small" onClick={() => openEdit(row)}>
               <EditOutlinedIcon fontSize="small" sx={{ color: "#64748B" }} />
             </IconButton>
           </Tooltip>
+          {/* Delete via Form */}
           <Form method="post" style={{ display: "inline" }}>
             <input type="hidden" name="id" value={row.id} />
             <Tooltip title="Видалити">
-              <IconButton size="small" type="submit">
+              <IconButton
+                size="small"
+                type="submit"
+                name="intent"
+                value="delete"
+              >
                 <DeleteOutlineIcon fontSize="small" sx={{ color: "#EF4444" }} />
               </IconButton>
             </Tooltip>
@@ -132,7 +189,11 @@ const NewsManager = () => {
           { label: "Новини" },
         ]}
         action={
-          <Button variant="contained" startIcon={<AddIcon />}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={openCreate}
+          >
             Додати новину
           </Button>
         }
@@ -159,6 +220,72 @@ const NewsManager = () => {
         rows={filtered}
         emptyMessage="Новин не знайдено"
       />
+
+      {/* Dialog create / edit */}
+      <Dialog open={dialog.open} onClose={closeDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          {dialog.mode === "create" ? "Нова новина" : "Редагувати новину"}
+        </DialogTitle>
+        <Form method="post" onSubmit={closeDialog}>
+          <input
+            type="hidden"
+            name="intent"
+            value={dialog.mode === "create" ? "create" : "update"}
+          />
+          {dialog.mode === "edit" && (
+            <input type="hidden" name="id" value={dialog.item?.id} />
+          )}
+          <DialogContent
+            sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}
+          >
+            <TextField
+              autoFocus
+              name="title"
+              label="Заголовок"
+              fullWidth
+              required
+              defaultValue={dialog.item?.title || ""}
+            />
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <TextField
+                name="category"
+                label="Категорія"
+                fullWidth
+                defaultValue={dialog.item?.category || ""}
+              />
+              <FormControl fullWidth>
+                <InputLabel>Важливість</InputLabel>
+                <Select
+                  name="importance"
+                  label="Важливість"
+                  defaultValue={dialog.item?.importance || "medium"}
+                >
+                  <MenuItem value="high">Висока</MenuItem>
+                  <MenuItem value="medium">Середня</MenuItem>
+                  <MenuItem value="low">Низька</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+            <TextField
+              name="content"
+              label="Контент"
+              fullWidth
+              required
+              multiline
+              rows={4}
+              defaultValue={dialog.item?.content || ""}
+            />
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2.5 }}>
+            <Button onClick={closeDialog} variant="outlined" color="inherit">
+              Скасувати
+            </Button>
+            <Button type="submit" variant="contained">
+              {dialog.mode === "create" ? "Опублікувати" : "Зберегти"}
+            </Button>
+          </DialogActions>
+        </Form>
+      </Dialog>
     </Box>
   );
 };

@@ -178,6 +178,8 @@ import {
   InputAdornment,
   IconButton,
 } from "@mui/material";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useState } from "react";
 import { FormRow } from "../components";
 import customFetch from "../utils/customFetch";
@@ -221,6 +223,7 @@ const SOCIAL_PROVIDERS = [
 ];
 
 export default function Login() {
+  const [showPassword, setShowPassword] = useState(false);
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
@@ -517,11 +520,24 @@ export default function Login() {
               <TextField
                 name="password"
                 label="Пароль"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 fullWidth
                 autoComplete="current-password"
                 sx={inputSx}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        onMouseDown={(e) => e.preventDefault()}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
 
               <Box

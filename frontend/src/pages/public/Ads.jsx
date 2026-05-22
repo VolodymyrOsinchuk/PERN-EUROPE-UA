@@ -24,8 +24,7 @@ import { GridView, HeroSection, ListView } from "../../components";
 import { useLoaderData, Link } from "react-router-dom";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
-import GridViewOutlinedIcon from "@mui/icons-material/GridViewOutlined";
-import ViewListOutlinedIcon from "@mui/icons-material/ViewListOutlined";
+import ViewListIcon from "@mui/icons-material/ViewList";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import TuneIcon from "@mui/icons-material/Tune";
@@ -117,9 +116,11 @@ export default function Ads() {
       {/* ── Stats strip ── */}
       <Box sx={{ bgcolor: "#fff", borderBottom: "1px solid #f1f5f9", py: 3 }}>
         <Container maxWidth="lg">
-          <Grid  container>
+          <Grid container>
             {QUICK_STATS.map((s, i) => (
-              <Grid size={{ xs: 6, sm: 3 }} key={s.label}
+              <Grid
+                size={{ xs: 6, sm: 3 }}
+                key={s.label}
                 sx={{
                   textAlign: "center",
                   py: 1,
@@ -127,7 +128,8 @@ export default function Ads() {
                     i < QUICK_STATS.length - 1
                       ? { sm: "1px solid #f1f5f9" }
                       : "none",
-                }}>
+                }}
+              >
                 <span
                   className="material-icons"
                   style={{
@@ -287,10 +289,11 @@ export default function Ads() {
                 }}
               >
                 <ToggleButton value="grid">
-                  <Grid  ViewOutlinedIcon sx={{ fontSize: 18 }} />
+                  <Grid />
+                  <ViewListIcon sx={{ fontSize: 18 }} />
                 </ToggleButton>
                 <ToggleButton value="list">
-                  <ViewListOutlinedIcon sx={{ fontSize: 18 }} />
+                  <ViewListIcon sx={{ fontSize: 18 }} />
                 </ToggleButton>
               </ToggleButtonGroup>
             </Box>
@@ -314,7 +317,7 @@ export default function Ads() {
                 },
               }}
             >
-              <Grid  container spacing={2}>
+              <Grid container spacing={2}>
                 {/* Search */}
                 <Grid size={{ xs: 12, md: 5 }}>
                   <TextField
@@ -556,7 +559,7 @@ export default function Ads() {
               }}
             >
               {viewMode === "grid" ? (
-                <Grid  View ads={filtered} />
+                <Grid View ads={filtered}></Grid>
               ) : (
                 <ListView ads={filtered} />
               )}
