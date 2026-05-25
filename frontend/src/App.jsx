@@ -453,6 +453,7 @@ import Policy from "./pages/Policy";
 
 // News — loader API réel
 import News, { loader as newsLoader } from "./pages/News";
+import NewsDetail, { loader as newsDetailLoader } from "./pages/NewsDetail";
 // Events public — loader API réel
 import Events, { loader as eventsLoader } from "./pages/Events";
 // Publications public — loader API réel
@@ -596,6 +597,11 @@ const router = createBrowserRouter(
               path: "news",
               element: <News />,
               loader: newsLoader,
+            },
+            {
+              path: "news/:id",
+              element: <NewsDetail />,
+              loader: newsDetailLoader,
             },
             // Events public — loader API
             {

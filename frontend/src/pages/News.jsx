@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData, Link } from "react-router-dom";
 import { HeroSection } from "../components";
 import {
   Box,
@@ -333,6 +333,8 @@ export default function News() {
                       <Button
                         size="small"
                         endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
+                        component={Link}
+                        to={`/news/${item.id}`}
                         sx={{
                           fontFamily: fontBody,
                           fontWeight: 700,

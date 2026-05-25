@@ -31,12 +31,7 @@ import {
   Link,
 } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
-import {
-  GetCountries,
-  GetCity,
-  GetState,
-  GetPhonecodes,
-} from "react-country-state-city";
+import { GetCountries, GetCity, GetState } from "react-country-state-city";
 import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
@@ -224,10 +219,11 @@ export default function CreateAdPage() {
     setLocationLoading(true);
     const countryObj = countries.find((c) => c.name === selectedCountry);
     if (!countryObj) return;
-    Promise.all([GetState(countryObj.id), GetPhonecodes(countryObj.id)])
-      .then(([statesList, code]) => {
+
+    GetState(countryObj.id)
+      .then((statesList) => {
         setStates(statesList);
-        if (code) setPhoneCode(code);
+        if (countryObj.phone_code) setPhoneCode(countryObj.phone_code);
         setSelectedState("");
         setCities([]);
         setSelectedCity("");
@@ -502,7 +498,7 @@ export default function CreateAdPage() {
                   sx={inputSx}
                 />
 
-                <Grid  container spacing={2}>
+                <Grid container spacing={2}>
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <FormControl fullWidth required>
                       <InputLabel sx={{ fontFamily: F_BODY }}>
@@ -621,7 +617,7 @@ export default function CreateAdPage() {
                   }}
                 />
               )}
-              <Grid  container spacing={2}>
+              <Grid container spacing={2}>
                 <Grid size={{ xs: 12, sm: 4 }}>
                   <FormControl fullWidth required>
                     <InputLabel sx={{ fontFamily: F_BODY }}>Країна</InputLabel>
@@ -722,7 +718,7 @@ export default function CreateAdPage() {
               subtitle="Як з вами зв'язатися"
               completed={step3Done}
             >
-              <Grid  container spacing={2}>
+              <Grid container spacing={2}>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     name="email"
@@ -766,7 +762,7 @@ export default function CreateAdPage() {
             <StepSection
               number={4}
               title={`Фотографії (${previewImages.length}/5)`}
-              subtitle="Гарні фото підвищують кількість відгуків на 3×"
+              subtitle="Гарні фото підвищують кількість відгуків na 3×"
               completed={step4Done}
             >
               {/* Dropzone */}

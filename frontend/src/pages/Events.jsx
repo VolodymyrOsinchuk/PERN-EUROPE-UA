@@ -77,7 +77,7 @@ export default function Events() {
         typedStrings={["Культурні заходи"]}
         subtitle="Концерти, виставки, фестивалі та зустрічі — події для всієї діаспори"
         buttonText="Додати подію"
-        buttonLink="/contact"
+        buttonLink="/profile"
         size="sm"
       />
 

@@ -4,7 +4,11 @@ const publicationController = require("../controllers/publicationController");
 const { authMiddleware } = require("../middleware/authMiddleware");
 
 router.get("/", publicationController.getAllPublications);
-router.get("/:id", publicationController.getPublicationById);
+router.get(
+  "/user-publications",
+  authMiddleware,
+  publicationController.getUserPublications,
+);
 router.post("/", authMiddleware, publicationController.createPublication);
 router.put("/:id", authMiddleware, publicationController.updatePublication);
 router.delete("/:id", authMiddleware, publicationController.deletePublication);

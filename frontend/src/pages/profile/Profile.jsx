@@ -113,7 +113,9 @@ export async function action({ request }) {
         return { success: true, message: "Оголошення видалено!" };
       }
       case "deletePublication": {
-        await customFetch.delete(`/publications/${formData.get("publicationId")}`);
+        await customFetch.delete(
+          `/publications/${formData.get("publicationId")}`,
+        );
         return { success: true, message: "Публікацію видалено!" };
       }
       case "deleteEvent": {
@@ -687,14 +689,19 @@ function ProfilePublicationCard({ publication, onDelete }) {
                 color: "#94a3b8",
               }}
             >
-              {new Date(publication.date || publication.createdAt).toLocaleDateString(
-                "uk-UA",
-              )}
+              {new Date(
+                publication.date || publication.createdAt,
+              ).toLocaleDateString("uk-UA")}
             </Typography>
           </Box>
           {publication.readTime && (
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <span className="material-icons" style={{ fontSize: 12, color: "#94a3b8" }}>schedule</span>
+              <span
+                className="material-icons"
+                style={{ fontSize: 12, color: "#94a3b8" }}
+              >
+                schedule
+              </span>
               <Typography
                 sx={{
                   fontFamily: F_BODY,
@@ -820,9 +827,7 @@ function ProfileEventCard({ event, onDelete }) {
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 1 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <CalendarTodayOutlinedIcon
-              sx={{ fontSize: 12, color: BLUE }}
-            />
+            <CalendarTodayOutlinedIcon sx={{ fontSize: 12, color: BLUE }} />
             <Typography
               sx={{
                 fontFamily: F_BODY,
@@ -848,7 +853,11 @@ function ProfileEventCard({ event, onDelete }) {
 export default function Profile() {
   const { user, logoutUser, fetchUser } = useAuthContext();
   const actionData = useActionData();
-  const { ads, publications, events } = useLoaderData() || { ads: [], publications: [], events: [] };
+  const { ads, publications, events } = useLoaderData() || {
+    ads: [],
+    publications: [],
+    events: [],
+  };
   const fetcher = useFetcher();
   const navigate = useNavigate();
 
@@ -1007,11 +1016,7 @@ export default function Profile() {
                 />
               </Grid>
               <Grid size={{ xs: 6, sm: 3 }}>
-                <StatPill
-                  icon="event"
-                  label="Подій"
-                  value={events.length}
-                />
+                <StatPill icon="event" label="Подій" value={events.length} />
               </Grid>
               <Grid size={{ xs: 6, sm: 3 }}>
                 <StatPill
@@ -1086,7 +1091,7 @@ export default function Profile() {
                     alignItems: "center",
                     mb: 3,
                     flexWrap: "wrap",
-                    gap: 2
+                    gap: 2,
                   }}
                 >
                   <Box>
@@ -1134,12 +1139,24 @@ export default function Profile() {
                 <Grid container spacing={2.5}>
                   {[
                     { label: "Ім'я", value: user?.firstName, icon: "person" },
-                    { label: "Прізвище", value: user?.lastName, icon: "person" },
+                    {
+                      label: "Прізвище",
+                      value: user?.lastName,
+                      icon: "person",
+                    },
                     { label: "Email", value: user?.email, icon: "email" },
-                    { label: "Телефон", value: user?.phoneNumber, icon: "phone" },
+                    {
+                      label: "Телефон",
+                      value: user?.phoneNumber,
+                      icon: "phone",
+                    },
                     { label: "Країна", value: user?.country, icon: "flag" },
                     { label: "Регіон", value: user?.state, icon: "map" },
-                    { label: "Місто", value: user?.location, icon: "location_city" },
+                    {
+                      label: "Місто",
+                      value: user?.location,
+                      icon: "location_city",
+                    },
                   ].map((row) => (
                     <Grid size={{ xs: 12, sm: 6 }} key={row.label}>
                       <Box
@@ -1150,8 +1167,20 @@ export default function Profile() {
                           border: "1px solid #f1f5f9",
                         }}
                       >
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-                          <span className="material-icons" style={{ fontSize: 14, color: "#94a3b8" }}>{row.icon}</span>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            mb: 0.5,
+                          }}
+                        >
+                          <span
+                            className="material-icons"
+                            style={{ fontSize: 14, color: "#94a3b8" }}
+                          >
+                            {row.icon}
+                          </span>
                           <Typography
                             sx={{
                               fontFamily: F_BODY,
@@ -1180,11 +1209,35 @@ export default function Profile() {
                   ))}
                   {user?.about && (
                     <Grid size={12}>
-                      <Box sx={{ p: 2, borderRadius: "12px", bgcolor: "#f8fafc", border: "1px solid #f1f5f9" }}>
-                        <Typography sx={{ fontFamily: F_BODY, fontSize: "0.7rem", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", mb: 0.5 }}>
+                      <Box
+                        sx={{
+                          p: 2,
+                          borderRadius: "12px",
+                          bgcolor: "#f8fafc",
+                          border: "1px solid #f1f5f9",
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontFamily: F_BODY,
+                            fontSize: "0.7rem",
+                            color: "#94a3b8",
+                            fontWeight: 600,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.06em",
+                            mb: 0.5,
+                          }}
+                        >
                           Про мене
                         </Typography>
-                        <Typography sx={{ fontFamily: F_BODY, fontSize: "0.9rem", color: "#334155", lineHeight: 1.7 }}>
+                        <Typography
+                          sx={{
+                            fontFamily: F_BODY,
+                            fontSize: "0.9rem",
+                            color: "#334155",
+                            lineHeight: 1.7,
+                          }}
+                        >
                           {user.about}
                         </Typography>
                       </Box>
@@ -1205,12 +1258,30 @@ export default function Profile() {
                   boxShadow: "0 4px 24px rgba(0,87,184,.06)",
                 }}
               >
-                <Typography sx={{ fontFamily: F_BODY, fontWeight: 700, fontSize: "1rem", color: "#0f172a", mb: 2.5 }}>
+                <Typography
+                  sx={{
+                    fontFamily: F_BODY,
+                    fontWeight: 700,
+                    fontSize: "1rem",
+                    color: "#0f172a",
+                    mb: 2.5,
+                  }}
+                >
                   Деталі акаунту
                 </Typography>
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                    <Typography sx={{ fontFamily: F_BODY, fontSize: "0.82rem", color: "#64748b" }}>Роль</Typography>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontSize: "0.82rem",
+                        color: "#64748b",
+                      }}
+                    >
+                      Роль
+                    </Typography>
                     <Chip
                       label={user?.role || "user"}
                       size="small"
@@ -1224,10 +1295,22 @@ export default function Profile() {
                     />
                   </Box>
                   <Divider sx={{ borderColor: "#f1f5f9" }} />
-                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                    <Typography sx={{ fontFamily: F_BODY, fontSize: "0.82rem", color: "#64748b" }}>Верифікація</Typography>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontSize: "0.82rem",
+                        color: "#64748b",
+                      }}
+                    >
+                      Верифікація
+                    </Typography>
                     <Chip
-                      label={user?.isVerified ? "✓ Підтверджено" : "Не підтверджено"}
+                      label={
+                        user?.isVerified ? "✓ Підтверджено" : "Не підтверджено"
+                      }
                       size="small"
                       sx={{
                         fontFamily: F_BODY,
@@ -1239,9 +1322,30 @@ export default function Profile() {
                     />
                   </Box>
                   <Divider sx={{ borderColor: "#f1f5f9" }} />
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <Typography sx={{ fontFamily: F_BODY, fontSize: "0.82rem", color: "#64748b" }}>Член з</Typography>
-                    <Typography sx={{ fontFamily: F_BODY, fontWeight: 600, fontSize: "0.82rem", color: "#0f172a" }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontSize: "0.82rem",
+                        color: "#64748b",
+                      }}
+                    >
+                      Член з
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontWeight: 600,
+                        fontSize: "0.82rem",
+                        color: "#0f172a",
+                      }}
+                    >
                       {memberSince}
                     </Typography>
                   </Box>
@@ -1262,7 +1366,11 @@ export default function Profile() {
                   color: "#64748b",
                   border: "1.5px solid #e2e8f0",
                   bgcolor: "#fff",
-                  "&:hover": { borderColor: "#ef4444", color: "#ef4444", bgcolor: "#fef2f2" },
+                  "&:hover": {
+                    borderColor: "#ef4444",
+                    color: "#ef4444",
+                    bgcolor: "#fef2f2",
+                  },
                 }}
               >
                 Вийти з акаунту
@@ -1273,13 +1381,37 @@ export default function Profile() {
 
         {tab === 1 && (
           <Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 4,
+              }}
+            >
               <Box>
-                <Typography sx={{ fontFamily: F_DISPLAY, fontWeight: 700, fontSize: "1.6rem", color: "#0f172a", letterSpacing: "-0.02em" }}>
+                <Typography
+                  sx={{
+                    fontFamily: F_DISPLAY,
+                    fontWeight: 700,
+                    fontSize: "1.6rem",
+                    color: "#0f172a",
+                    letterSpacing: "-0.02em",
+                  }}
+                >
                   Мої оголошення
                 </Typography>
-                <Typography sx={{ fontFamily: F_BODY, fontSize: "0.85rem", color: "#64748b", mt: 0.5 }}>
-                  {ads.length === 0 ? "У вас поки немає оголошень" : `${ads.length} оголошень`}
+                <Typography
+                  sx={{
+                    fontFamily: F_BODY,
+                    fontSize: "0.85rem",
+                    color: "#64748b",
+                    mt: 0.5,
+                  }}
+                >
+                  {ads.length === 0
+                    ? "У вас поки немає оголошень"
+                    : `${ads.length} оголошень`}
                 </Typography>
               </Box>
               <Button
@@ -1296,7 +1428,11 @@ export default function Profile() {
                   px: 3,
                   py: 1.2,
                   boxShadow: "0 4px 14px rgba(0,87,184,.3)",
-                  "&:hover": { bgcolor: "#003d82", transform: "translateY(-1px)", boxShadow: "0 6px 20px rgba(0,87,184,.4)" },
+                  "&:hover": {
+                    bgcolor: "#003d82",
+                    transform: "translateY(-1px)",
+                    boxShadow: "0 6px 20px rgba(0,87,184,.4)",
+                  },
                   transition: "all 0.25s ease",
                 }}
               >
@@ -1305,11 +1441,21 @@ export default function Profile() {
             </Box>
 
             {ads.length === 0 ? (
-              <EmptyState icon="campaign" title="Немає оголошень" text="Розмістіть своє перше оголошення — це займе лише кілька хвилин" link="/profile/create-ad" buttonText="Створити оголошення" />
+              <EmptyState
+                icon="campaign"
+                title="Немає оголошень"
+                text="Розмістіть своє перше оголошення — це займе лише кілька хвилин"
+                link="/profile/create-ad"
+                buttonText="Створити оголошення"
+              />
             ) : (
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {ads.map((ad) => (
-                  <ProfileAdCard key={ad.id} ad={ad} onDelete={handleDeleteAd} />
+                  <ProfileAdCard
+                    key={ad.id}
+                    ad={ad}
+                    onDelete={handleDeleteAd}
+                  />
                 ))}
               </Box>
             )}
@@ -1318,12 +1464,33 @@ export default function Profile() {
 
         {tab === 2 && (
           <Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 4,
+              }}
+            >
               <Box>
-                <Typography sx={{ fontFamily: F_DISPLAY, fontWeight: 700, fontSize: "1.6rem", color: "#0f172a" }}>
+                <Typography
+                  sx={{
+                    fontFamily: F_DISPLAY,
+                    fontWeight: 700,
+                    fontSize: "1.6rem",
+                    color: "#0f172a",
+                  }}
+                >
                   Мої публікації
                 </Typography>
-                <Typography sx={{ fontFamily: F_BODY, fontSize: "0.85rem", color: "#64748b", mt: 0.5 }}>
+                <Typography
+                  sx={{
+                    fontFamily: F_BODY,
+                    fontSize: "0.85rem",
+                    color: "#64748b",
+                    mt: 0.5,
+                  }}
+                >
                   {publications.length} публікацій
                 </Typography>
               </Box>
@@ -1346,11 +1513,21 @@ export default function Profile() {
             </Box>
 
             {publications.length === 0 ? (
-              <EmptyState icon="article" title="Немає публікацій" text="Поділіться своєю першою публікацією зі спільнотою" link="/profile/publications/create" buttonText="Створити публікацію" />
+              <EmptyState
+                icon="article"
+                title="Немає публікацій"
+                text="Поділіться своєю першою публікацією зі спільнотою"
+                link="/profile/publications/create"
+                buttonText="Створити публікацію"
+              />
             ) : (
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {publications.map((pub) => (
-                  <ProfilePublicationCard key={pub.id} publication={pub} onDelete={handleDeletePub} />
+                  <ProfilePublicationCard
+                    key={pub.id}
+                    publication={pub}
+                    onDelete={handleDeletePub}
+                  />
                 ))}
               </Box>
             )}
@@ -1359,12 +1536,33 @@ export default function Profile() {
 
         {tab === 3 && (
           <Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 4,
+              }}
+            >
               <Box>
-                <Typography sx={{ fontFamily: F_DISPLAY, fontWeight: 700, fontSize: "1.6rem", color: "#0f172a" }}>
+                <Typography
+                  sx={{
+                    fontFamily: F_DISPLAY,
+                    fontWeight: 700,
+                    fontSize: "1.6rem",
+                    color: "#0f172a",
+                  }}
+                >
                   Мої події
                 </Typography>
-                <Typography sx={{ fontFamily: F_BODY, fontSize: "0.85rem", color: "#64748b", mt: 0.5 }}>
+                <Typography
+                  sx={{
+                    fontFamily: F_BODY,
+                    fontSize: "0.85rem",
+                    color: "#64748b",
+                    mt: 0.5,
+                  }}
+                >
                   {events.length} подій
                 </Typography>
               </Box>
@@ -1387,11 +1585,21 @@ export default function Profile() {
             </Box>
 
             {events.length === 0 ? (
-              <EmptyState icon="event" title="Немає подій" text="Організуйте свою першу подію" link="/profile/events/create" buttonText="Створити подію" />
+              <EmptyState
+                icon="event"
+                title="Немає подій"
+                text="Організуйте свою першу подію"
+                link="/profile/events/create"
+                buttonText="Створити подію"
+              />
             ) : (
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {events.map((ev) => (
-                  <ProfileEventCard key={ev.id} event={ev} onDelete={handleDeleteEvent} />
+                  <ProfileEventCard
+                    key={ev.id}
+                    event={ev}
+                    onDelete={handleDeleteEvent}
+                  />
                 ))}
               </Box>
             )}
@@ -1401,32 +1609,151 @@ export default function Profile() {
         {tab === 4 && (
           <Grid container spacing={4}>
             <Grid size={{ xs: 12, md: 6 }}>
-              <Paper elevation={0} sx={{ borderRadius: "20px", border: "1.5px solid #e2e8f0", p: { xs: 3, md: 4 }, mb: 3, boxShadow: "0 4px 24px rgba(0,87,184,.06)" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
-                  <Box sx={{ width: 40, height: 40, borderRadius: "10px", bgcolor: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  borderRadius: "20px",
+                  border: "1.5px solid #e2e8f0",
+                  p: { xs: 3, md: 4 },
+                  mb: 3,
+                  boxShadow: "0 4px 24px rgba(0,87,184,.06)",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    mb: 3,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "10px",
+                      bgcolor: "#eff6ff",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
                     <LockOutlinedIcon sx={{ fontSize: 18, color: BLUE }} />
                   </Box>
                   <Box>
-                    <Typography sx={{ fontFamily: F_BODY, fontWeight: 700, fontSize: "1rem", color: "#0f172a" }}>Зміна пароля</Typography>
-                    <Typography sx={{ fontFamily: F_BODY, fontSize: "0.78rem", color: "#64748b" }}>Використовуйте надійний пароль (мін. 8 символів)</Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontWeight: 700,
+                        fontSize: "1rem",
+                        color: "#0f172a",
+                      }}
+                    >
+                      Зміна пароля
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontSize: "0.78rem",
+                        color: "#64748b",
+                      }}
+                    >
+                      Використовуйте надійний пароль (мін. 8 символів)
+                    </Typography>
                   </Box>
                 </Box>
-                <Button fullWidth onClick={() => setPwdOpen(true)} sx={{ fontFamily: F_BODY, fontWeight: 700, textTransform: "none", borderRadius: "12px", py: 1.3, border: `1.5px solid ${BLUE}`, color: BLUE, bgcolor: "#eff6ff", "&:hover": { bgcolor: "#dbeafe" } }}>
+                <Button
+                  fullWidth
+                  onClick={() => setPwdOpen(true)}
+                  sx={{
+                    fontFamily: F_BODY,
+                    fontWeight: 700,
+                    textTransform: "none",
+                    borderRadius: "12px",
+                    py: 1.3,
+                    border: `1.5px solid ${BLUE}`,
+                    color: BLUE,
+                    bgcolor: "#eff6ff",
+                    "&:hover": { bgcolor: "#dbeafe" },
+                  }}
+                >
                   Змінити пароль
                 </Button>
               </Paper>
 
-              <Paper elevation={0} sx={{ borderRadius: "20px", border: "1.5px solid #fecaca", p: { xs: 3, md: 4 }, bgcolor: "#fffafa", boxShadow: "0 4px 24px rgba(239,68,68,.06)" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
-                  <Box sx={{ width: 40, height: 40, borderRadius: "10px", bgcolor: "#fef2f2", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span className="material-icons" style={{ fontSize: 18, color: "#ef4444" }}>warning</span>
+              <Paper
+                elevation={0}
+                sx={{
+                  borderRadius: "20px",
+                  border: "1.5px solid #fecaca",
+                  p: { xs: 3, md: 4 },
+                  bgcolor: "#fffafa",
+                  boxShadow: "0 4px 24px rgba(239,68,68,.06)",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    mb: 3,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "10px",
+                      bgcolor: "#fef2f2",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <span
+                      className="material-icons"
+                      style={{ fontSize: 18, color: "#ef4444" }}
+                    >
+                      warning
+                    </span>
                   </Box>
                   <Box>
-                    <Typography sx={{ fontFamily: F_BODY, fontWeight: 700, fontSize: "1rem", color: "#991b1b" }}>Небезпечна зона</Typography>
-                    <Typography sx={{ fontFamily: F_BODY, fontSize: "0.78rem", color: "#b91c1c" }}>Дії, які не можна скасувати</Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontWeight: 700,
+                        fontSize: "1rem",
+                        color: "#991b1b",
+                      }}
+                    >
+                      Небезпечна зона
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontSize: "0.78rem",
+                        color: "#b91c1c",
+                      }}
+                    >
+                      Дії, які не можна скасувати
+                    </Typography>
                   </Box>
                 </Box>
-                <Button fullWidth onClick={() => setDeleteAccOpen(true)} sx={{ fontFamily: F_BODY, fontWeight: 700, textTransform: "none", borderRadius: "12px", py: 1.3, border: "1.5px solid #fca5a5", color: "#ef4444", bgcolor: "#fef2f2", "&:hover": { bgcolor: "#fee2e2", borderColor: "#ef4444" } }}>
+                <Button
+                  fullWidth
+                  onClick={() => setDeleteAccOpen(true)}
+                  sx={{
+                    fontFamily: F_BODY,
+                    fontWeight: 700,
+                    textTransform: "none",
+                    borderRadius: "12px",
+                    py: 1.3,
+                    border: "1.5px solid #fca5a5",
+                    color: "#ef4444",
+                    bgcolor: "#fef2f2",
+                    "&:hover": { bgcolor: "#fee2e2", borderColor: "#ef4444" },
+                  }}
+                >
                   Видалити акаунт
                 </Button>
               </Paper>
@@ -1436,11 +1763,26 @@ export default function Profile() {
       </Container>
 
       {/* Edit Profile Dialog */}
-      <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}>
+      <Dialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}
+      >
         <Form method="post">
           <input type="hidden" name="actionType" value="updateProfile" />
           <input type="hidden" name="userId" value={user?.id} />
-          <DialogTitle sx={{ fontFamily: F_DISPLAY, fontWeight: 700, fontSize: "1.3rem", pb: 1 }}>Редагувати профіль</DialogTitle>
+          <DialogTitle
+            sx={{
+              fontFamily: F_DISPLAY,
+              fontWeight: 700,
+              fontSize: "1.3rem",
+              pb: 1,
+            }}
+          >
+            Редагувати профіль
+          </DialogTitle>
           <DialogContent>
             <Grid container spacing={2} sx={{ pt: 1 }}>
               {[
@@ -1453,90 +1795,409 @@ export default function Profile() {
                 { name: "location", label: "Місто", type: "text" },
               ].map((f) => (
                 <Grid size={{ xs: 12, sm: 6 }} key={f.name}>
-                  <TextField margin="dense" name={f.name} label={f.label} type={f.type} fullWidth size="small" value={formData[f.name]} onChange={(e) => setFormData((p) => ({ ...p, [f.name]: e.target.value }))} sx={inputSx} />
+                  <TextField
+                    margin="dense"
+                    name={f.name}
+                    label={f.label}
+                    type={f.type}
+                    fullWidth
+                    size="small"
+                    value={formData[f.name]}
+                    onChange={(e) =>
+                      setFormData((p) => ({ ...p, [f.name]: e.target.value }))
+                    }
+                    sx={inputSx}
+                  />
                 </Grid>
               ))}
               <Grid size={12}>
-                <TextField margin="dense" name="about" label="Про мене" multiline rows={3} fullWidth size="small" value={formData.about} onChange={(e) => setFormData((p) => ({ ...p, about: e.target.value }))} sx={inputSx} />
+                <TextField
+                  margin="dense"
+                  name="about"
+                  label="Про мене"
+                  multiline
+                  rows={3}
+                  fullWidth
+                  size="small"
+                  value={formData.about}
+                  onChange={(e) =>
+                    setFormData((p) => ({ ...p, about: e.target.value }))
+                  }
+                  sx={inputSx}
+                />
               </Grid>
             </Grid>
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
-            <Button onClick={() => setEditOpen(false)} sx={{ fontFamily: F_BODY, fontWeight: 600, textTransform: "none", color: "#64748b", borderRadius: "10px", border: "1px solid #e2e8f0" }}>Скасувати</Button>
-            <Button type="submit" variant="contained" sx={{ fontFamily: F_BODY, fontWeight: 700, textTransform: "none", bgcolor: BLUE, borderRadius: "10px", px: 3, "&:hover": { bgcolor: "#003d82" } }}>Зберегти</Button>
+            <Button
+              onClick={() => setEditOpen(false)}
+              sx={{
+                fontFamily: F_BODY,
+                fontWeight: 600,
+                textTransform: "none",
+                color: "#64748b",
+                borderRadius: "10px",
+                border: "1px solid #e2e8f0",
+              }}
+            >
+              Скасувати
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              sx={{
+                fontFamily: F_BODY,
+                fontWeight: 700,
+                textTransform: "none",
+                bgcolor: BLUE,
+                borderRadius: "10px",
+                px: 3,
+                "&:hover": { bgcolor: "#003d82" },
+              }}
+            >
+              Зберегти
+            </Button>
           </DialogActions>
         </Form>
       </Dialog>
 
       {/* Change Password Dialog */}
-      <Dialog open={pwdOpen} onClose={() => setPwdOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}>
+      <Dialog
+        open={pwdOpen}
+        onClose={() => setPwdOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}
+      >
         <Form method="post">
           <input type="hidden" name="actionType" value="updatePassword" />
-          <DialogTitle sx={{ fontFamily: F_DISPLAY, fontWeight: 700, fontSize: "1.3rem", pb: 1 }}>Змінити пароль</DialogTitle>
+          <DialogTitle
+            sx={{
+              fontFamily: F_DISPLAY,
+              fontWeight: 700,
+              fontSize: "1.3rem",
+              pb: 1,
+            }}
+          >
+            Змінити пароль
+          </DialogTitle>
           <DialogContent>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-              <TextField name="oldPassword" label="Поточний пароль" type="password" fullWidth size="small" required sx={inputSx} />
-              <TextField name="newPassword" label="Новий пароль" type="password" fullWidth size="small" required helperText="Мінімум 8 символів" sx={inputSx} />
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}
+            >
+              <TextField
+                name="oldPassword"
+                label="Поточний пароль"
+                type="password"
+                fullWidth
+                size="small"
+                required
+                sx={inputSx}
+              />
+              <TextField
+                name="newPassword"
+                label="Новий пароль"
+                type="password"
+                fullWidth
+                size="small"
+                required
+                helperText="Мінімум 8 символів"
+                sx={inputSx}
+              />
             </Box>
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
-            <Button onClick={() => setPwdOpen(false)} sx={{ fontFamily: F_BODY, fontWeight: 600, textTransform: "none", color: "#64748b", borderRadius: "10px", border: "1px solid #e2e8f0" }}>Скасувати</Button>
-            <Button type="submit" variant="contained" sx={{ fontFamily: F_BODY, fontWeight: 700, textTransform: "none", bgcolor: BLUE, borderRadius: "10px", px: 3, "&:hover": { bgcolor: "#003d82" } }}>Змінити</Button>
+            <Button
+              onClick={() => setPwdOpen(false)}
+              sx={{
+                fontFamily: F_BODY,
+                fontWeight: 600,
+                textTransform: "none",
+                color: "#64748b",
+                borderRadius: "10px",
+                border: "1px solid #e2e8f0",
+              }}
+            >
+              Скасувати
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              sx={{
+                fontFamily: F_BODY,
+                fontWeight: 700,
+                textTransform: "none",
+                bgcolor: BLUE,
+                borderRadius: "10px",
+                px: 3,
+                "&:hover": { bgcolor: "#003d82" },
+              }}
+            >
+              Змінити
+            </Button>
           </DialogActions>
         </Form>
       </Dialog>
 
       {/* Delete Account Dialog */}
-      <Dialog open={deleteAccOpen} onClose={() => setDeleteAccOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}>
+      <Dialog
+        open={deleteAccOpen}
+        onClose={() => setDeleteAccOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}
+      >
         <Form method="post">
           <input type="hidden" name="actionType" value="deleteAccount" />
           <input type="hidden" name="userId" value={user?.id} />
-          <DialogTitle sx={{ fontFamily: F_DISPLAY, fontWeight: 700, fontSize: "1.3rem", color: "#991b1b", pb: 1 }}>Видалити акаунт</DialogTitle>
+          <DialogTitle
+            sx={{
+              fontFamily: F_DISPLAY,
+              fontWeight: 700,
+              fontSize: "1.3rem",
+              color: "#991b1b",
+              pb: 1,
+            }}
+          >
+            Видалити акаунт
+          </DialogTitle>
           <DialogContent>
-            <Box sx={{ p: 2, borderRadius: "12px", bgcolor: "#fef2f2", border: "1px solid #fecaca", mb: 1 }}>
-              <Typography sx={{ fontFamily: F_BODY, fontSize: "0.875rem", color: "#991b1b", fontWeight: 600 }}>⚠️ Ця дія незворотна. Всі ваші дані та оголошення будуть видалені.</Typography>
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: "12px",
+                bgcolor: "#fef2f2",
+                border: "1px solid #fecaca",
+                mb: 1,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontFamily: F_BODY,
+                  fontSize: "0.875rem",
+                  color: "#991b1b",
+                  fontWeight: 600,
+                }}
+              >
+                ⚠️ Ця дія незворотна. Всі ваші дані та оголошення будуть
+                видалені.
+              </Typography>
             </Box>
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
-            <Button onClick={() => setDeleteAccOpen(false)} sx={{ fontFamily: F_BODY, fontWeight: 600, textTransform: "none", color: "#64748b", borderRadius: "10px", border: "1px solid #e2e8f0" }}>Скасувати</Button>
-            <Button type="submit" color="error" variant="contained" sx={{ fontFamily: F_BODY, fontWeight: 700, textTransform: "none", borderRadius: "10px", px: 3 }}>Видалити</Button>
+            <Button
+              onClick={() => setDeleteAccOpen(false)}
+              sx={{
+                fontFamily: F_BODY,
+                fontWeight: 600,
+                textTransform: "none",
+                color: "#64748b",
+                borderRadius: "10px",
+                border: "1px solid #e2e8f0",
+              }}
+            >
+              Скасувати
+            </Button>
+            <Button
+              type="submit"
+              color="error"
+              variant="contained"
+              sx={{
+                fontFamily: F_BODY,
+                fontWeight: 700,
+                textTransform: "none",
+                borderRadius: "10px",
+                px: 3,
+              }}
+            >
+              Видалити
+            </Button>
           </DialogActions>
         </Form>
       </Dialog>
 
       {/* Delete Ad Dialog */}
-      <Dialog open={deleteAdOpen} onClose={() => setDeleteAdOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}>
-        <DialogTitle sx={{ fontFamily: F_DISPLAY, fontWeight: 700, fontSize: "1.2rem", pb: 1 }}>Видалити оголошення?</DialogTitle>
+      <Dialog
+        open={deleteAdOpen}
+        onClose={() => setDeleteAdOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}
+      >
+        <DialogTitle
+          sx={{
+            fontFamily: F_DISPLAY,
+            fontWeight: 700,
+            fontSize: "1.2rem",
+            pb: 1,
+          }}
+        >
+          Видалити оголошення?
+        </DialogTitle>
         <DialogContent>
-          <Typography sx={{ fontFamily: F_BODY, fontSize: "0.875rem", color: "#64748b" }}>Оголошення <strong style={{ color: "#0f172a" }}>"{selectedAd?.title}"</strong> буде видалено назавжди.</Typography>
+          <Typography
+            sx={{ fontFamily: F_BODY, fontSize: "0.875rem", color: "#64748b" }}
+          >
+            Оголошення{" "}
+            <strong style={{ color: "#0f172a" }}>"{selectedAd?.title}"</strong>{" "}
+            буде видалено назавжди.
+          </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
-          <Button onClick={() => setDeleteAdOpen(false)} sx={{ fontFamily: F_BODY, fontWeight: 600, textTransform: "none", color: "#64748b", borderRadius: "10px", border: "1px solid #e2e8f0" }}>Скасувати</Button>
-          <Button onClick={() => { confirmDeleteAd(); setDeleteAdOpen(false); }} color="error" variant="contained" sx={{ fontFamily: F_BODY, fontWeight: 700, textTransform: "none", borderRadius: "10px", px: 3 }}>Видалити</Button>
+          <Button
+            onClick={() => setDeleteAdOpen(false)}
+            sx={{
+              fontFamily: F_BODY,
+              fontWeight: 600,
+              textTransform: "none",
+              color: "#64748b",
+              borderRadius: "10px",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            Скасувати
+          </Button>
+          <Button
+            onClick={() => {
+              confirmDeleteAd();
+              setDeleteAdOpen(false);
+            }}
+            color="error"
+            variant="contained"
+            sx={{
+              fontFamily: F_BODY,
+              fontWeight: 700,
+              textTransform: "none",
+              borderRadius: "10px",
+              px: 3,
+            }}
+          >
+            Видалити
+          </Button>
         </DialogActions>
       </Dialog>
 
       {/* Delete Publication Dialog */}
-      <Dialog open={deletePubOpen} onClose={() => setDeletePubOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}>
-        <DialogTitle sx={{ fontFamily: F_DISPLAY, fontWeight: 700, fontSize: "1.2rem", pb: 1 }}>Видалити публікацію?</DialogTitle>
+      <Dialog
+        open={deletePubOpen}
+        onClose={() => setDeletePubOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}
+      >
+        <DialogTitle
+          sx={{
+            fontFamily: F_DISPLAY,
+            fontWeight: 700,
+            fontSize: "1.2rem",
+            pb: 1,
+          }}
+        >
+          Видалити публікацію?
+        </DialogTitle>
         <DialogContent>
-          <Typography sx={{ fontFamily: F_BODY, fontSize: "0.875rem", color: "#64748b" }}>Публікацію <strong style={{ color: "#0f172a" }}>"{selectedPub?.title}"</strong> буде видалено назавжди.</Typography>
+          <Typography
+            sx={{ fontFamily: F_BODY, fontSize: "0.875rem", color: "#64748b" }}
+          >
+            Публікацію{" "}
+            <strong style={{ color: "#0f172a" }}>"{selectedPub?.title}"</strong>{" "}
+            буде видалено назавжди.
+          </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
-          <Button onClick={() => setDeletePubOpen(false)} sx={{ fontFamily: F_BODY, fontWeight: 600, textTransform: "none", color: "#64748b", borderRadius: "10px", border: "1px solid #e2e8f0" }}>Скасувати</Button>
-          <Button onClick={() => { confirmDeletePub(); setDeletePubOpen(false); }} color="error" variant="contained" sx={{ fontFamily: F_BODY, fontWeight: 700, textTransform: "none", borderRadius: "10px", px: 3 }}>Видалити</Button>
+          <Button
+            onClick={() => setDeletePubOpen(false)}
+            sx={{
+              fontFamily: F_BODY,
+              fontWeight: 600,
+              textTransform: "none",
+              color: "#64748b",
+              borderRadius: "10px",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            Скасувати
+          </Button>
+          <Button
+            onClick={() => {
+              confirmDeletePub();
+              setDeletePubOpen(false);
+            }}
+            color="error"
+            variant="contained"
+            sx={{
+              fontFamily: F_BODY,
+              fontWeight: 700,
+              textTransform: "none",
+              borderRadius: "10px",
+              px: 3,
+            }}
+          >
+            Видалити
+          </Button>
         </DialogActions>
       </Dialog>
 
       {/* Delete Event Dialog */}
-      <Dialog open={deleteEventOpen} onClose={() => setDeleteEventOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}>
-        <DialogTitle sx={{ fontFamily: F_DISPLAY, fontWeight: 700, fontSize: "1.2rem", pb: 1 }}>Видалити подію?</DialogTitle>
+      <Dialog
+        open={deleteEventOpen}
+        onClose={() => setDeleteEventOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}
+      >
+        <DialogTitle
+          sx={{
+            fontFamily: F_DISPLAY,
+            fontWeight: 700,
+            fontSize: "1.2rem",
+            pb: 1,
+          }}
+        >
+          Видалити подію?
+        </DialogTitle>
         <DialogContent>
-          <Typography sx={{ fontFamily: F_BODY, fontSize: "0.875rem", color: "#64748b" }}>Подію <strong style={{ color: "#0f172a" }}>"{selectedEvent?.title}"</strong> буде видалено назавжди.</Typography>
+          <Typography
+            sx={{ fontFamily: F_BODY, fontSize: "0.875rem", color: "#64748b" }}
+          >
+            Подію{" "}
+            <strong style={{ color: "#0f172a" }}>
+              "{selectedEvent?.title}"
+            </strong>{" "}
+            буде видалено назавжди.
+          </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
-          <Button onClick={() => setDeleteEventOpen(false)} sx={{ fontFamily: F_BODY, fontWeight: 600, textTransform: "none", color: "#64748b", borderRadius: "10px", border: "1px solid #e2e8f0" }}>Скасувати</Button>
-          <Button onClick={() => { confirmDeleteEvent(); setDeleteEventOpen(false); }} color="error" variant="contained" sx={{ fontFamily: F_BODY, fontWeight: 700, textTransform: "none", borderRadius: "10px", px: 3 }}>Видалити</Button>
+          <Button
+            onClick={() => setDeleteEventOpen(false)}
+            sx={{
+              fontFamily: F_BODY,
+              fontWeight: 600,
+              textTransform: "none",
+              color: "#64748b",
+              borderRadius: "10px",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            Скасувати
+          </Button>
+          <Button
+            onClick={() => {
+              confirmDeleteEvent();
+              setDeleteEventOpen(false);
+            }}
+            color="error"
+            variant="contained"
+            sx={{
+              fontFamily: F_BODY,
+              fontWeight: 700,
+              textTransform: "none",
+              borderRadius: "10px",
+              px: 3,
+            }}
+          >
+            Видалити
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
@@ -1556,12 +2217,61 @@ function EmptyState({ icon, title, text, link, buttonText }) {
         boxShadow: "0 2px 12px rgba(0,0,0,.04)",
       }}
     >
-      <Box sx={{ width: 80, height: 80, borderRadius: "50%", bgcolor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", mx: "auto", mb: 3 }}>
-        <span className="material-icons" style={{ fontSize: 36, color: "#cbd5e1" }}>{icon}</span>
+      <Box
+        sx={{
+          width: 80,
+          height: 80,
+          borderRadius: "50%",
+          bgcolor: "#f1f5f9",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          mx: "auto",
+          mb: 3,
+        }}
+      >
+        <span
+          className="material-icons"
+          style={{ fontSize: 36, color: "#cbd5e1" }}
+        >
+          {icon}
+        </span>
       </Box>
-      <Typography sx={{ fontFamily: F_DISPLAY, fontWeight: 700, fontSize: "1.3rem", color: "#94a3b8", mb: 1 }}>{title}</Typography>
-      <Typography sx={{ fontFamily: F_BODY, fontSize: "0.875rem", color: "#cbd5e1", mb: 3 }}>{text}</Typography>
-      <Button component={Link} to={link} startIcon={<AddIcon />} variant="contained" sx={{ fontFamily: F_BODY, fontWeight: 700, textTransform: "none", bgcolor: BLUE, borderRadius: "12px", "&:hover": { bgcolor: "#003d82" } }}>
+      <Typography
+        sx={{
+          fontFamily: F_DISPLAY,
+          fontWeight: 700,
+          fontSize: "1.3rem",
+          color: "#94a3b8",
+          mb: 1,
+        }}
+      >
+        {title}
+      </Typography>
+      <Typography
+        sx={{
+          fontFamily: F_BODY,
+          fontSize: "0.875rem",
+          color: "#cbd5e1",
+          mb: 3,
+        }}
+      >
+        {text}
+      </Typography>
+      <Button
+        component={Link}
+        to={link}
+        startIcon={<AddIcon />}
+        variant="contained"
+        sx={{
+          fontFamily: F_BODY,
+          fontWeight: 700,
+          textTransform: "none",
+          bgcolor: BLUE,
+          borderRadius: "12px",
+          "&:hover": { bgcolor: "#003d82" },
+        }}
+      >
         {buttonText}
       </Button>
     </Paper>

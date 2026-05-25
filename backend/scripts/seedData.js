@@ -1,181 +1,345 @@
-const bcrypt = require("bcryptjs");
 const { User } = require("../models/user");
 const { Category, SubCategory } = require("../models/category");
 const { Adv } = require("../models/adv");
 const { Event } = require("../models/event");
 const { News } = require("../models/news");
 const { Publication } = require("../models/publication");
+const { ForumTopic } = require("../models/forumTopic");
+const { ForumReply } = require("../models/forumReply");
 const sequelize = require("../config/db");
 
 async function seedDatabase() {
   try {
+    console.log("Starting database synchronization...");
     await sequelize.sync({ force: true });
+    console.log("Database synchronized.");
 
-    // Create admin user - laisser le hook beforeCreate hasher le mot de passe
+    // 1. Create Users
+    console.log("Creating users...");
     const adminUser = await User.create({
       firstName: "Admin",
-      lastName: "User",
-      email: "admin@example.com",
-      password: "Admin123!", // ✅ pas de hash manuel, le hook s'en charge
-      phoneNumber: "+33123456789",
+      lastName: "System",
+      email: "admin@ukraine-europe.eu",
+      password: "AdminPassword123!",
+      phoneNumber: "+33100000000",
       country: "France",
       state: "Île-de-France",
       location: "Paris",
-      about: "Administrateur principal du site",
+      about: "Administrateur de la plateforme Ukrainians in Europe.",
       role: "admin",
       agreeToTerms: true,
       isVerified: true,
     });
 
-    // Create categories
-    const categories = await Category.bulkCreate([
-      { name: "Immobilier" },
-      { name: "Véhicules" },
-      { name: "Emploi" },
-      { name: "Services" },
-      { name: "Mode" },
-    ]);
-
-    // Create subcategories
-    const subcategories = await SubCategory.bulkCreate([
-      { name: "Appartements", categoryId: 1 },
-      { name: "Maisons", categoryId: 1 },
-      { name: "Voitures", categoryId: 2 },
-      { name: "Motos", categoryId: 2 },
-      { name: "CDI", categoryId: 3 },
-      { name: "CDD", categoryId: 3 },
-      { name: "Bricolage", categoryId: 4 },
-      { name: "Ménage", categoryId: 4 },
-      { name: "Vêtements", categoryId: 5 },
-      { name: "Accessoires", categoryId: 5 },
-    ]);
-
-    // Create regular users - individualHooks: true pour que beforeCreate hashe les mots de passe
     const users = await User.bulkCreate(
       [
         {
-          firstName: "Jean",
-          lastName: "Dupont",
-          email: "jean.dupont@example.com",
-          password: "Password123!", // ✅ pas de hash manuel
-          phoneNumber: "+33612345678",
-          country: "France",
-          state: "Occitanie",
-          location: "Toulouse",
-          about: "Passionné d'immobilier",
+          firstName: "Olena",
+          lastName: "Shevchenko",
+          email: "olena.s@example.com",
+          password: "UserPassword123!",
+          phoneNumber: "+48600111222",
+          country: "Poland",
+          state: "Mazovian",
+          location: "Warsaw",
+          about: "Bénévole et traductrice, j'aide les nouveaux arrivants.",
+          role: "moderator",
+          agreeToTerms: true,
+          isVerified: true,
+        },
+        {
+          firstName: "Andriy",
+          lastName: "Kovalenko",
+          email: "andriy.k@example.com",
+          password: "UserPassword123!",
+          phoneNumber: "+491701234567",
+          country: "Germany",
+          state: "Berlin",
+          location: "Berlin",
+          about: "Développeur software à la recherche de collaborations.",
           role: "user",
           agreeToTerms: true,
           isVerified: true,
         },
         {
-          firstName: "Marie",
-          lastName: "Martin",
-          email: "marie.martin@example.com",
-          password: "Password123!", // ✅ pas de hash manuel
-          phoneNumber: "+33687654321",
+          firstName: "Svitlana",
+          lastName: "Petrenko",
+          email: "svitlana.p@example.com",
+          password: "UserPassword123!",
+          phoneNumber: "+33655443322",
           country: "France",
           state: "Provence-Alpes-Côte d'Azur",
-          location: "Marseille",
-          about: "Professionnelle de l'automobile",
+          location: "Nice",
+          about: "Professeure de français et d'ukrainien.",
+          role: "user",
+          agreeToTerms: true,
+          isVerified: true,
+        },
+        {
+          firstName: "Dmytro",
+          lastName: "Ivanov",
+          email: "dmytro.i@example.com",
+          password: "UserPassword123!",
+          phoneNumber: "+420777111222",
+          country: "Czech Republic",
+          state: "Prague",
+          location: "Prague",
+          about: "Entrepreneur dans le domaine de la logistique.",
           role: "user",
           agreeToTerms: true,
           isVerified: true,
         },
       ],
-      { individualHooks: true }, // ✅ active beforeCreate pour chaque user
+      { individualHooks: true },
     );
+    console.log("Users created.");
 
-    // Create advertisements
-    const advertisements = await Adv.bulkCreate([
+    // 2. Create Categories & Subcategories
+    console.log("Creating categories and subcategories...");
+    const catData = [
       {
-        title: "Appartement T3 Centre-ville",
-        country: "France",
-        state: "Île-de-France",
-        city: "Paris",
-        description: "Bel appartement T3 rénové au centre de Paris",
-        email: "jean.dupont@example.com",
-        price: 450000.0,
-        photos: ["ad-1.jpg", "ad-2.jpg"],
-        amenities: ["Parking", "Balcon", "Cave"],
-        categoryId: 1,
+        name: "Immobilier",
+        subs: ["Location", "Colocation", "Achat", "Hébergement d'urgence"],
+      },
+      {
+        name: "Emploi",
+        subs: ["Offres d'emploi", "Demandes d'emploi", "Stages", "Bénévolat"],
+      },
+      {
+        name: "Services",
+        subs: ["Traduction", "Aide juridique", "Santé", "Cours de langue"],
+      },
+      {
+        name: "Véhicules",
+        subs: ["Voitures", "Covoiturage", "Vélos & Trottinettes"],
+      },
+      {
+        name: "Communauté",
+        subs: ["Échanges culturels", "Rencontres", "Aide humanitaire"],
+      },
+    ];
+
+    const categoryMap = {};
+    const subcategoryMap = {};
+
+    for (const item of catData) {
+      const category = await Category.create({ name: item.name });
+      categoryMap[item.name] = category.id;
+      for (const subName of item.subs) {
+        const sub = await SubCategory.create({ name: subName, categoryId: category.id });
+        subcategoryMap[subName] = sub.id;
+      }
+    }
+    console.log("Categories created.");
+
+    // 3. Create Advertisements
+    console.log("Creating advertisements...");
+    await Adv.bulkCreate([
+      {
+        title: "Appartement calme à Varsovie",
+        country: "Poland",
+        state: "Mazovian",
+        city: "Warsaw",
+        description: "2 pièces, 45m2, proche des transports et des commerces.",
+        email: "olena.s@example.com",
+        price: 3000.0,
+        photos: ["ad-1.jpg"],
+        amenities: ["Meublé", "Wifi", "Lave-linge"],
+        categoryId: categoryMap["Immobilier"],
+        subcategoryId: subcategoryMap["Location"],
         userId: 2,
-        views: 150,
+        views: 45,
         isPromoted: true,
       },
       {
-        title: "Volkswagen Golf 7 GTI",
-        country: "France",
-        state: "Occitanie",
-        city: "Toulouse",
-        description: "Golf 7 GTI en excellent état, première main",
-        email: "marie.martin@example.com",
-        price: 25000.0,
-        photos: ["ad-vw-1.avif", "ad-vw-2.avif"],
-        amenities: ["Climatisation", "GPS", "Toit ouvrant"],
-        categoryId: 2,
+        title: "Recherche développeur React (Remote/Berlin)",
+        country: "Germany",
+        state: "Berlin",
+        city: "Berlin",
+        description: "Startup tech recherche un développeur React. Langues: Anglais ou Allemand.",
+        email: "andriy.k@example.com",
+        price: 0.0,
+        photos: [],
+        amenities: ["Remote possible", "Horaires flexibles"],
+        categoryId: categoryMap["Emploi"],
+        subcategoryId: subcategoryMap["Offres d'emploi"],
         userId: 3,
-        views: 200,
+        views: 120,
+        isPromoted: false,
+      },
+      {
+        title: "Cours de français pour ukrainiens",
+        country: "France",
+        state: "Provence-Alpes-Côte d'Azur",
+        city: "Nice",
+        description: "Cours de français tous niveaux. Possibilité de cours en ligne ou en présentiel.",
+        email: "svitlana.p@example.com",
+        price: 20.0,
+        photos: ["ad-avatar-2.jpeg"],
+        amenities: ["Support pédagogique inclus"],
+        categoryId: categoryMap["Services"],
+        subcategoryId: subcategoryMap["Cours de langue"],
+        userId: 4,
+        views: 85,
+        isPromoted: true,
+      },
+      {
+        title: "Transport de colis Varsovie - Prague",
+        country: "Czech Republic",
+        state: "Prague",
+        city: "Prague",
+        description: "Je fais le trajet tous les lundis. Possibilité de transporter de petits colis.",
+        email: "dmytro.i@example.com",
+        price: 15.0,
+        photos: [],
+        amenities: ["Ponctuel", "Sûr"],
+        categoryId: categoryMap["Véhicules"],
+        subcategoryId: subcategoryMap["Covoiturage"],
+        userId: 5,
+        views: 30,
+        isPromoted: false,
+      },
+      {
+        title: "Don de vêtements pour enfants",
+        country: "France",
+        state: "Île-de-France",
+        city: "Paris",
+        description: "Donne plusieurs sacs de vêtements pour enfants de 2 à 6 ans.",
+        email: "admin@ukraine-europe.eu",
+        price: 0.0,
+        photos: ["ads-1.jpeg"],
+        amenities: ["Gratuit"],
+        categoryId: categoryMap["Communauté"],
+        subcategoryId: subcategoryMap["Aide humanitaire"],
+        userId: 1,
+        views: 210,
         isPromoted: false,
       },
     ]);
+    console.log("Advertisements created.");
 
-    // Create events
-    const events = await Event.bulkCreate([
+    // 4. Create Events
+    console.log("Creating events...");
+    await Event.bulkCreate([
       {
-        title: "Salon de l'immobilier",
-        description: "Grand salon de l'immobilier avec plus de 100 exposants",
-        date: new Date("2025-11-15"),
-        location: "Paris Expo Porte de Versailles",
+        title: "Rencontre communautaire - Paris",
+        description: "Une après-midi pour faire connaissance et échanger des conseils.",
+        date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        location: "Centre culturel, Paris",
+        userId: 1,
       },
       {
-        title: "Job Dating Tech",
-        description: "Rencontrez les entreprises qui recrutent dans la tech",
-        date: new Date("2025-12-01"),
-        location: "Station F, Paris",
+        title: "Webinaire : Travailler en Allemagne",
+        description: "Tout ce qu'il faut savoir sur le marché du travail allemand.",
+        date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        location: "En ligne (Zoom)",
+        userId: 3,
+      },
+      {
+        title: "Atelier CV et lettre de motivation",
+        description: "Apprenez à adapter votre CV aux standards européens.",
+        date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        location: "Médiathèque de Varsovie",
+        userId: 2,
       },
     ]);
+    console.log("Events created.");
 
-    // Create news
-    const news = await News.bulkCreate([
+    // 5. Create News
+    console.log("Creating news...");
+    await News.bulkCreate([
       {
-        title: "Lancement du site",
-        content: "Nous sommes heureux d'annoncer le lancement de notre plateforme.",
-        category: "Annonce",
+        title: "Nouvelles régulations pour le statut de protection temporaire",
+        content: "L'Union Européenne prolonge la protection temporaire jusqu'en mars 2026. Voici les détails des changements...",
+        category: "Légal",
         importance: "high",
         date: new Date(),
       },
       {
-        title: "Mise à jour de sécurité",
-        content: "Une mise à jour de sécurité a été déployée.",
-        category: "Sécurité",
+        title: "Ouverture d'un nouveau centre d'aide à Berlin",
+        content: "Un nouveau point d'accueil vient d'ouvrir ses portes pour aider à l'enregistrement et au logement.",
+        category: "Aide",
         importance: "medium",
         date: new Date(),
       },
-    ]);
-
-    // Create publications
-    const publications = await Publication.bulkCreate([
       {
-        title: "Guide d'achat immobilier",
-        content: "Conseils pour acheter un bien immobilier.",
-        category: "Immobilier",
-        author: "Rédaction",
-        readTime: "5 min",
-        date: new Date(),
-      },
-      {
-        title: "Tendances du marché auto 2025",
-        content: "Analyse des tendances du marché automobile pour 2025.",
-        category: "Automobile",
-        author: "Rédaction",
-        readTime: "7 min",
+        title: "Succès du festival de la culture ukrainienne à Lyon",
+        content: "Plus de 5000 personnes ont participé au festival ce week-end.",
+        category: "Culture",
+        importance: "low",
         date: new Date(),
       },
     ]);
+    console.log("News created.");
 
-    console.log("Базу даних успішно заповнено!");
+    // 6. Create Publications
+    console.log("Creating publications...");
+    await Publication.bulkCreate([
+      {
+        title: "Guide complet : S'installer en France",
+        content: "De l'ouverture d'un compte bancaire à l'inscription à la sécurité sociale, suivez notre guide étape par étape.",
+        category: "Guide",
+        author: "Olena Shevchenko",
+        readTime: "15 min",
+        date: new Date(),
+        userId: 2,
+      },
+      {
+        title: "Comment apprendre l'allemand rapidement ?",
+        content: "Les meilleures ressources gratuites et payantes pour progresser efficacement.",
+        category: "Éducation",
+        author: "Andriy Kovalenko",
+        readTime: "10 min",
+        date: new Date(),
+        userId: 3,
+      },
+    ]);
+    console.log("Publications created.");
+
+    // 7. Create Forum Topics & Replies
+    console.log("Creating forum data...");
+    const topic1 = await ForumTopic.create({
+      title: "Comment trouver un logement à Prague ?",
+      content: "Je cherche des conseils sur les meilleurs quartiers et les sites web les plus fiables pour louer un appartement à Prague.",
+      category: "Logement",
+      author: "Svitlana Petrenko",
+      views: 156,
+      replies: 2,
+    });
+
+    await ForumReply.bulkCreate([
+      {
+        topicId: topic1.id,
+        content: "Je te conseille de regarder sur Sreality.cz, c'est la référence ici. Évite le centre-ville qui est très cher.",
+        author: "Dmytro Ivanov",
+      },
+      {
+        topicId: topic1.id,
+        content: "Prague 7 et Prague 10 sont très sympas et un peu plus abordables.",
+        author: "Admin System",
+      },
+    ]);
+
+    const topic2 = await ForumTopic.create({
+      title: "Équivalence des diplômes médicaux en France",
+      content: "Bonjour, je suis médecin en Ukraine et je voudrais savoir quelles sont les étapes pour exercer en France.",
+      category: "Travail",
+      author: "Olena Shevchenko",
+      views: 342,
+      replies: 1,
+    });
+
+    await ForumReply.create({
+      topicId: topic2.id,
+      content: "C'est un processus assez long appelé Padhue. Il faut passer des épreuves de vérification des connaissances.",
+      author: "Admin System",
+    });
+
+    console.log("Forum data created.");
+
+    console.log("Base de données initialisée avec succès !");
   } catch (error) {
-    console.error("Помилка заповнення бази даних:", error);
+    console.error("Erreur lors du peuplement de la base de données :", error);
   } finally {
     await sequelize.close();
   }

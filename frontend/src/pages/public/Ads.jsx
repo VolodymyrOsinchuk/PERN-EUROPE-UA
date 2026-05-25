@@ -17,18 +17,16 @@ import {
   Fab,
   Tooltip,
   InputAdornment,
-  Skeleton,
-  Divider,
 } from "@mui/material";
 import { GridView, HeroSection, ListView } from "../../components";
 import { useLoaderData, Link } from "react-router-dom";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
 import ViewListIcon from "@mui/icons-material/ViewList";
+import GridViewIcon from "@mui/icons-material/GridView";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import TuneIcon from "@mui/icons-material/Tune";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 export const loader = async () => {
   try {
@@ -64,7 +62,6 @@ const CAT_COLORS = {
   other: { bg: "#f8fafc", text: "#475569", dot: "#94a3b8" },
 };
 
-/* ── STATS banner data ── */
 const QUICK_STATS = [
   { icon: "campaign", label: "Активних оголошень", value: "3 400+" },
   { icon: "location_on", label: "Міст та регіонів", value: "120+" },
@@ -85,7 +82,7 @@ export default function Ads() {
   };
 
   /* Client-side filtering */
-  const filtered = data.filter((ad) => {
+  const filtered = (data || []).filter((ad) => {
     const matchCat = !category || ad.category?.slug === category;
     const adCity =
       typeof ad.location === "object"
@@ -100,6 +97,12 @@ export default function Ads() {
   });
 
   const hasFilters = !!(category || city || search);
+
+  const clearFilters = () => {
+    setCategory("");
+    setCity("");
+    setSearch("");
+  };
 
   return (
     <>
@@ -119,8 +122,8 @@ export default function Ads() {
           <Grid container>
             {QUICK_STATS.map((s, i) => (
               <Grid
-                size={{ xs: 6, sm: 3 }}
                 key={s.label}
+                size={{ xs: 6, sm: 3 }}
                 sx={{
                   textAlign: "center",
                   py: 1,
@@ -206,11 +209,7 @@ export default function Ads() {
                 {hasFilters && (
                   <Box
                     component="span"
-                    onClick={() => {
-                      setCategory("");
-                      setCity("");
-                      setSearch("");
-                    }}
+                    onClick={clearFilters}
                     sx={{
                       ml: 1.5,
                       color: BLUE,
@@ -289,8 +288,7 @@ export default function Ads() {
                 }}
               >
                 <ToggleButton value="grid">
-                  <Grid />
-                  <ViewListIcon sx={{ fontSize: 18 }} />
+                  <GridViewIcon sx={{ fontSize: 18 }} />
                 </ToggleButton>
                 <ToggleButton value="list">
                   <ViewListIcon sx={{ fontSize: 18 }} />
@@ -410,23 +408,19 @@ export default function Ads() {
                         Всі міста
                       </MenuItem>
                       {[
-                        "berlin",
-                        "paris",
-                        "warsaw",
-                        "prague",
-                        "vienna",
-                        "amsterdam",
+                        "Berlin",
+                        "Paris",
+                        "Warsaw",
+                        "Prague",
+                        "Vienna",
+                        "Amsterdam",
                       ].map((c) => (
                         <MenuItem
                           key={c}
-                          value={c}
-                          sx={{
-                            fontFamily: F_BODY,
-                            fontSize: "0.875rem",
-                            textTransform: "capitalize",
-                          }}
+                          value={c.toLowerCase()}
+                          sx={{ fontFamily: F_BODY, fontSize: "0.875rem" }}
                         >
-                          {c.charAt(0).toUpperCase() + c.slice(1)}
+                          {c}
                         </MenuItem>
                       ))}
                     </Select>
@@ -529,11 +523,7 @@ export default function Ads() {
                 Спробуйте змінити фільтри або пошуковий запит
               </Typography>
               <Button
-                onClick={() => {
-                  setCategory("");
-                  setCity("");
-                  setSearch("");
-                }}
+                onClick={clearFilters}
                 sx={{
                   fontFamily: F_BODY,
                   fontWeight: 600,
@@ -558,8 +548,9 @@ export default function Ads() {
                 },
               }}
             >
+              {/* ✅ FIX: était <Grid View ads={filtered}> — composant non reconnu */}
               {viewMode === "grid" ? (
-                <Grid View ads={filtered}></Grid>
+                <GridView ads={filtered} />
               ) : (
                 <ListView ads={filtered} />
               )}

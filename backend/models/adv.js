@@ -115,27 +115,27 @@ const Adv = sequelize.define(
         },
       },
     },
-    // subcategoryId: {
-    //   type: DataTypes.INTEGER,
-    //   allowNull: false,
-    //   references: {
-    //     model: SubCategory,
-    //     key: "id",
-    //   },
-    //   validate: {
-    //     notNull: { message: "La sous-catégorie est requise" },
-    //     async validateSubCategoryBelongsToCategory(value) {
-    //       if (value && this.categoryId) {
-    //         const subCategory = await SubCategory.findByPk(value);
-    //         if (!subCategory || subCategory.categoryId !== this.categoryId) {
-    //           throw new Error(
-    //             "La sous-catégorie doit appartenir à la catégorie sélectionnée"
-    //           );
-    //         }
-    //       }
-    //     },
-    //   },
-    // },
+    subcategoryId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: SubCategory,
+        key: "id",
+      },
+      validate: {
+        // notNull: { message: "La sous-catégorie est requise" },
+        async validateSubCategoryBelongsToCategory(value) {
+          if (value && this.categoryId) {
+            const subCategory = await SubCategory.findByPk(value);
+            if (!subCategory || subCategory.categoryId !== this.categoryId) {
+              throw new Error(
+                "La sous-catégorie doit appartenir à la catégorie sélectionnée"
+              );
+            }
+          }
+        },
+      },
+    },
     // status: {
     //   type: DataTypes.ENUM("Actif", "Inactif", "Vendu"),
     //   defaultValue: "Actif",
@@ -262,19 +262,19 @@ Adv.belongsTo(Category, {
   as: "category",
 });
 
-// Adv.belongsTo(SubCategory, {
-//   foreignKey: "subcategoryId",
-//   as: "subcategory",
-// });
+Adv.belongsTo(SubCategory, {
+  foreignKey: "subcategoryId",
+  as: "subcategory",
+});
 
 Category.hasMany(Adv, {
   foreignKey: "categoryId",
   as: "advs",
 });
 
-// SubCategory.hasMany(Adv, {
-//   foreignKey: "subcategoryId",
-//   as: "advs",
-// });
+SubCategory.hasMany(Adv, {
+  foreignKey: "subcategoryId",
+  as: "advs",
+});
 
 module.exports = { Adv };
