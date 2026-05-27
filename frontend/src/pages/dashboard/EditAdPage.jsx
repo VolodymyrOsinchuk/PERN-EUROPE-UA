@@ -8,7 +8,10 @@ import {
   Divider,
   CircularProgress,
   Chip,
-  Alert,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import {
   useLoaderData,
@@ -19,7 +22,6 @@ import {
 } from "react-router-dom";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
 
@@ -45,7 +47,7 @@ export const action = async ({ request, params }) => {
     toast.error(error?.response?.data?.message || "Помилка оновлення");
     return { error: error?.response?.data?.message };
   }
-  /* Context-aware redirect */
+  /* Redirect based on where the user came from */
   const referer = request.headers.get("Referer") || "";
   return redirect(referer.includes("/profile") ? "/profile" : "/dashboard/ads");
 };
@@ -298,9 +300,9 @@ export default function EditAdPage() {
               boxShadow: "0 4px 24px rgba(0,87,184,.06)",
             }}
           >
-            {/* Section 1: Basic info */}
+            {/* ── Section 1: Basic info ── */}
             <EditSection icon="edit_note" title="Основна інформація">
-              <Grid  container spacing={2.5}>
+              <Grid container spacing={2.5}>
                 <Grid size={12}>
                   <TextField
                     name="title"
@@ -336,14 +338,36 @@ export default function EditAdPage() {
                     sx={inputSx}
                   />
                 </Grid>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <FormControl fullWidth sx={inputSx}>
+                    <InputLabel sx={{ fontFamily: F_BODY }}>Статус</InputLabel>
+                    <Select
+                      name="status"
+                      label="Статус"
+                      defaultValue={ad.status || "Active"}
+                      sx={{
+                        borderRadius: "12px",
+                        fontFamily: F_BODY,
+                        bgcolor: "#f8fafc",
+                        "& fieldset": { borderColor: "#e2e8f0" },
+                        "&:hover fieldset": { borderColor: BLUE },
+                        "&.Mui-focused fieldset": { borderColor: BLUE },
+                      }}
+                    >
+                      <MenuItem value="Active">Активне</MenuItem>
+                      <MenuItem value="Inactive">Неактивне</MenuItem>
+                      <MenuItem value="Sold">Продано</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
               </Grid>
             </EditSection>
 
             <Divider sx={{ my: 4, borderColor: "#f1f5f9" }} />
 
-            {/* Section 2: Location */}
+            {/* ── Section 2: Location ── */}
             <EditSection icon="location_on" title="Місцезнаходження">
-              <Grid  container spacing={2.5}>
+              <Grid container spacing={2.5}>
                 <Grid size={{ xs: 12, sm: 4 }}>
                   <TextField
                     name="country"
@@ -385,9 +409,9 @@ export default function EditAdPage() {
 
             <Divider sx={{ my: 4, borderColor: "#f1f5f9" }} />
 
-            {/* Section 3: Contacts */}
+            {/* ── Section 3: Contacts ── */}
             <EditSection icon="contact_phone" title="Контактна інформація">
-              <Grid  container spacing={2.5}>
+              <Grid container spacing={2.5}>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     name="email"
@@ -402,8 +426,10 @@ export default function EditAdPage() {
                   <TextField
                     name="phone"
                     label="Телефон"
+                    type="tel"
                     fullWidth
-                    defaultValue={ad.phone}
+                    defaultValue={ad.phone || ""}
+                    helperText="Формат: +33612345678"
                     sx={inputSx}
                   />
                 </Grid>

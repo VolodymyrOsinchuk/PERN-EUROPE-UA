@@ -14,6 +14,7 @@ import { Link, useLocation } from "react-router-dom";
 const links = [
   { text: "Огляд", path: "/dashboard", icon: "dashboard" },
   { text: "Користувачі", path: "/dashboard/users", icon: "people_alt" },
+  { text: "Оголошення", path: "/dashboard/ads", icon: "campaign" },
   { text: "Категорії", path: "/dashboard/categories", icon: "category" },
   { text: "Публікації", path: "/dashboard/posts", icon: "article" },
   { text: "Події", path: "/dashboard/events", icon: "event" },

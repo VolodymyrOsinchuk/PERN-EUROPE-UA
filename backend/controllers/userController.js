@@ -8,6 +8,7 @@ exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll({
       attributes: { exclude: ["password"] },
+      order: [["createdAt", "DESC"]],
     });
     res.status(200).json(users);
   } catch (error) {
@@ -15,16 +16,15 @@ exports.getAllUsers = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 exports.getUserById = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.userId, {
       attributes: { exclude: ["password"] },
     });
-    if (user) {
-      res.status(200).json(user);
-    } else {
-      res.status(404).json({ message: "Користувача не знайдено" });
-    }
+    if (!user)
+      return res.status(404).json({ message: "Користувача не знайдено" });
+    res.status(200).json(user);
   } catch (error) {
     console.error("Помилка getUserById:", error);
     res.status(500).json({ error: error.message });
@@ -34,7 +34,9 @@ exports.getUserById = async (req, res) => {
 exports.createUser = async (req, res) => {
   try {
     const newUser = await User.create(req.body);
-    res.status(201).json(newUser);
+    const userWithoutPassword = newUser.toJSON();
+    delete userWithoutPassword.password;
+    res.status(201).json(userWithoutPassword);
   } catch (error) {
     console.error("Помилка createUser:", error);
     if (error.name === "SequelizeValidationError") {
@@ -42,6 +44,9 @@ exports.createUser = async (req, res) => {
         error: "Помилка валідації",
         details: error.errors.map((e) => e.message),
       });
+    }
+    if (error.name === "SequelizeUniqueConstraintError") {
+      return res.status(409).json({ error: "Email вже використовується" });
     }
     res.status(500).json({ error: error.message });
   }
@@ -57,25 +62,27 @@ exports.updateUser = async (req, res) => {
       phoneNumber,
       country,
       state,
+      city,
       location,
       about,
     } = req.body;
 
     const user = await User.findByPk(id);
-    if (!user) {
+    if (!user)
       return res.status(404).json({ message: "Користувача не знайдено" });
-    }
 
-    user.firstName = firstName || user.firstName;
-    user.lastName = lastName || user.lastName;
-    user.email = email || user.email;
-    user.phoneNumber = phoneNumber || user.phoneNumber;
-    user.country = country || user.country;
-    user.state = state || user.state;
-    user.location = location || user.location;
-    user.about = about || user.about;
-
-    await user.save();
+    // FIX: include "city" — Register sends it, Profile edit needs it
+    await user.update({
+      firstName: firstName ?? user.firstName,
+      lastName: lastName ?? user.lastName,
+      email: email ?? user.email,
+      phoneNumber: phoneNumber ?? user.phoneNumber,
+      country: country ?? user.country,
+      state: state ?? user.state,
+      city: city ?? user.city,
+      location: location ?? user.location,
+      about: about ?? user.about,
+    });
 
     const updatedUser = await User.findByPk(id, {
       attributes: { exclude: ["password"] },
@@ -100,12 +107,13 @@ exports.uploadProfilePicture = async (req, res) => {
     }
 
     const user = await User.findByPk(req.user.userId);
-    if (!user) {
+    if (!user)
       return res.status(404).json({ message: "Користувача не знайдено" });
-    }
 
+    // Delete old picture if it exists and is not the default
     if (
       user.profilePicture &&
+      !user.profilePicture.startsWith("http") &&
       user.profilePicture !== "/uploads/profile/default.png"
     ) {
       const oldImagePath = path.join(
@@ -119,9 +127,9 @@ exports.uploadProfilePicture = async (req, res) => {
       });
     }
 
-    const profilePictureUrl = `/uploads/profile/${req.file.filename}`;
-    user.profilePicture = profilePictureUrl;
-    await user.save();
+    // FIX: store relative path, not absolute
+    const profilePictureUrl = `/uploads/users/${req.file.filename}`;
+    await user.update({ profilePicture: profilePictureUrl });
 
     res.status(200).json({ profilePicture: profilePictureUrl });
   } catch (error) {
@@ -138,16 +146,20 @@ exports.updatePassword = async (req, res) => {
       .status(400)
       .json({ message: "Будь ласка, вкажіть старий та новий паролі" });
   }
+  if (newPassword.length < 8) {
+    return res
+      .status(400)
+      .json({ message: "Новий пароль має містити мінімум 8 символів" });
+  }
 
   try {
     const user = await User.findByPk(req.user.userId);
-    if (!user) {
+    if (!user)
       return res.status(404).json({ message: "Користувача не знайдено" });
-    }
 
     const isPasswordCorrect = await user.validatePassword(oldPassword);
     if (!isPasswordCorrect) {
-      return res.status(401).json({ message: "Невірні облікові дані" });
+      return res.status(401).json({ message: "Невірний поточний пароль" });
     }
 
     user.password = newPassword;
@@ -162,11 +174,9 @@ exports.updatePassword = async (req, res) => {
 
 exports.deleteUser = async (req, res) => {
   try {
-    const deleted = await User.destroy({
-      where: { id: req.params.id },
-    });
+    const deleted = await User.destroy({ where: { id: req.params.id } });
     if (deleted) {
-      res.status(204).send("Користувача видалено");
+      res.status(204).send();
     } else {
       res.status(404).json({ message: "Користувача не знайдено" });
     }
@@ -178,15 +188,14 @@ exports.deleteUser = async (req, res) => {
 
 exports.getDashboardStats = async (req, res) => {
   try {
-    const userCount = await User.count();
-    const adCount = await Adv.count();
-    const categoryCount = await Category.count();
-
-    res.status(200).json({
-      users: userCount,
-      ads: adCount,
-      categories: categoryCount,
-    });
+    const [userCount, adCount, categoryCount] = await Promise.all([
+      User.count(),
+      Adv.count(),
+      Category.count(),
+    ]);
+    res
+      .status(200)
+      .json({ users: userCount, ads: adCount, categories: categoryCount });
   } catch (error) {
     console.error("Помилка getDashboardStats:", error);
     res.status(500).json({ error: error.message });

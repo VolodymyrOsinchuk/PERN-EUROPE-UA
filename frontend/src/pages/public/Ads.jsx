@@ -83,11 +83,13 @@ export default function Ads() {
 
   /* Client-side filtering */
   const filtered = (data || []).filter((ad) => {
+    if (!ad) return false;
     const matchCat = !category || ad.category?.slug === category;
     const adCity =
-      typeof ad.location === "object"
+      ad.location && typeof ad.location === "object"
         ? ad.location.city?.toLowerCase()
         : ad.location?.toLowerCase();
+
     const matchCity = !city || adCity?.includes(city.toLowerCase());
     const matchSearch =
       !search ||

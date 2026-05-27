@@ -610,9 +610,9 @@ export default function AdDetailPage() {
   const catKey = ad.category?.slug || "default";
   const catColor = CAT_COLORS[catKey] || CAT_COLORS.default;
   const locationLabel =
-    typeof ad.location === "object"
-      ? `${ad.location.city}, ${ad.location.state}`
-      : ad.location;
+    ad.location && typeof ad.location === "object"
+      ? `${ad.location.city || ""}, ${ad.location.state || ""}`
+      : ad.location || "";
   const recipient = ad.author || (ad.user ? ad.user.firstName : "автора");
 
   return (

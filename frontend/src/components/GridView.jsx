@@ -40,14 +40,12 @@ function AdCard({ ad }) {
   const catKey = ad.category?.slug || "default";
   const catColor = CAT_COLORS[catKey] || CAT_COLORS.default;
   const locationLabel =
-    typeof ad.location === "object"
-      ? `${ad.location.city}, ${ad.location.state}`
-      : ad.location;
+    ad.location && typeof ad.location === "object"
+      ? `${ad.location.city || ""}, ${ad.location.state || ""}`
+      : ad.location || "";
 
   return (
     <Card
-      component={Link}
-      to={`/ads/${ad.id}`}
       sx={{
         height: "100%",
         display: "flex",
@@ -58,6 +56,7 @@ function AdCard({ ad }) {
         overflow: "hidden",
         textDecoration: "none",
         bgcolor: "#fff",
+        position: "relative",
         transition:
           "transform 0.28s cubic-bezier(0.16,1,0.3,1), box-shadow 0.28s cubic-bezier(0.16,1,0.3,1)",
         "&:hover": {
@@ -68,6 +67,19 @@ function AdCard({ ad }) {
         },
       }}
     >
+      {/* ── Link Overlay ── */}
+      <Link
+        to={`/ads/${ad.id}`}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 1,
+        }}
+      />
+
       {/* ── Image ── */}
       <Box
         sx={{
@@ -89,7 +101,8 @@ function AdCard({ ad }) {
               width: "100%",
               objectFit: "cover",
               opacity: imgLoaded ? 1 : 0,
-              transition: "opacity 0.3s ease, transform 0.45s cubic-bezier(0.16,1,0.3,1)",
+              transition:
+                "opacity 0.3s ease, transform 0.45s cubic-bezier(0.16,1,0.3,1)",
             }}
           />
         )}
@@ -110,6 +123,7 @@ function AdCard({ ad }) {
             backdropFilter: "blur(8px)",
             border: "none",
             pointerEvents: "none",
+            zIndex: 2,
           }}
         />
 
@@ -119,6 +133,7 @@ function AdCard({ ad }) {
             size="small"
             onClick={(e) => {
               e.preventDefault();
+              e.stopPropagation();
               setSaved((v) => !v);
             }}
             sx={{
@@ -132,6 +147,7 @@ function AdCard({ ad }) {
               width: 32,
               height: 32,
               transition: "all 0.2s",
+              zIndex: 2,
               "&:hover": { bgcolor: "#fff", color: BLUE, borderColor: BLUE },
             }}
           >
@@ -151,6 +167,7 @@ function AdCard({ ad }) {
               borderRadius: "8px",
               background: "linear-gradient(135deg, #0057B8, #003d82)",
               boxShadow: "0 2px 8px rgba(0,87,184,.4)",
+              zIndex: 2,
             }}
           >
             <Typography
@@ -241,6 +258,8 @@ function AdCard({ ad }) {
           justifyContent: "space-between",
           alignItems: "center",
           bgcolor: "#fafbfc",
+          position: "relative",
+          zIndex: 2,
         }}
       >
         <Typography
@@ -259,7 +278,9 @@ function AdCard({ ad }) {
         </Typography>
         <IconButton
           size="small"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
           component={Link}
           to={`/ads/${ad.id}`}
           sx={{

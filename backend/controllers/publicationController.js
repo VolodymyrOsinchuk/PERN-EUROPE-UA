@@ -1,4 +1,5 @@
 const { Publication } = require("../models/publication");
+const { User } = require("../models/user");
 
 exports.getAllPublications = async (req, res) => {
   try {
@@ -42,9 +43,17 @@ exports.getPublicationById = async (req, res) => {
 
 exports.createPublication = async (req, res) => {
   try {
+    // FIX: auto-fill "author" from authenticated user — frontend never sends it
+    const user = await User.findByPk(req.user.userId, {
+      attributes: ["firstName", "lastName"],
+    });
+
     const newPublication = await Publication.create({
       ...req.body,
       userId: req.user.userId,
+      author: user
+        ? `${user.firstName} ${user.lastName}`.trim()
+        : req.body.author || null,
     });
     res.status(201).json(newPublication);
   } catch (error) {

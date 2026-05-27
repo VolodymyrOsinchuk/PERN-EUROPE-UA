@@ -4,7 +4,7 @@ async function truncateAllTables() {
   try {
     await sequelize.authenticate();
     console.log("З'єднання встановлено успішно");
-    await sequelize.sync({ force: true });
+    await sequelize.sync({ force: process.env.NODE_ENV !== "production" });
   } catch (error) {
     console.error("Не вдається підключитися до бази даних:", error);
   } finally {

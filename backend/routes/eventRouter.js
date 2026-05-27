@@ -3,17 +3,12 @@ const router = express.Router();
 const eventController = require("../controllers/eventController");
 const { authMiddleware } = require("../middleware/authMiddleware");
 
-// Routes publiques
+// Routes publiques — ordre important: routes fixes avant /:id
 router.get("/", eventController.getAllEvents);
+router.get("/user-events", authMiddleware, eventController.getUserEvents);
+router.get("/:id", eventController.getEventById);
 
-// Route authentifiée
-router.get(
-  "/user-events",
-  authMiddleware,
-  eventController.getUserEvents
-);
-
-// CRUD avec auth
+// CRUD authentifié
 router.post("/", authMiddleware, eventController.createEvent);
 router.put("/:id", authMiddleware, eventController.updateEvent);
 router.delete("/:id", authMiddleware, eventController.deleteEvent);

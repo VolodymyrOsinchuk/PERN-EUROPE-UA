@@ -17,72 +17,53 @@ const Adv = sequelize.define(
       allowNull: false,
       validate: {
         notEmpty: { message: "Le titre ne peut pas être vide" },
-        len: [3, 255], // Longueur minimale et maximale
+        len: [3, 255],
       },
     },
     country: {
       type: DataTypes.STRING(100),
       allowNull: false,
-      validate: {
-        notEmpty: { message: "Le pays est requis" },
-      },
+      validate: { notEmpty: { message: "Le pays est requis" } },
     },
     state: {
       type: DataTypes.STRING(100),
       allowNull: false,
-      validate: {
-        notEmpty: { message: "La région/état est requise" },
-      },
+      validate: { notEmpty: { message: "La région/état est requise" } },
     },
     city: {
       type: DataTypes.STRING(100),
       allowNull: false,
-      validate: {
-        notEmpty: { message: "La ville est requise" },
-      },
+      validate: { notEmpty: { message: "La ville est requise" } },
     },
-    // postalCode: {
-    //   type: DataTypes.STRING(20),
-    //   allowNull: true,
-    //   validate: {
-    //     is: /^[0-9]{5}(-[0-9]{4})?$/, // Exemple pour code postal US
-    //   },
-    // },
+    // FIX: "location" added — CreateAdPage sends it, was lost before
+    location: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
     description: {
       type: DataTypes.TEXT,
       allowNull: false,
-      validate: {
-        len: [10, 5000], // Longueur minimale et maximale de la description
-      },
+      validate: { len: [10, 5000] },
     },
-
     email: {
       type: DataTypes.STRING(100),
       allowNull: false,
-      unique: true, // Empêche les doublons d'email
-      validate: {
-        isEmail: { message: "Format d'email invalide" },
-      },
+      // FIX: removed unique:true — multiple ads from same email must be allowed
+      validate: { isEmail: { message: "Format d'email invalide" } },
+    },
+    // FIX: phone added
+    phone: {
+      type: DataTypes.STRING(30),
+      allowNull: true,
     },
     price: {
       type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
+      allowNull: true,
       validate: {
-        min: {
-          args: [0],
-          message: "Le prix doit être positif",
-        },
-        max: {
-          args: [1000000], // Limite haute personnalisable
-          message: "Prix trop élevé",
-        },
+        min: { args: [0], message: "Le prix doit être positif" },
+        max: { args: [1000000], message: "Prix trop élevé" },
       },
     },
-
-    // images: {
-    //   type: DataTypes.ARRAY(DataTypes.STRING),
-    //   defaultValue: [],
-    // },
     photos: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: true,
@@ -91,26 +72,22 @@ const Adv = sequelize.define(
     amenities: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       defaultValue: [],
-      // validate: {
-      //   isArray: true,
-      // },
+    },
+    // FIX: status added
+    status: {
+      type: DataTypes.ENUM("Active", "Inactive", "Sold"),
+      defaultValue: "Active",
     },
     categoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        // model: "categories",
-        model: Category,
-        key: "id",
-      },
+      references: { model: Category, key: "id" },
       validate: {
         notNull: { message: "La catégorie est requise" },
         async validateCategoryExists(value) {
           if (value) {
             const category = await Category.findByPk(value);
-            if (!category) {
-              throw new Error("Catégorie inexistante");
-            }
+            if (!category) throw new Error("Catégorie inexistante");
           }
         },
       },
@@ -118,51 +95,21 @@ const Adv = sequelize.define(
     subcategoryId: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: {
-        model: SubCategory,
-        key: "id",
-      },
-      validate: {
-        // notNull: { message: "La sous-catégorie est requise" },
-        async validateSubCategoryBelongsToCategory(value) {
-          if (value && this.categoryId) {
-            const subCategory = await SubCategory.findByPk(value);
-            if (!subCategory || subCategory.categoryId !== this.categoryId) {
-              throw new Error(
-                "La sous-catégorie doit appartenir à la catégorie sélectionnée"
-              );
-            }
-          }
-        },
-      },
+      references: { model: SubCategory, key: "id" },
     },
-    // status: {
-    //   type: DataTypes.ENUM("Actif", "Inactif", "Vendu"),
-    //   defaultValue: "Actif",
-    //   validate: {
-    //     isIn: [["Actif", "Inactif", "Vendu"]],
-    //   },
-    // },
     datePosted: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
-      validate: {
-        isDate: true,
-      },
+      validate: { isDate: true },
     },
     expirationDate: {
       type: DataTypes.DATE,
-      validate: {
-        isDate: true,
-        isAfter: DataTypes.NOW, // Doit être après la date actuelle
-      },
+      validate: { isDate: true },
     },
     views: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
-      validate: {
-        min: 0,
-      },
+      validate: { min: 0 },
     },
     isPromoted: {
       type: DataTypes.BOOLEAN,
@@ -171,110 +118,27 @@ const Adv = sequelize.define(
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: User,
-        key: "id",
-      },
+      references: { model: User, key: "id" },
     },
   },
-
   {
     hooks: {
       beforeCreate: (adv) => {
-        // Exemple de hook : définir une date d'expiration par défaut
         if (!adv.expirationDate) {
-          adv.expirationDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 jours par défaut
+          adv.expirationDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
         }
       },
     },
-    // indexes: [
-    //   { fields: ["email"] },
-    //   { fields: ["categoryId"] },
-    //   { fields: ["status"] },
-    // ],
     timestamps: true,
     tableName: "advs",
   },
 );
 
-// Modèle Photo
-const Photo = sequelize.define(
-  "Photo",
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-      allowNull: false,
-    },
-    data: {
-      type: DataTypes.BLOB,
-      allowNull: false,
-    },
-    contentType: {
-      type: DataTypes.STRING(50),
-      allowNull: false,
-    },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    size: {
-      type: DataTypes.INTEGER,
-      validate: {
-        max: 10 * 1024 * 1024, // Limite à 10MB
-      },
-    },
-    annonceId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: { model: Adv, key: "id" },
-    },
-  },
-  {
-    tableName: "photos",
-    timestamps: true,
-    indexes: [{ fields: ["annonceId"] }],
-  },
-);
-
-// Définir les relations
-// Adv.hasMany(Photo, {
-//   foreignKey: "annonceId",
-//   onDelete: "CASCADE",
-//   as: "photos",
-// });
-// Photo.belongsTo(Adv, {
-//   foreignKey: "annonceId",
-//   as: "advs",
-//   onDelete: "CASCADE",
-// });
-
-User.hasMany(Adv, {
-  foreignKey: "userId",
-  as: "advs",
-});
-
+User.hasMany(Adv, { foreignKey: "userId", as: "advs" });
 Adv.belongsTo(User, { foreignKey: "userId", as: "user" });
-
-Adv.belongsTo(Category, {
-  foreignKey: "categoryId",
-  as: "category",
-});
-
-Adv.belongsTo(SubCategory, {
-  foreignKey: "subcategoryId",
-  as: "subcategory",
-});
-
-Category.hasMany(Adv, {
-  foreignKey: "categoryId",
-  as: "advs",
-});
-
-SubCategory.hasMany(Adv, {
-  foreignKey: "subcategoryId",
-  as: "advs",
-});
+Adv.belongsTo(Category, { foreignKey: "categoryId", as: "category" });
+Adv.belongsTo(SubCategory, { foreignKey: "subcategoryId", as: "subcategory" });
+Category.hasMany(Adv, { foreignKey: "categoryId", as: "advs" });
+SubCategory.hasMany(Adv, { foreignKey: "subcategoryId", as: "advs" });
 
 module.exports = { Adv };

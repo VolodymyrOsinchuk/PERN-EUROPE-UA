@@ -28,9 +28,7 @@ exports.register = async (req, res) => {
     }
 
     const isFirstAccount = (await User.count()) === 0;
-    if (isFirstAccount) {
-      req.body.role = "admin";
-    }
+    const role = isFirstAccount ? "admin" : "user";
 
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
@@ -44,19 +42,20 @@ exports.register = async (req, res) => {
       lastName,
       email,
       password,
-      phoneNumber,
+      phoneNumber: phoneNumber || null,
       verificationToken,
-      country,
-      city,
-      agreeToTerms,
+      country: country || null,
+      // FIX: save "city" from register form — was sent but never stored
+      city: city || null,
+      agreeToTerms: agreeToTerms === true || agreeToTerms === "on",
+      role,
     });
 
     await sendVerificationEmail(user.email, firstName, verificationToken);
 
     res.status(201).json({
-      message: "Користувача успішно створено",
+      message: "Користувача успішно створено. Перевірте електронну пошту.",
       userId: user.id,
-      token: verificationToken,
     });
   } catch (error) {
     console.error("Помилка під час реєстрації:", error);
@@ -67,15 +66,11 @@ exports.register = async (req, res) => {
       });
     }
     if (error.name === "SequelizeUniqueConstraintError") {
-      return res.status(409).json({
-        message: "Виник конфлікт",
-        details: error.errors.map((e) => e.message),
-      });
+      return res.status(409).json({ message: "Email вже використовується" });
     }
-    res.status(500).json({
-      message: "Помилка під час реєстрації",
-      error: error.message,
-    });
+    res
+      .status(500)
+      .json({ message: "Помилка під час реєстрації", error: error.message });
   }
 };
 
@@ -90,13 +85,11 @@ exports.login = async (req, res) => {
     }
 
     const user = await User.findOne({ where: { email } });
-
     if (!user) {
       return res.status(401).json({ message: "Невірні облікові дані" });
     }
 
     const isMatch = await bcrypt.compare(password, user.dataValues.password);
-
     if (!isMatch) {
       return res.status(401).json({ message: "Невірні облікові дані" });
     }
@@ -104,7 +97,7 @@ exports.login = async (req, res) => {
     if (!user.isVerified) {
       return res
         .status(403)
-        .json({ message: "Будь ласка, підтвердіть свій аккаунт" });
+        .json({ message: "Будь ласка, підтвердіть свій акаунт" });
     }
 
     const token = createJWT({
@@ -112,19 +105,9 @@ exports.login = async (req, res) => {
       email: user.email,
       role: user.role,
     });
-
     await user.update({ lastLogin: new Date() });
 
     const oneDay = 1000 * 60 * 60 * 24;
-
-    const userLogin = {
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role,
-    };
-
     res.cookie("token", token, {
       httpOnly: true,
       expires: new Date(Date.now() + oneDay),
@@ -132,19 +115,25 @@ exports.login = async (req, res) => {
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
 
-    res
-      .status(200)
-      .json({
-        message: "Користувач увійшов в систему",
-        user: userLogin,
-        token,
-      });
+    res.status(200).json({
+      message: "Користувач увійшов в систему",
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        // FIX: include city in login response for profile display
+        city: user.city,
+        country: user.country,
+        state: user.state,
+      },
+    });
   } catch (error) {
     console.error("Помилка під час входу:", error);
-    res.status(500).json({
-      message: "Помилка під час входу",
-      error: error.message,
-    });
+    res
+      .status(500)
+      .json({ message: "Помилка під час входу", error: error.message });
   }
 };
 
@@ -162,24 +151,18 @@ exports.verifyEmail = async (req, res) => {
   try {
     const { token } = req.params;
 
-    const user = await User.findOne({
-      where: { verificationToken: token },
-    });
-
+    const user = await User.findOne({ where: { verificationToken: token } });
     if (!user) {
       return res.status(400).json({ message: "Невірний токен підтвердження" });
     }
 
-    user.isVerified = true;
-    user.verificationToken = null;
-    await user.save();
+    await user.update({ isVerified: true, verificationToken: null });
 
     res.status(200).json({ message: "Електронну пошту успішно підтверджено" });
   } catch (error) {
-    console.error("Помилка під час підтвердження електронної пошти:", error);
-    res.status(500).json({
-      message: "Помилка під час підтвердження електронної пошти",
-      error: error.message,
-    });
+    console.error("Помилка під час підтвердження:", error);
+    res
+      .status(500)
+      .json({ message: "Помилка під час підтвердження", error: error.message });
   }
 };

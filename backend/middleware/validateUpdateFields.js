@@ -1,25 +1,27 @@
 const { Category, SubCategory } = require("../models/category");
 
-// Middleware de validation des champs
 const validateUpdateFields = async (req, res, next) => {
   try {
     const { title, description, price, categoryId, subcategoryId, status } =
       req.body;
 
-    // Validation des champs si présents
-    if (title && title.length < 3) {
+    if (title !== undefined && title.length < 3) {
       return res
         .status(400)
         .json({ error: "Le titre doit contenir au moins 3 caractères" });
     }
 
-    if (description && description.length < 10) {
+    if (description !== undefined && description.length < 10) {
       return res
         .status(400)
         .json({ error: "La description doit contenir au moins 10 caractères" });
     }
 
-    if (price && (isNaN(price) || price < 0)) {
+    if (
+      price !== undefined &&
+      price !== "" &&
+      (isNaN(price) || parseFloat(price) < 0)
+    ) {
       return res
         .status(400)
         .json({ error: "Le prix doit être un nombre positif" });
@@ -44,8 +46,16 @@ const validateUpdateFields = async (req, res, next) => {
       }
     }
 
-    const validStatus = ["Actif", "Inactif", "Vendu"];
-    if (status && !validStatus.includes(status)) {
+    // FIX: accept both English and French status values
+    const validStatus = [
+      "Active",
+      "Inactive",
+      "Sold",
+      "Actif",
+      "Inactif",
+      "Vendu",
+    ];
+    if (status !== undefined && !validStatus.includes(status)) {
       return res.status(400).json({ error: "Statut invalide" });
     }
 

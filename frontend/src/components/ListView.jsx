@@ -38,9 +38,9 @@ function ListCard({ ad, isLast, index }) {
   const catKey = ad.category?.slug || "default";
   const catColor = CAT_COLORS[catKey] || CAT_COLORS.default;
   const locationLabel =
-    typeof ad.location === "object"
-      ? `${ad.location.city}, ${ad.location.state}`
-      : ad.location;
+    ad.location && typeof ad.location === "object"
+      ? `${ad.location.city || ""}, ${ad.location.state || ""}`
+      : ad.location || "";
 
   return (
     <>
@@ -54,6 +54,7 @@ function ListCard({ ad, isLast, index }) {
           transition: "background 0.18s ease",
           borderRadius: "14px",
           cursor: "pointer",
+          position: "relative",
           animation: "fadeUp 0.45s ease both",
           animationDelay: `${index * 0.05}s`,
           "@keyframes fadeUp": {
@@ -66,10 +67,20 @@ function ListCard({ ad, isLast, index }) {
             "& .list-title": { color: BLUE },
           },
         }}
-        component={Link}
-        to={`/ads/${ad.id}`}
-        style={{ textDecoration: "none" }}
       >
+        {/* ── Link Overlay ── */}
+        <Link
+          to={`/ads/${ad.id}`}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1,
+          }}
+        />
+
         {/* ── Thumbnail ── */}
         <Box
           sx={{
@@ -81,6 +92,7 @@ function ListCard({ ad, isLast, index }) {
             position: "relative",
             bgcolor: "#f1f5f9",
             border: "1.5px solid #e2e8f0",
+            zIndex: 2,
           }}
         >
           {clientPath && (
@@ -123,7 +135,7 @@ function ListCard({ ad, isLast, index }) {
         </Box>
 
         {/* ── Content ── */}
-        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+        <Box sx={{ flexGrow: 1, minWidth: 0, zIndex: 2, position: "relative" }}>
           {/* Top row: title + actions */}
           <Box
             sx={{
@@ -159,6 +171,7 @@ function ListCard({ ad, isLast, index }) {
                   size="small"
                   onClick={(e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     setSaved((v) => !v);
                   }}
                   sx={{

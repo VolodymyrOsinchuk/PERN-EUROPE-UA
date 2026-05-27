@@ -11,7 +11,7 @@ const sequelize = require("../config/db");
 async function seedDatabase() {
   try {
     console.log("Starting database synchronization...");
-    await sequelize.sync({ force: true });
+    await sequelize.sync({ force: process.env.NODE_ENV !== "production" });
     console.log("Database synchronized.");
 
     // 1. Create Users
@@ -126,7 +126,10 @@ async function seedDatabase() {
       const category = await Category.create({ name: item.name });
       categoryMap[item.name] = category.id;
       for (const subName of item.subs) {
-        const sub = await SubCategory.create({ name: subName, categoryId: category.id });
+        const sub = await SubCategory.create({
+          name: subName,
+          categoryId: category.id,
+        });
         subcategoryMap[subName] = sub.id;
       }
     }
@@ -156,7 +159,8 @@ async function seedDatabase() {
         country: "Germany",
         state: "Berlin",
         city: "Berlin",
-        description: "Startup tech recherche un développeur React. Langues: Anglais ou Allemand.",
+        description:
+          "Startup tech recherche un développeur React. Langues: Anglais ou Allemand.",
         email: "andriy.k@example.com",
         price: 0.0,
         photos: [],
@@ -172,7 +176,8 @@ async function seedDatabase() {
         country: "France",
         state: "Provence-Alpes-Côte d'Azur",
         city: "Nice",
-        description: "Cours de français tous niveaux. Possibilité de cours en ligne ou en présentiel.",
+        description:
+          "Cours de français tous niveaux. Possibilité de cours en ligne ou en présentiel.",
         email: "svitlana.p@example.com",
         price: 20.0,
         photos: ["ad-avatar-2.jpeg"],
@@ -188,7 +193,8 @@ async function seedDatabase() {
         country: "Czech Republic",
         state: "Prague",
         city: "Prague",
-        description: "Je fais le trajet tous les lundis. Possibilité de transporter de petits colis.",
+        description:
+          "Je fais le trajet tous les lundis. Possibilité de transporter de petits colis.",
         email: "dmytro.i@example.com",
         price: 15.0,
         photos: [],
@@ -204,7 +210,8 @@ async function seedDatabase() {
         country: "France",
         state: "Île-de-France",
         city: "Paris",
-        description: "Donne plusieurs sacs de vêtements pour enfants de 2 à 6 ans.",
+        description:
+          "Donne plusieurs sacs de vêtements pour enfants de 2 à 6 ans.",
         email: "admin@ukraine-europe.eu",
         price: 0.0,
         photos: ["ads-1.jpeg"],
@@ -223,14 +230,16 @@ async function seedDatabase() {
     await Event.bulkCreate([
       {
         title: "Rencontre communautaire - Paris",
-        description: "Une après-midi pour faire connaissance et échanger des conseils.",
+        description:
+          "Une après-midi pour faire connaissance et échanger des conseils.",
         date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         location: "Centre culturel, Paris",
         userId: 1,
       },
       {
         title: "Webinaire : Travailler en Allemagne",
-        description: "Tout ce qu'il faut savoir sur le marché du travail allemand.",
+        description:
+          "Tout ce qu'il faut savoir sur le marché du travail allemand.",
         date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
         location: "En ligne (Zoom)",
         userId: 3,
@@ -250,21 +259,24 @@ async function seedDatabase() {
     await News.bulkCreate([
       {
         title: "Nouvelles régulations pour le statut de protection temporaire",
-        content: "L'Union Européenne prolonge la protection temporaire jusqu'en mars 2026. Voici les détails des changements...",
+        content:
+          "L'Union Européenne prolonge la protection temporaire jusqu'en mars 2026. Voici les détails des changements...",
         category: "Légal",
         importance: "high",
         date: new Date(),
       },
       {
         title: "Ouverture d'un nouveau centre d'aide à Berlin",
-        content: "Un nouveau point d'accueil vient d'ouvrir ses portes pour aider à l'enregistrement et au logement.",
+        content:
+          "Un nouveau point d'accueil vient d'ouvrir ses portes pour aider à l'enregistrement et au logement.",
         category: "Aide",
         importance: "medium",
         date: new Date(),
       },
       {
         title: "Succès du festival de la culture ukrainienne à Lyon",
-        content: "Plus de 5000 personnes ont participé au festival ce week-end.",
+        content:
+          "Plus de 5000 personnes ont participé au festival ce week-end.",
         category: "Culture",
         importance: "low",
         date: new Date(),
@@ -277,7 +289,8 @@ async function seedDatabase() {
     await Publication.bulkCreate([
       {
         title: "Guide complet : S'installer en France",
-        content: "De l'ouverture d'un compte bancaire à l'inscription à la sécurité sociale, suivez notre guide étape par étape.",
+        content:
+          "De l'ouverture d'un compte bancaire à l'inscription à la sécurité sociale, suivez notre guide étape par étape.",
         category: "Guide",
         author: "Olena Shevchenko",
         readTime: "15 min",
@@ -286,7 +299,8 @@ async function seedDatabase() {
       },
       {
         title: "Comment apprendre l'allemand rapidement ?",
-        content: "Les meilleures ressources gratuites et payantes pour progresser efficacement.",
+        content:
+          "Les meilleures ressources gratuites et payantes pour progresser efficacement.",
         category: "Éducation",
         author: "Andriy Kovalenko",
         readTime: "10 min",
@@ -300,7 +314,8 @@ async function seedDatabase() {
     console.log("Creating forum data...");
     const topic1 = await ForumTopic.create({
       title: "Comment trouver un logement à Prague ?",
-      content: "Je cherche des conseils sur les meilleurs quartiers et les sites web les plus fiables pour louer un appartement à Prague.",
+      content:
+        "Je cherche des conseils sur les meilleurs quartiers et les sites web les plus fiables pour louer un appartement à Prague.",
       category: "Logement",
       author: "Svitlana Petrenko",
       views: 156,
@@ -310,19 +325,22 @@ async function seedDatabase() {
     await ForumReply.bulkCreate([
       {
         topicId: topic1.id,
-        content: "Je te conseille de regarder sur Sreality.cz, c'est la référence ici. Évite le centre-ville qui est très cher.",
+        content:
+          "Je te conseille de regarder sur Sreality.cz, c'est la référence ici. Évite le centre-ville qui est très cher.",
         author: "Dmytro Ivanov",
       },
       {
         topicId: topic1.id,
-        content: "Prague 7 et Prague 10 sont très sympas et un peu plus abordables.",
+        content:
+          "Prague 7 et Prague 10 sont très sympas et un peu plus abordables.",
         author: "Admin System",
       },
     ]);
 
     const topic2 = await ForumTopic.create({
       title: "Équivalence des diplômes médicaux en France",
-      content: "Bonjour, je suis médecin en Ukraine et je voudrais savoir quelles sont les étapes pour exercer en France.",
+      content:
+        "Bonjour, je suis médecin en Ukraine et je voudrais savoir quelles sont les étapes pour exercer en France.",
       category: "Travail",
       author: "Olena Shevchenko",
       views: 342,
@@ -331,7 +349,8 @@ async function seedDatabase() {
 
     await ForumReply.create({
       topicId: topic2.id,
-      content: "C'est un processus assez long appelé Padhue. Il faut passer des épreuves de vérification des connaissances.",
+      content:
+        "C'est un processus assez long appelé Padhue. Il faut passer des épreuves de vérification des connaissances.",
       author: "Admin System",
     });
 
