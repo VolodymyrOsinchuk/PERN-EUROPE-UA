@@ -117,6 +117,7 @@ export { default as DashboardEditEvent } from "./dashboard/EditEvent";
 export { default as AdsManager } from "./AdsManager";
 export { default as EventsManager } from "./EventsManager";
 export { default as NewsManager } from "./NewsManager";
+export { default as ForumManager } from "./ForumManager";
 export { default as CategoryManager } from "./CategoryManager";
 export { default as CategoryDetails } from "./CategoryDetails";
 export { default as Users } from "./Users";

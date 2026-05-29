@@ -573,6 +573,12 @@ import Stats, { loader as statsLoader } from "./pages/Stats";
 import Settings from "./pages/dashboard/SettingsNew";
 import Admin from "./pages/dashboard/Admin";
 
+// Forum menager — loader + action câblés
+import ForumManager, {
+  loader as forumManagerLoader,
+  // action as forumManagerAction,
+} from "./pages/dashboard/ForumManager";
+
 // ─────────────────────────────────────────────────────────
 const router = createBrowserRouter(
   [
@@ -792,6 +798,13 @@ const router = createBrowserRouter(
             {
               path: "categories/:categoryId/sub-categories/:id",
               element: <SubcategoryItem1 />,
+            },
+            // Forum manager
+            {
+              path: "forum",
+              element: <ForumManager />,
+              loader: forumManagerLoader,
+              // action: forumManagerAction,
             },
             // Publications dashboard — Edit câblé via Dialog
             {
