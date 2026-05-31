@@ -104,7 +104,10 @@ cron.schedule("0 */6 * * *", async () => {
     await sequelize.authenticate();
     console.log(`[${new Date().toISOString()}] База даних активна`);
   } catch (err) {
-    console.error(`[${new Date().toISOString()}] Помилка пінгу БД:`, err.message);
+    console.error(
+      `[${new Date().toISOString()}] Помилка пінгу БД:`,
+      err.message,
+    );
   }
 });
 
