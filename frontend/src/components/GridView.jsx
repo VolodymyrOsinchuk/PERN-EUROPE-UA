@@ -36,9 +36,15 @@ function AdCard({ ad }) {
   const [imgLoaded, setImgLoaded] = useState(false);
 
   const serverPath = ad.photos?.[0];
-  const clientPath = serverPath?.replace("public", "") || "";
+  const imageUrl = serverPath
+    ? serverPath.startsWith("http")
+      ? serverPath
+      : `${apiUrl}/uploads/adv/${serverPath.replace(/^public\/uploads\/adv\//, "")}`
+    : "";
+
   const catKey = ad.category?.slug || "default";
   const catColor = CAT_COLORS[catKey] || CAT_COLORS.default;
+
   const locationLabel =
     ad.location && typeof ad.location === "object"
       ? `${ad.location.city || ""}, ${ad.location.state || ""}`
@@ -89,11 +95,11 @@ function AdCard({ ad }) {
           bgcolor: "#f1f5f9",
         }}
       >
-        {clientPath && (
+        {imageUrl && (
           <CardMedia
             component="img"
             className="ad-img"
-            image={`${apiUrl}${clientPath}`}
+            image={imageUrl}
             alt={ad.title}
             onLoad={() => setImgLoaded(true)}
             sx={{

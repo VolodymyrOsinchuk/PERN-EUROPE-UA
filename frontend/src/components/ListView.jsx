@@ -34,7 +34,12 @@ function ListCard({ ad, isLast, index }) {
   const [imgLoaded, setImgLoaded] = useState(false);
 
   const serverPath = ad.photos?.[0];
-  const clientPath = serverPath?.replace("public", "") || "";
+  const imageUrl = serverPath
+    ? serverPath.startsWith("http")
+      ? serverPath
+      : `${apiUrl}/uploads/adv/${serverPath.replace(/^public\/uploads\/adv\//, "")}`
+    : "";
+
   const catKey = ad.category?.slug || "default";
   const catColor = CAT_COLORS[catKey] || CAT_COLORS.default;
   const locationLabel =
@@ -95,11 +100,11 @@ function ListCard({ ad, isLast, index }) {
             zIndex: 2,
           }}
         >
-          {clientPath && (
+          {imageUrl && (
             <Box
               className="list-img"
               component="img"
-              src={`${apiUrl}${clientPath}`}
+              src={imageUrl}
               alt={ad.title}
               onLoad={() => setImgLoaded(true)}
               sx={{

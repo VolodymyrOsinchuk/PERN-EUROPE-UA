@@ -1317,14 +1317,12 @@ function EditSection({ icon, title, subtitle, completed, children }) {
 
 /* ── Existing photo thumbnail ── */
 function ExistingPhoto({ path, index, isMain, onRemove, onSetMain }) {
-const clientPath = (path?.replace("public", "") || "").replace(/^\/+/, "");
-console.log("🚀 ~ ExistingPhoto ~ clientPath:", clientPath)
+  const src = path
+    ? path.startsWith("http")
+      ? path
+      : `${apiUrl}/uploads/adv/${path.replace(/^public\/uploads\/adv\//, "")}`
+    : "";
 
-const src = clientPath.startsWith("http")
-  ? clientPath
-  : `${apiUrl}/uploads/adv/${clientPath}`;
-
-  console.log("🚀 ~ ExistingPhoto ~ src :", src);
   return (
     <Box
       sx={{

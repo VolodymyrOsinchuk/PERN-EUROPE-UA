@@ -67,6 +67,7 @@ export async function profileLoader() {
       events: eventsRes.data || [],
     };
   } catch (error) {
+    toast.error("Помилка завантаження даних профілю");
     console.error("Loader error:", error);
     return { ads: [], publications: [], events: [] };
   }
@@ -381,7 +382,14 @@ function StatPill({ icon, label, value }) {
 function ProfileAdCard({ ad, onDelete }) {
   const catName = ad.category?.name || "Інше";
   const serverPath = ad.photos?.[0];
-  const clientPath = serverPath?.replace("public", "") || "";
+
+  // If path starts with http, it's already an absolute URL.
+  // Otherwise, it's a filename that should be served from /uploads/adv/
+  const imageUrl = serverPath
+    ? serverPath.startsWith("http")
+      ? serverPath
+      : `${apiUrl}/uploads/adv/${serverPath.replace(/^public\/uploads\/adv\//, "")}`
+    : "";
 
   return (
     <Card
@@ -398,7 +406,7 @@ function ProfileAdCard({ ad, onDelete }) {
       }}
     >
       <Box sx={{ display: "flex", gap: 0 }}>
-        {clientPath && (
+        {imageUrl && (
           <Box
             sx={{
               width: 100,
@@ -409,7 +417,7 @@ function ProfileAdCard({ ad, onDelete }) {
           >
             <Box
               component="img"
-              src={`${apiUrl}${clientPath}`}
+              src={imageUrl}
               alt={ad.title}
               sx={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
@@ -858,6 +866,7 @@ export default function Profile() {
     publications: [],
     events: [],
   };
+
   const fetcher = useFetcher();
   const navigate = useNavigate();
 

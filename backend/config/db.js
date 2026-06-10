@@ -1,14 +1,15 @@
-require('dotenv').config()
-const config = require('./config')
+require("dotenv").config();
+const config = require("./config");
 
-const { Sequelize } = require('sequelize')
+const { Sequelize } = require("sequelize");
 
-let sequelize
+let sequelize;
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === "production") {
   sequelize = new Sequelize(config.database.url, {
     logging: false,
-    dialect: config.database.dialect || 'postgres',
+    protocol: "postgres",
+    dialect: config.database.dialect || "postgres",
     dialectOptions: {
       ssl: {
         require: true,
@@ -16,16 +17,17 @@ if (process.env.NODE_ENV === 'production') {
         // ca: fs.readFileSync(path.join(__dirname, "./ca.pem"), "utf8").toString(),
       },
     },
-  })
+  });
 } else {
   sequelize = new Sequelize(
     process.env.DB_NAME,
     process.env.DB_USER,
     process.env.DB_PASSWORD,
     {
-      host: process.env.DB_HOST || 'localhost',
+      host: process.env.DB_HOST || "localhost",
       port: process.env.DB_PORT || 5432,
-      dialect: 'postgres',
+      dialect: "postgres",
+      protocol: "postgres",
       // Supprimé dialectModule: pg pour éviter les problèmes
       logging: false,
       pool: {
@@ -37,8 +39,8 @@ if (process.env.NODE_ENV === 'production') {
       dialectOptions: {
         // Pas besoin de spécifier ssl: false explicitement
       },
-    }
-  )
+    },
+  );
 }
 
-module.exports = sequelize
+module.exports = sequelize;
