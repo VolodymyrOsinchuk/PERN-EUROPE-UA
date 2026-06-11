@@ -1320,7 +1320,11 @@ function ExistingPhoto({ path, index, isMain, onRemove, onSetMain }) {
   const src = path
     ? path.startsWith("http")
       ? path
-      : `${apiUrl}/uploads/adv/${path.replace(/^public\/uploads\/adv\//, "")}`
+      : path.includes("public/uploads/adv/")
+        ? `${apiUrl}/uploads/adv/${path.split("public/uploads/adv/")[1]}`
+        : path.startsWith("/uploads/")
+          ? `${apiUrl}${path}`
+          : `${apiUrl}/uploads/adv/${path.replace(/^public\/uploads\/adv\//, "")}`
     : "";
 
   return (

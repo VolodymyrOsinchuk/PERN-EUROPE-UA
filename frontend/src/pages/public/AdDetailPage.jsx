@@ -358,7 +358,14 @@ function ContactCard({ ad, onMessage, onReport }) {
   );
 }
 
-function MessageDialog({ open, onClose, recipient, recipientId, adId, isSubmitting }) {
+function MessageDialog({
+  open,
+  onClose,
+  recipient,
+  recipientId,
+  adId,
+  isSubmitting,
+}) {
   return (
     <Dialog
       open={open}
@@ -753,7 +760,7 @@ export default function AdDetailPage() {
 
       <Box sx={{ bgcolor: "#f8fafc", py: { xs: 4, md: 6 }, minHeight: "80vh" }}>
         <Container maxWidth="lg">
-          <Grid  container spacing={4}>
+          <Grid container spacing={4}>
             {/* ── LEFT: main content ── */}
             <Grid size={{ xs: 12, md: 8 }}>
               {/* Title block */}
@@ -870,18 +877,17 @@ export default function AdDetailPage() {
 
               {/* Gallery */}
               {ad.photos?.length > 0 && (
-                <Paper
-                  elevation={0}
+                <Box
                   sx={{
                     borderRadius: "20px",
                     overflow: "hidden",
-                    border: "1.5px solid #e2e8f0",
+                    border: "1.5px solid",
+                    borderColor: "grey.200",
                     mb: 3.5,
-                    boxShadow: "0 4px 24px rgba(0,87,184,.06)",
                   }}
                 >
                   <ImageGallery photos={ad.photos} />
-                </Paper>
+                </Box>
               )}
 
               {/* Price badge */}

@@ -172,14 +172,29 @@ exports.updatePassword = async (req, res) => {
   }
 };
 
+// backend/controllers/userController.js
 exports.deleteUser = async (req, res) => {
   try {
-    const deleted = await User.destroy({ where: { id: req.params.id } });
-    if (deleted) {
-      res.status(204).send();
-    } else {
-      res.status(404).json({ message: "Користувача не знайдено" });
+    const user = await User.findByPk(req.params.id);
+    if (!user)
+      return res.status(404).json({ message: "Користувача не знайдено" });
+
+    if (user.profilePicture && !user.profilePicture.startsWith("http")) {
+      const fs = require("fs");
+      const path = require("path");
+      const abs = path.join(
+        __dirname,
+        "..",
+        "public",
+        user.profilePicture.replace(/^\//, ""),
+      );
+      fs.unlink(abs, (err) => {
+        if (err) console.error("Erreur suppression avatar:", err.message);
+      });
     }
+
+    await user.destroy();
+    res.status(204).send();
   } catch (error) {
     console.error("Помилка deleteUser:", error);
     res.status(500).json({ error: error.message });

@@ -19,7 +19,9 @@ exports.createAnnonce = async (req, res) => {
       amenities,
     } = req.body;
 
-    const photoPaths = req.files ? req.files.map((file) => file.path) : [];
+    const photoPaths = req.files
+      ? req.files.map((file) => `/uploads/adv/${file.filename}`)
+      : [];
 
     const newAd = await Adv.create({
       title,
@@ -146,7 +148,9 @@ exports.updateAnnonce = async (req, res) => {
     if (amenities !== undefined) updateData.amenities = amenities;
 
     if (req.files && req.files.length > 0) {
-      const newPhotos = req.files.map((file) => file.path);
+      const newPhotos = req.files.map(
+        (file) => `/uploads/adv/${file.filename}`,
+      );
       updateData.photos = [...(adv.photos || []), ...newPhotos];
     }
 
@@ -177,14 +181,32 @@ exports.updateAnnonce = async (req, res) => {
   }
 };
 
+// backend/controllers/advController.js
 exports.deleteAnnonce = async (req, res) => {
   try {
-    const deleted = await Adv.destroy({ where: { id: req.params.id } });
-    if (deleted) {
-      res.status(204).send();
-    } else {
-      res.status(404).json({ message: "Оголошення не знайдено" });
+    const adv = await Adv.findByPk(req.params.id);
+    if (!adv)
+      return res.status(404).json({ message: "Оголошення не знайдено" });
+
+    // Supprimer les fichiers avant destroy()
+    if (adv.photos?.length) {
+      const fs = require("fs");
+      const path = require("path");
+      adv.photos.forEach((photoPath) => {
+        const abs = path.join(
+          __dirname,
+          "..",
+          "public",
+          photoPath.replace(/^public\//, ""),
+        );
+        fs.unlink(abs, (err) => {
+          if (err) console.error("Erreur suppression photo:", err.message);
+        });
+      });
     }
+
+    await adv.destroy();
+    res.status(204).send();
   } catch (error) {
     console.error("Помилка deleteAnnonce:", error);
     res.status(500).json({ error: error.message });

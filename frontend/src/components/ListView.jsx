@@ -37,7 +37,11 @@ function ListCard({ ad, isLast, index }) {
   const imageUrl = serverPath
     ? serverPath.startsWith("http")
       ? serverPath
-      : `${apiUrl}/uploads/adv/${serverPath.replace(/^public\/uploads\/adv\//, "")}`
+      : serverPath.includes("public/uploads/adv/")
+        ? `${apiUrl}/uploads/adv/${serverPath.split("public/uploads/adv/")[1]}`
+        : serverPath.startsWith("/uploads/")
+          ? `${apiUrl}${serverPath}`
+          : `${apiUrl}/uploads/adv/${serverPath.replace(/^public\/uploads\/adv\//, "")}`
     : "";
 
   const catKey = ad.category?.slug || "default";
