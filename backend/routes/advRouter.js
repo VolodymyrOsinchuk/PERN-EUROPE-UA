@@ -9,7 +9,7 @@ const {
   updateAnnonce,
   getUserAnnonces,
 } = require("../controllers/advController");
-const upload = require("../middleware/multer");
+const { upload } = require("../middleware/multer");
 const checkOwnership = require("../middleware/checkOwnership");
 const validateUpdateFields = require("../middleware/validateUpdateFields");
 

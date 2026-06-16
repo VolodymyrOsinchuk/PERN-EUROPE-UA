@@ -10,7 +10,7 @@ const {
   uploadProfilePicture,
   updatePassword,
 } = require('../controllers/userController')
-const upload = require('../middleware/multer')
+const { upload } = require('../middleware/multer')
 const { authMiddleware } = require('../middleware/authMiddleware')
 
 router.route('/').get(getAllUsers).post(createUser)

@@ -1,6 +1,7 @@
 const { Adv } = require("../models/adv");
 const { Category, SubCategory } = require("../models/category");
 const { User } = require("../models/user");
+const { deleteCloudinaryFile } = require("../config/cloudinary");
 
 exports.createAnnonce = async (req, res) => {
   try {
@@ -19,9 +20,8 @@ exports.createAnnonce = async (req, res) => {
       amenities,
     } = req.body;
 
-    const photoPaths = req.files
-      ? req.files.map((file) => `/uploads/adv/${file.filename}`)
-      : [];
+    // req.cloudinaryUrls est injecté par le middleware uploadToCloudinary()
+    const photoPaths = req.cloudinaryUrls || [];
 
     const newAd = await Adv.create({
       title,
@@ -54,12 +54,6 @@ exports.createAnnonce = async (req, res) => {
     if (error.name === "SequelizeValidationError") {
       return res.status(400).json({
         error: "Помилка валідації",
-        details: error.errors.map((e) => e.message),
-      });
-    }
-    if (error.name === "SequelizeUniqueConstraintError") {
-      return res.status(409).json({
-        error: "Виник конфлікт",
         details: error.errors.map((e) => e.message),
       });
     }
@@ -103,7 +97,6 @@ exports.getAnnonceById = async (req, res) => {
       return res.status(404).json({ message: "Оголошення не знайдено" });
     }
 
-    // Increment views
     await annonce.increment("views");
     res.status(200).json(annonce);
   } catch (error) {
@@ -114,7 +107,7 @@ exports.getAnnonceById = async (req, res) => {
 
 exports.updateAnnonce = async (req, res) => {
   try {
-    const adv = req.adv; // injected by checkOwnership middleware
+    const adv = req.adv; // injecté par checkOwnership
 
     const {
       title,
@@ -142,16 +135,27 @@ exports.updateAnnonce = async (req, res) => {
     if (city !== undefined) updateData.city = city;
     if (location !== undefined) updateData.location = location;
     if (email !== undefined) updateData.email = email;
-    // phone: allow empty string to clear the value
     if (phone !== undefined) updateData.phone = phone || null;
     if (status !== undefined) updateData.status = status;
     if (amenities !== undefined) updateData.amenities = amenities;
 
-    if (req.files && req.files.length > 0) {
-      const newPhotos = req.files.map(
-        (file) => `/uploads/adv/${file.filename}`,
-      );
-      updateData.photos = [...(adv.photos || []), ...newPhotos];
+    // Nouvelles photos uploadées via Cloudinary
+    if (req.cloudinaryUrls && req.cloudinaryUrls.length > 0) {
+      updateData.photos = [...(adv.photos || []), ...req.cloudinaryUrls];
+    }
+
+    // Photos existantes à conserver (envoyées depuis le frontend en JSON)
+    if (req.body.existingPhotos) {
+      try {
+        const kept = JSON.parse(req.body.existingPhotos);
+        // Supprimer de Cloudinary les photos retirées par l'utilisateur
+        const removed = (adv.photos || []).filter((p) => !kept.includes(p));
+        await Promise.all(removed.map((url) => deleteCloudinaryFile(url)));
+        // Fusionner les photos conservées avec les nouvelles
+        updateData.photos = [...kept, ...(req.cloudinaryUrls || [])];
+      } catch (_) {
+        // Si le parsing échoue, on garde juste les nouvelles
+      }
     }
 
     await adv.update(updateData);
@@ -181,28 +185,16 @@ exports.updateAnnonce = async (req, res) => {
   }
 };
 
-// backend/controllers/advController.js
 exports.deleteAnnonce = async (req, res) => {
   try {
     const adv = await Adv.findByPk(req.params.id);
-    if (!adv)
+    if (!adv) {
       return res.status(404).json({ message: "Оголошення не знайдено" });
+    }
 
-    // Supprimer les fichiers avant destroy()
+    // Supprimer les photos Cloudinary avant de détruire la ligne DB
     if (adv.photos?.length) {
-      const fs = require("fs");
-      const path = require("path");
-      adv.photos.forEach((photoPath) => {
-        const abs = path.join(
-          __dirname,
-          "..",
-          "public",
-          photoPath.replace(/^public\//, ""),
-        );
-        fs.unlink(abs, (err) => {
-          if (err) console.error("Erreur suppression photo:", err.message);
-        });
-      });
+      await Promise.all(adv.photos.map((url) => deleteCloudinaryFile(url)));
     }
 
     await adv.destroy();

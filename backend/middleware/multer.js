@@ -1,31 +1,60 @@
+// const multer = require("multer");
+// const path = require("path");
+
+// // Configuration de Multer avec stockage en mémoire
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     let uploadPath = "";
+//     if (req.baseUrl.includes("adv")) {
+//       uploadPath = path.join(__dirname, "..", "public", "uploads", "adv");
+//     } else if (req.baseUrl.includes("users")) {
+//       uploadPath = path.join(__dirname, "..", "public", "uploads", "users");
+//     } else {
+//       uploadPath = path.join(__dirname, "..", "public", "uploads", "others");
+//     }
+
+//     const fs = require("fs");
+//     if (!fs.existsSync(uploadPath)) {
+//       fs.mkdirSync(uploadPath, { recursive: true });
+//     }
+
+//     cb(null, uploadPath);
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, `ad-${file.originalname}`);
+//   },
+// });
+
+// // Filtre pour n'accepter que les images
+// const imageFilter = (req, file, cb) => {
+//   if (file.mimetype.startsWith("image/")) {
+//     cb(null, true);
+//   } else {
+//     cb(new Error("Seules les images sont autorisées"), false);
+//   }
+// };
+
+// // limits: {
+// //   fileSize: 10 * 1024 * 1024, // Limite à 10MB par fichier
+// //   files: 5 // Maximum 5 fichiers
+// // }
+
+// const upload = multer({
+//   storage: storage,
+//   fileFilter: imageFilter,
+//   limits: {
+//     fieldSize: 10 * 1024 * 1024,
+//   },
+// });
+
+// module.exports = upload;
 const multer = require("multer");
-const path = require("path");
+const streamifier = require("streamifier");
+const { cloudinary } = require("../config/cloudinary");
 
-// Configuration de Multer avec stockage en mémoire
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    let uploadPath = "";
-    if (req.baseUrl.includes("adv")) {
-      uploadPath = path.join(__dirname, "..", "public", "uploads", "adv");
-    } else if (req.baseUrl.includes("users")) {
-      uploadPath = path.join(__dirname, "..", "public", "uploads", "users");
-    } else {
-      uploadPath = path.join(__dirname, "..", "public", "uploads", "others");
-    }
+// ── Multer : stockage en mémoire (pas de disque) ─────────────────────────────
+const storage = multer.memoryStorage();
 
-    const fs = require("fs");
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-
-    cb(null, uploadPath);
-  },
-  filename: function (req, file, cb) {
-    cb(null, `ad-${file.originalname}`);
-  },
-});
-
-// Filtre pour n'accepter que les images
 const imageFilter = (req, file, cb) => {
   if (file.mimetype.startsWith("image/")) {
     cb(null, true);
@@ -34,17 +63,89 @@ const imageFilter = (req, file, cb) => {
   }
 };
 
-// limits: {
-//   fileSize: 10 * 1024 * 1024, // Limite à 10MB par fichier
-//   files: 5 // Maximum 5 fichiers
-// }
-
 const upload = multer({
-  storage: storage,
+  storage,
   fileFilter: imageFilter,
-  limits: {
-    fieldSize: 10 * 1024 * 1024,
-  },
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB max
 });
 
-module.exports = upload;
+// ── Helpers d'upload Cloudinary ──────────────────────────────────────────────
+
+/**
+ * Upload un buffer en mémoire vers Cloudinary.
+ * @param {Buffer} buffer        - Données binaires du fichier
+ * @param {string} folder        - Dossier Cloudinary (ex. "advs", "users")
+ * @param {object} [options]     - Options supplémentaires passées à l'uploader
+ * @returns {Promise<object>}    - Résultat Cloudinary (secure_url, public_id, …)
+ */
+function uploadBufferToCloudinary(buffer, folder, options = {}) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: "image",
+        transformation: [{ quality: "auto", fetch_format: "auto" }],
+        ...options,
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      },
+    );
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
+}
+
+/**
+ * Middleware Express : upload tous les fichiers de req.files vers Cloudinary
+ * et remplace req.files par un tableau de résultats Cloudinary.
+ *
+ * @param {string} folder - Dossier Cloudinary cible
+ */
+function uploadToCloudinary(folder) {
+  return async (req, res, next) => {
+    if (!req.files || req.files.length === 0) return next();
+
+    try {
+      const uploads = await Promise.all(
+        req.files.map((file) => uploadBufferToCloudinary(file.buffer, folder)),
+      );
+
+      // Injecte les URLs Cloudinary dans req pour les controllers
+      req.cloudinaryUrls = uploads.map((r) => r.secure_url);
+      req.cloudinaryPublicIds = uploads.map((r) => r.public_id);
+      next();
+    } catch (err) {
+      console.error("Erreur upload Cloudinary:", err.message);
+      res.status(500).json({ error: "Erreur lors de l'upload des images" });
+    }
+  };
+}
+
+/**
+ * Middleware Express : upload le fichier unique req.file vers Cloudinary.
+ *
+ * @param {string} folder - Dossier Cloudinary cible
+ */
+function uploadSingleToCloudinary(folder) {
+  return async (req, res, next) => {
+    if (!req.file) return next();
+
+    try {
+      const result = await uploadBufferToCloudinary(req.file.buffer, folder);
+      req.cloudinaryUrl = result.secure_url;
+      req.cloudinaryPublicId = result.public_id;
+      next();
+    } catch (err) {
+      console.error("Erreur upload Cloudinary (single):", err.message);
+      res.status(500).json({ error: "Erreur lors de l'upload de l'image" });
+    }
+  };
+}
+
+module.exports = {
+  upload,
+  uploadToCloudinary,
+  uploadSingleToCloudinary,
+  uploadBufferToCloudinary,
+};
