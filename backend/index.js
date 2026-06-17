@@ -1,6 +1,11 @@
 const path = require("path");
 require("dotenv").config({
-  path: path.join(__dirname, process.env.NODE_ENV === "production" ? ".env.production" : ".env.development"),
+  path: path.join(
+    __dirname,
+    process.env.NODE_ENV === "production"
+      ? ".env.production"
+      : ".env.development",
+  ),
 });
 const express = require("express");
 const morgan = require("morgan");
@@ -104,7 +109,7 @@ const port = process.env.PORT || 5000;
 const https = require("https");
 const http = require("http");
 
-cron.schedule("0 */6 * * *", async () => {
+cron.schedule("*/15 * * * *", async () => {
   try {
     // 1. Ping Database
     await sequelize.authenticate();
@@ -114,17 +119,21 @@ cron.schedule("0 */6 * * *", async () => {
     const backendUrl = process.env.BACKEND_URL;
     if (backendUrl) {
       const client = backendUrl.startsWith("https") ? https : http;
-      client.get(`${backendUrl}/api`, (res) => {
-        console.log(`[${new Date().toISOString()}] Авто-пінг успішний: ${res.statusCode}`);
-      }).on("error", (err) => {
-        console.error(`[${new Date().toISOString()}] Помилка авто-пінгу:`, err.message);
-      });
+      client
+        .get(`${backendUrl}/api`, (res) => {
+          console.log(
+            `[${new Date().toISOString()}] Авто-пінг успішний: ${res.statusCode}`,
+          );
+        })
+        .on("error", (err) => {
+          console.error(
+            `[${new Date().toISOString()}] Помилка авто-пінгу:`,
+            err.message,
+          );
+        });
     }
   } catch (err) {
-    console.error(
-      `[${new Date().toISOString()}] Помилка пінгу:`,
-      err.message,
-    );
+    console.error(`[${new Date().toISOString()}] Помилка пінгу:`, err.message);
   }
 });
 

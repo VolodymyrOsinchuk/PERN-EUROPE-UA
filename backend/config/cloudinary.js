@@ -31,11 +31,14 @@ if (process.env.CLOUDINARY_CLOUD_NAME === "Untitled") {
     "Please update CLOUDINARY_CLOUD_NAME in backend/.env.development with your real Cloudinary cloud name.",
   );
 } else {
-  console.log("CLOUDINARY_CLOUD_NAME:", process.env.CLOUDINARY_CLOUD_NAME);
-  console.log("CLOUDINARY_API_KEY:", process.env.CLOUDINARY_API_KEY);
+  // console.log("CLOUDINARY_CLOUD_NAME:", process.env.CLOUDINARY_CLOUD_NAME);
+  // console.log("CLOUDINARY_API_KEY:", process.env.CLOUDINARY_API_KEY);
+  // console.log(
+  //   "CLOUDINARY_API_SECRET:",
+  //   process.env.CLOUDINARY_API_SECRET ? "PRESENT (MASKED)" : "MISSING",
+  // );
   console.log(
-    "CLOUDINARY_API_SECRET:",
-    process.env.CLOUDINARY_API_SECRET ? "PRESENT (MASKED)" : "MISSING",
+    "CLOUDINARY configuration appears to be set correctly. Cloudinary is ready to use.",
   );
 }
 
