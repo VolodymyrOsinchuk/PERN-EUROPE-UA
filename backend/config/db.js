@@ -3,10 +3,10 @@ const { Sequelize } = require("sequelize");
 let sequelize;
 
 if (process.env.NODE_ENV === "production") {
-  sequelize = new Sequelize(config.database.url, {
+  sequelize = new Sequelize(config.db.url, {
     logging: false,
     protocol: "postgres",
-    dialect: config.database.dialect || "postgres",
+    dialect: config.db.dialect || "postgres",
     dialectOptions: {
       ssl: {
         require: true,
