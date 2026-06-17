@@ -129,16 +129,26 @@ function uploadToCloudinary(folder) {
  */
 function uploadSingleToCloudinary(folder) {
   return async (req, res, next) => {
-    if (!req.file) return next();
+    if (!req.file) {
+      console.log("No file found in request");
+      return next();
+    }
 
     try {
+      console.log(`Uploading file to Cloudinary folder: ${folder}`);
       const result = await uploadBufferToCloudinary(req.file.buffer, folder);
+      console.log("Cloudinary upload successful:", result.secure_url);
       req.cloudinaryUrl = result.secure_url;
       req.cloudinaryPublicId = result.public_id;
       next();
     } catch (err) {
       console.error("Erreur upload Cloudinary (single):", err.message);
-      res.status(500).json({ error: "Erreur lors de l'upload de l'image" });
+      console.error("Full error object:", err);
+      res.status(500).json({
+        error: "Erreur lors de l'upload de l'image",
+        message: err.message,
+        details: err.message,
+      });
     }
   };
 }

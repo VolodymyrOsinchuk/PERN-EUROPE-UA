@@ -1,5 +1,7 @@
-require("dotenv").config();
 const path = require("path");
+require("dotenv").config({
+  path: path.join(__dirname, process.env.NODE_ENV === "production" ? ".env.production" : ".env.development"),
+});
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
@@ -99,13 +101,28 @@ app.use((req, res) => {
 
 const port = process.env.PORT || 5000;
 
+const https = require("https");
+const http = require("http");
+
 cron.schedule("0 */6 * * *", async () => {
   try {
+    // 1. Ping Database
     await sequelize.authenticate();
     console.log(`[${new Date().toISOString()}] База даних активна`);
+
+    // 2. Ping Self (to keep Render/etc awake)
+    const backendUrl = process.env.BACKEND_URL;
+    if (backendUrl) {
+      const client = backendUrl.startsWith("https") ? https : http;
+      client.get(`${backendUrl}/api`, (res) => {
+        console.log(`[${new Date().toISOString()}] Авто-пінг успішний: ${res.statusCode}`);
+      }).on("error", (err) => {
+        console.error(`[${new Date().toISOString()}] Помилка авто-пінгу:`, err.message);
+      });
+    }
   } catch (err) {
     console.error(
-      `[${new Date().toISOString()}] Помилка пінгу БД:`,
+      `[${new Date().toISOString()}] Помилка пінгу:`,
       err.message,
     );
   }

@@ -181,23 +181,23 @@ src/
 
 ```javascript
 // Exemple de composant d'inscription
-import { useState } from 'react'
-import { TextField, Button } from '@mui/material'
-import { createUserWithEmailAndPassword } from 'firebase/auth'
-import { auth } from '../services/firebase'
+import { useState } from "react";
+import { TextField, Button } from "@mui/material";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../services/firebase";
 
 function SignUp() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSignUp = async () => {
     try {
-      await createUserWithEmailAndPassword(auth, email, password)
-      alert('Inscription réussie !')
+      await createUserWithEmailAndPassword(auth, email, password);
+      alert("Inscription réussie !");
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
-  }
+  };
 
   return (
     <div>
@@ -214,7 +214,7 @@ function SignUp() {
       />
       <Button onClick={handleSignUp}>S'inscrire</Button>
     </div>
-  )
+  );
 }
 ```
 
@@ -238,17 +238,17 @@ function SignUp() {
 
 ```javascript
 // Exemple de composant de création d'annonce
-import { useState } from 'react'
-import { TextField, Button } from '@mui/material'
+import { useState } from "react";
+import { TextField, Button } from "@mui/material";
 
 function CreateAd() {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [price, setPrice] = useState('')
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
 
   const handleSubmit = async () => {
     // Envoyer les données à l'API
-  }
+  };
 
   return (
     <div>
@@ -269,7 +269,7 @@ function CreateAd() {
       />
       <Button onClick={handleSubmit}>Publier</Button>
     </div>
-  )
+  );
 }
 ```
 
@@ -573,3 +573,23 @@ Configuration et documentation de l'API pour les développeurs externes
 Outils de synchronisation avec d'autres plateformes d'annonces
 
 Cette liste étendue couvre un large éventail de fonctionnalités pour un site d'annonces complet et performant, tant du côté des utilisateurs que des administrateurs.
+
+1.  Script autonome (backend/scripts/keep-alive.js) : J'ai créé un script dédié qui peut être exécuté indépendamment. Il se connecte à la base de données pour simuler une activité et
+    envoie une requête HTTP à votre backend pour le "réveiller" (utile si vous utilisez un service comme Render qui s'endort après 15 minutes d'inactivité).
+2.  Commande NPM : Ajout de "keep-alive": "node scripts/keep-alive.js" dans votre package.json. Vous pouvez l'exécuter avec npm run keep-alive.
+3.  Tâche Cron interne : J'ai mis à jour la tâche planifiée dans index.js pour qu'elle s'exécute toutes les 6 heures. En plus de vérifier la connexion à la base de données, elle
+    s'auto-ping si la variable d'environnement BACKEND_URL est définie.
+
+Comment l'utiliser pour éviter la mise en veille :
+
+- Variable d'environnement : Assurez-vous de définir BACKEND_URL dans vos paramètres de déploiement (sur Render ou ailleurs) avec l'URL de votre backend (ex:
+  https://votre-app.onrender.com).
+- Service externe (Recommandé) : Comme le backend peut s'endormir complètement, le cron interne risque de ne pas s'exécuter. Je vous conseille d'utiliser un service gratuit comme
+  Cron-job.org (https://cron-job.org/) ou UptimeRobot (https://uptimerobot.com/) pour appeler l'URL https://votre-app.onrender.com/api une fois par jour. Cela réveillera le backend, qui
+  à son tour activera la base de données Aiven.
+
+Fichiers modifiés :
+
+- backend/scripts/keep-alive.js (Nouveau)
+- backend/package.json
+- backend/index.js

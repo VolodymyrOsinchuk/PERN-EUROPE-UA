@@ -1,3 +1,4 @@
+// backend/routes/advRouter.js
 const express = require("express");
 const { authMiddleware } = require("../middleware/authMiddleware");
 const router = express.Router();
@@ -9,17 +10,22 @@ const {
   updateAnnonce,
   getUserAnnonces,
 } = require("../controllers/advController");
-const { upload } = require("../middleware/multer");
+const { upload, uploadToCloudinary } = require("../middleware/multer");
 const checkOwnership = require("../middleware/checkOwnership");
 const validateUpdateFields = require("../middleware/validateUpdateFields");
 
 router
   .route("/")
-  .post(upload.array("photos", 5), authMiddleware, createAnnonce)
+  .post(
+    authMiddleware,
+    upload.array("photos", 5),
+    uploadToCloudinary("advs"),
+    createAnnonce,
+  )
   .get(getAllAnnonces);
-router
-  .route("/user-ads")
-  .get(authMiddleware, getUserAnnonces);
+
+router.route("/user-ads").get(authMiddleware, getUserAnnonces);
+
 router
   .route("/:id")
   .get(getAnnonceById)
@@ -27,9 +33,10 @@ router
     authMiddleware,
     checkOwnership,
     upload.array("photos", 5),
+    uploadToCloudinary("advs"),
     validateUpdateFields,
-    updateAnnonce
+    updateAnnonce,
   )
-  .delete(deleteAnnonce);
+  .delete(authMiddleware, checkOwnership, deleteAnnonce);
 
 module.exports = router;

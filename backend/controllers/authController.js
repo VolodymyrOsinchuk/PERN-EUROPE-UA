@@ -51,7 +51,12 @@ exports.register = async (req, res) => {
       role,
     });
 
-    await sendVerificationEmail(user.email, firstName, verificationToken);
+    const testEmailSent = await sendVerificationEmail(
+      user.email,
+      firstName,
+      verificationToken,
+    );
+    console.log("🚀 ~ testEmailSent:", testEmailSent);
 
     res.status(201).json({
       message: "Користувача успішно створено. Перевірте електронну пошту.",

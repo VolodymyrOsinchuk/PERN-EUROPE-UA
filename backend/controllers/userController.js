@@ -1,6 +1,7 @@
 const { User } = require("../models/user");
 const { Adv } = require("../models/adv");
 const { Category } = require("../models/category");
+const { deleteCloudinaryFile } = require("../config/cloudinary");
 const path = require("path");
 const fs = require("fs");
 
@@ -102,36 +103,46 @@ exports.updateUser = async (req, res) => {
 
 exports.uploadProfilePicture = async (req, res) => {
   try {
-    if (!req.file) {
+    console.log("uploadProfilePicture controller reached");
+    if (!req.cloudinaryUrl) {
+      console.log("req.cloudinaryUrl is missing");
       return res.status(400).json({ message: "Файл не завантажено" });
     }
 
+    console.log("User ID from token:", req.user.userId);
     const user = await User.findByPk(req.user.userId);
-    if (!user)
+    if (!user) {
+      console.log("User not found in DB");
       return res.status(404).json({ message: "Користувача не знайдено" });
-
-    // Delete old picture if it exists and is not the default
-    if (
-      user.profilePicture &&
-      !user.profilePicture.startsWith("http") &&
-      user.profilePicture !== "/uploads/profile/default.png"
-    ) {
-      const oldImagePath = path.join(
-        __dirname,
-        "..",
-        "public",
-        user.profilePicture,
-      );
-      fs.unlink(oldImagePath, (err) => {
-        if (err) console.error("Помилка видалення старого фото:", err);
-      });
     }
 
-    // FIX: store relative path, not absolute
-    const profilePictureUrl = `/uploads/users/${req.file.filename}`;
-    await user.update({ profilePicture: profilePictureUrl });
+    // Supprimer l'ancienne photo : Cloudinary si http, fichier legacy sinon
+    if (
+      user.profilePicture &&
+      user.profilePicture !== "/uploads/profile/default.png"
+    ) {
+      console.log("Old profile picture exists:", user.profilePicture);
+      if (user.profilePicture.startsWith("http")) {
+        console.log("Deleting old photo from Cloudinary...");
+        await deleteCloudinaryFile(user.profilePicture);
+      } else {
+        const oldImagePath = path.join(
+          __dirname,
+          "..",
+          "public",
+          user.profilePicture,
+        );
+        console.log("Deleting old local photo:", oldImagePath);
+        fs.unlink(oldImagePath, (err) => {
+          if (err) console.error("Помилка видалення старого фото:", err);
+        });
+      }
+    }
 
-    res.status(200).json({ profilePicture: profilePictureUrl });
+    console.log("Updating user profile picture to:", req.cloudinaryUrl);
+    await user.update({ profilePicture: req.cloudinaryUrl });
+    console.log("User updated successfully");
+    res.status(200).json({ profilePicture: req.cloudinaryUrl });
   } catch (error) {
     console.error("Помилка uploadProfilePicture:", error);
     res.status(500).json({ error: error.message });
@@ -179,18 +190,23 @@ exports.deleteUser = async (req, res) => {
     if (!user)
       return res.status(404).json({ message: "Користувача не знайдено" });
 
-    if (user.profilePicture && !user.profilePicture.startsWith("http")) {
-      const fs = require("fs");
-      const path = require("path");
-      const abs = path.join(
-        __dirname,
-        "..",
-        "public",
-        user.profilePicture.replace(/^\//, ""),
-      );
-      fs.unlink(abs, (err) => {
-        if (err) console.error("Erreur suppression avatar:", err.message);
-      });
+    if (
+      user.profilePicture &&
+      user.profilePicture !== "/uploads/profile/default.png"
+    ) {
+      if (user.profilePicture.startsWith("http")) {
+        await deleteCloudinaryFile(user.profilePicture);
+      } else {
+        const abs = path.join(
+          __dirname,
+          "..",
+          "public",
+          user.profilePicture.replace(/^\//, ""),
+        );
+        fs.unlink(abs, (err) => {
+          if (err) console.error("Erreur suppression avatar:", err.message);
+        });
+      }
     }
 
     await user.destroy();

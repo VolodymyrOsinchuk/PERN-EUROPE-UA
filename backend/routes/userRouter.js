@@ -1,5 +1,6 @@
-const express = require('express')
-const router = express.Router()
+// backend/routes/userRouter.js
+const express = require("express");
+const router = express.Router();
 const {
   getAllUsers,
   getUserById,
@@ -9,23 +10,22 @@ const {
   getDashboardStats,
   uploadProfilePicture,
   updatePassword,
-} = require('../controllers/userController')
-const { upload } = require('../middleware/multer')
-const { authMiddleware } = require('../middleware/authMiddleware')
+} = require("../controllers/userController");
+const { upload, uploadSingleToCloudinary } = require("../middleware/multer");
 
-router.route('/').get(getAllUsers).post(createUser)
-router.get('/current-user', authMiddleware, getUserById)
-router.get('/stats', authMiddleware, getDashboardStats)
+router.route("/").get(getAllUsers).post(createUser);
+router.get("/current-user", getUserById);
+router.get("/stats", getDashboardStats);
 router.post(
-  '/upload-profile-picture',
-  authMiddleware,
-  upload.single('profilePicture'),
-  uploadProfilePicture
-)
-router.patch('/update-password', authMiddleware, updatePassword)
+  "/upload-profile-picture",
+  upload.single("profilePicture"),
+  uploadSingleToCloudinary("users"),
+  uploadProfilePicture,
+);
+router.patch("/update-password", updatePassword);
 router
-  .route('/:id')
-  .put(authMiddleware, updateUser)
-  .delete(authMiddleware, deleteUser)
+  .route("/:id")
+  .put(updateUser)
+  .delete(deleteUser);
 
-module.exports = router
+module.exports = router;

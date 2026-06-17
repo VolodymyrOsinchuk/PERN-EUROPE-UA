@@ -1,8 +1,5 @@
-require("dotenv").config();
 const config = require("./config");
-
 const { Sequelize } = require("sequelize");
-
 let sequelize;
 
 if (process.env.NODE_ENV === "production") {
