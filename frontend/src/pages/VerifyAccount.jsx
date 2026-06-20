@@ -11,15 +11,15 @@ import { toast } from "react-toastify";
 import customFetch from "../utils/customFetch";
 
 export const loader = async ({ params }) => {
-  console.log("🚀 ~ loader ~ params :", params);
+  console.log("🚀 ~ loader ~ параметри:", params);
   try {
     const { data } = await customFetch.get(
       `/auth/verify-email/${params.token}`,
     );
-    console.log("🚀 ~ loader ~  data:", data);
+    console.log("🚀 ~ loader ~ дані:", data);
     return data;
   } catch (error) {
-    console.log("🚀 ~ loader ~ error:", error);
+    console.log("🚀 ~ loader ~ помилка:", error);
     // Fixed: toast was called here but never imported — now imported above
     toast.error(error?.response?.data?.message || "Помилка верифікації");
     return redirect("/register");
@@ -28,7 +28,7 @@ export const loader = async ({ params }) => {
 
 const VerifyAccount = () => {
   const data = useLoaderData();
-  console.log("🚀 ~ VerifyAccount ~ data:", data);
+  console.log("🚀 ~ VerifyAccount ~ дані:", data);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isVerified, setIsVerified] = useState(false);

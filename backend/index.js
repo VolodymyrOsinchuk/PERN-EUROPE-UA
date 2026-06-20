@@ -15,6 +15,7 @@ const cron = require("node-cron");
 const app = express();
 
 const sequelize = require("./config/db");
+const { startAdExpirationCron } = require("./cron/adExpirationCron");
 const advRoutes = require("./routes/advRouter");
 const categoryRoutes = require("./routes/categoryRouter");
 const authRoutes = require("./routes/authRouter");
@@ -24,6 +25,7 @@ const newsRoutes = require("./routes/newsRouter");
 const publicationRoutes = require("./routes/publicationRouter");
 const forumRoutes = require("./routes/forumRouter");
 const messageRoutes = require("./routes/messageRouter");
+const adExpirationSettingsRouter = require("./routes/adExpirationSettingsRouter");
 const config = require("./config/config");
 const { authMiddleware } = require("./middleware/authMiddleware");
 
@@ -63,6 +65,9 @@ app.use("/api/v1/news", newsRoutes);
 app.use("/api/v1/publications", publicationRoutes);
 app.use("/api/v1/forum", forumRoutes);
 app.use("/api/v1/messages", authMiddleware, messageRoutes);
+app.use("/api/v1/admin/ad-expiration-settings", adExpirationSettingsRouter);
+
+startAdExpirationCron();
 
 app.use((err, req, res, next) => {
   console.error("[ПОМИЛКА]", {

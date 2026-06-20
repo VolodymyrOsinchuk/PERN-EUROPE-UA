@@ -16,24 +16,24 @@ const Adv = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: false,
       validate: {
-        notEmpty: { message: "Le titre ne peut pas être vide" },
+        notEmpty: { message: "Заголовок не може бути порожнім" },
         len: [3, 255],
       },
     },
     country: {
       type: DataTypes.STRING(100),
       allowNull: false,
-      validate: { notEmpty: { message: "Le pays est requis" } },
+      validate: { notEmpty: { message: "Країна обов'язкова" } },
     },
     state: {
       type: DataTypes.STRING(100),
       allowNull: false,
-      validate: { notEmpty: { message: "La région/état est requise" } },
+      validate: { notEmpty: { message: "Регіон/область обов'язкові" } },
     },
     city: {
       type: DataTypes.STRING(100),
       allowNull: false,
-      validate: { notEmpty: { message: "La ville est requise" } },
+      validate: { notEmpty: { message: "Місто обов'язкове" } },
     },
     // FIX: "location" added — CreateAdPage sends it, was lost before
     location: {
@@ -49,19 +49,25 @@ const Adv = sequelize.define(
       type: DataTypes.STRING(100),
       allowNull: false,
       // FIX: removed unique:true — multiple ads from same email must be allowed
-      validate: { isEmail: { message: "Format d'email invalide" } },
+      validate: { isEmail: { message: "Невірний формат email" } },
     },
     // FIX: phone added
     phone: {
       type: DataTypes.STRING(30),
       allowNull: true,
+      validate: {
+        is: {
+          args: /^\+[1-9]\d{6,14}$/,
+          msg: "Номер телефону має бути у міжнародному форматі E.164",
+        },
+      },
     },
     price: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
       validate: {
-        min: { args: [0], message: "Le prix doit être positif" },
-        max: { args: [1000000], message: "Prix trop élevé" },
+        min: { args: [0], message: "Ціна має бути додатним числом" },
+        max: { args: [1000000], message: "Ціна занадто висока" },
       },
     },
     photos: {
@@ -83,11 +89,11 @@ const Adv = sequelize.define(
       allowNull: false,
       references: { model: Category, key: "id" },
       validate: {
-        notNull: { message: "La catégorie est requise" },
+        notNull: { message: "Категорія обов'язкова" },
         async validateCategoryExists(value) {
           if (value) {
             const category = await Category.findByPk(value);
-            if (!category) throw new Error("Catégorie inexistante");
+            if (!category) throw new Error("Категорія не існує");
           }
         },
       },
@@ -114,6 +120,14 @@ const Adv = sequelize.define(
     isPromoted: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
+    },
+    isArchived: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    archivedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
     userId: {
       type: DataTypes.INTEGER,

@@ -3,7 +3,14 @@ const { User } = require("../models/user"); // Adjust path as needed
 const { verifyJWT } = require("../utils/tokenUtils");
 
 const authMiddleware = async (req, res, next) => {
+  // console.log(
+  //   "🚀 ~ authMiddleware ~ req.cookies:",
+  //   JSON.stringify(req.cookies),
+  // );
+  // console.log("🚀 ~ authMiddleware ~ req.cookies.token:", req.cookies.token);
   const { token } = req.cookies;
+  // console.log("🚀 ~ authMiddleware ~ token :", token);
+
   if (!token) {
     return res.status(401).json({
       error: "Токен не надано",
@@ -13,6 +20,12 @@ const authMiddleware = async (req, res, next) => {
 
   try {
     const { userId, email, role } = await verifyJWT(token);
+    // console.log(
+    //   "🚀 ~ authMiddleware ~  userId, email, role:",
+    //   userId,
+    //   email,
+    //   role,
+    // );
 
     req.user = { userId, email, role };
     next();

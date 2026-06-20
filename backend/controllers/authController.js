@@ -56,7 +56,7 @@ exports.register = async (req, res) => {
       firstName,
       verificationToken,
     );
-    console.log("🚀 ~ testEmailSent:", testEmailSent);
+    console.log("🚀 ~ тестовий email надіслано:", testEmailSent);
 
     res.status(201).json({
       message: "Користувача успішно створено. Перевірте електронну пошту.",

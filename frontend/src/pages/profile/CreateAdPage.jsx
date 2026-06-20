@@ -41,6 +41,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
+import { toE164 } from "../../utils/phone";
 
 /* ── Loader / Action ── */
 export const loader = async () => {
@@ -56,10 +57,22 @@ export const loader = async () => {
 export const action = async ({ request }) => {
   const formData = new FormData();
   const data = await request.formData();
+
   for (const [key, value] of data.entries()) {
     if (key !== "photos") formData.append(key, value);
   }
   data.getAll("photos").forEach((photo) => formData.append("photos", photo));
+
+  // FIX P2-3: normalisation E.164 avant envoi au backend
+  const phoneCode = data.get("phoneCode");
+  const rawPhone = data.get("phone");
+  const normalizedPhone = toE164(phoneCode, rawPhone);
+  if (rawPhone && !normalizedPhone) {
+    toast.error("Невірний формат номера телефону");
+    return null;
+  }
+  if (normalizedPhone) formData.append("phone", normalizedPhone);
+
   try {
     const response = await customFetch.post("/adv", formData, {
       headers: { "Content-Type": "multipart/form-data" },
@@ -735,6 +748,9 @@ export default function CreateAdPage() {
                     value={phoneCode ? `+${phoneCode}` : ""}
                     disabled
                     fullWidth
+                    InputProps={{
+                      readOnly: true,
+                    }}
                     sx={{
                       ...inputSx,
                       "& .MuiOutlinedInput-root": {
@@ -762,7 +778,7 @@ export default function CreateAdPage() {
             <StepSection
               number={4}
               title={`Фотографії (${previewImages.length}/5)`}
-              subtitle="Гарні фото підвищують кількість відгуків na 3×"
+              subtitle="Гарні фото підвищують кількість відгуків у 3×"
               completed={step4Done}
             >
               {/* Dropzone */}

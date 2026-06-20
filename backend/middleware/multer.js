@@ -30,7 +30,7 @@
 //   if (file.mimetype.startsWith("image/")) {
 //     cb(null, true);
 //   } else {
-//     cb(new Error("Seules les images sont autorisées"), false);
+//     cb(new Error("Дозволені лише зображення"), false);
 //   }
 // };
 
@@ -59,7 +59,7 @@ const imageFilter = (req, file, cb) => {
   if (file.mimetype.startsWith("image/")) {
     cb(null, true);
   } else {
-    cb(new Error("Seules les images sont autorisées"), false);
+    cb(new Error("Дозволені лише зображення"), false);
   }
 };
 
@@ -116,8 +116,8 @@ function uploadToCloudinary(folder) {
       req.cloudinaryPublicIds = uploads.map((r) => r.public_id);
       next();
     } catch (err) {
-      console.error("Erreur upload Cloudinary:", err.message);
-      res.status(500).json({ error: "Erreur lors de l'upload des images" });
+      console.error("Помилка завантаження у Cloudinary:", err.message);
+      res.status(500).json({ error: "Помилка завантаження зображень" });
     }
   };
 }
@@ -130,22 +130,22 @@ function uploadToCloudinary(folder) {
 function uploadSingleToCloudinary(folder) {
   return async (req, res, next) => {
     if (!req.file) {
-      console.log("No file found in request");
+      console.log("Файл у запиті не знайдено");
       return next();
     }
 
     try {
-      console.log(`Uploading file to Cloudinary folder: ${folder}`);
+      console.log(`Завантаження файлу до папки Cloudinary: ${folder}`);
       const result = await uploadBufferToCloudinary(req.file.buffer, folder);
-      console.log("Cloudinary upload successful:", result.secure_url);
+      console.log("Файл успішно завантажено до Cloudinary:", result.secure_url);
       req.cloudinaryUrl = result.secure_url;
       req.cloudinaryPublicId = result.public_id;
       next();
     } catch (err) {
-      console.error("Erreur upload Cloudinary (single):", err.message);
-      console.error("Full error object:", err);
+      console.error("Помилка завантаження у Cloudinary (один файл):", err.message);
+      console.error("Повний об'єкт помилки:", err);
       res.status(500).json({
-        error: "Erreur lors de l'upload de l'image",
+        error: "Помилка завантаження зображення",
         message: err.message,
         details: err.message,
       });

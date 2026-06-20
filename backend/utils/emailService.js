@@ -258,10 +258,10 @@ async function sendMail({ to, subject, html, text }) {
       // Fallback texte généré automatiquement si non fourni
       text: text ?? subject,
     });
-    console.log(`✅ Email envoyé à ${to} — ID : ${data.id}`);
+    console.log(`✅ Email надіслано на ${to} — ID: ${data.id}`);
     return true;
   } catch (error) {
-    console.error(`❌ Erreur envoi email à ${to} :`, error?.message ?? error);
+    console.error(`❌ Помилка надсилання email на ${to}:`, error?.message ?? error);
     return false;
   }
 }

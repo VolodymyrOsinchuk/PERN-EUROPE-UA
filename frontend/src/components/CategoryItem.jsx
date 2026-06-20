@@ -16,7 +16,7 @@ function CategoryItem({
   onDeleteCategory,
   onDeleteSubcategory,
 }) {
-  console.log("🚀 ~ category:", category);
+  console.log("🚀 ~ категорія:", category);
 
   return (
     <Paper sx={{ mb: "16px", p: 2 }}>

@@ -50,7 +50,12 @@ exports.createReply = async (req, res) => {
       ? `${req.user.firstName} ${req.user.lastName || ""}`.trim()
       : req.body.author || "Анонім";
 
-    const newReply = await ForumReply.create({ topicId, content, author });
+    const newReply = await ForumReply.create({
+      topicId,
+      content,
+      author,
+      userId: req.user?.userId || null,
+    });
     await ForumTopic.increment("replies", { by: 1, where: { id: topicId } });
     await ForumTopic.update(
       { lastUpdate: new Date() },
@@ -70,7 +75,11 @@ exports.createTopic = async (req, res) => {
       ? `${req.user.firstName} ${req.user.lastName || ""}`.trim()
       : req.body.author || "Анонім";
 
-    const newTopic = await ForumTopic.create({ ...req.body, author });
+    const newTopic = await ForumTopic.create({
+      ...req.body,
+      author,
+      userId: req.user?.userId || null,
+    });
     res.status(201).json(newTopic);
   } catch (error) {
     console.error("Помилка createTopic:", error);
@@ -78,17 +87,21 @@ exports.createTopic = async (req, res) => {
   }
 };
 
+// FIX P2-2: ajout du contrôle de propriété, absent jusqu'ici — n'importe
+// quel utilisateur connecté pouvait modifier/supprimer le sujet d'un autre.
 exports.updateTopic = async (req, res) => {
   try {
-    const [updated] = await ForumTopic.update(req.body, {
-      where: { id: req.params.id },
-    });
-    if (updated) {
-      const updatedTopic = await ForumTopic.findByPk(req.params.id);
-      res.status(200).json(updatedTopic);
-    } else {
-      res.status(404).json({ message: "Тему не знайдено" });
+    const topic = await ForumTopic.findByPk(req.params.id);
+    if (!topic) return res.status(404).json({ message: "Тему не знайдено" });
+
+    if (topic.userId !== req.user.userId && req.user.role !== "admin") {
+      return res
+        .status(403)
+        .json({ message: "Не дозволено змінювати цю тему" });
     }
+
+    await topic.update(req.body);
+    res.status(200).json(topic);
   } catch (error) {
     console.error("Помилка updateTopic:", error);
     res.status(500).json({ error: error.message });
@@ -97,12 +110,15 @@ exports.updateTopic = async (req, res) => {
 
 exports.deleteTopic = async (req, res) => {
   try {
-    const deleted = await ForumTopic.destroy({ where: { id: req.params.id } });
-    if (deleted) {
-      res.status(204).send();
-    } else {
-      res.status(404).json({ message: "Тему не знайдено" });
+    const topic = await ForumTopic.findByPk(req.params.id);
+    if (!topic) return res.status(404).json({ message: "Тему не знайдено" });
+
+    if (topic.userId !== req.user.userId && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Не дозволено видаляти цю тему" });
     }
+
+    await topic.destroy();
+    res.status(204).send();
   } catch (error) {
     console.error("Помилка deleteTopic:", error);
     res.status(500).json({ error: error.message });

@@ -39,7 +39,7 @@ export const loader = async ({ params }) => {
       subcategories: subcategoriesRes.data,
     };
   } catch (error) {
-    console.error("🚀 ~ loader ~ error:", error);
+    console.error("🚀 ~ loader ~ помилка:", error);
     if (error.response?.status === 404) {
       toast.error("Категорію не знайдено");
       return redirect("/dashboard/categories");

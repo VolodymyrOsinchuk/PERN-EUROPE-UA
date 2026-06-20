@@ -28,7 +28,7 @@ function parseIntOr(value, fallback) {
 // Helper pour récupérer variable obligatoire
 function required(name) {
   if (!process.env[name]) {
-    throw new Error(`Missing required environment variable: ${name}`);
+    throw new Error(`Відсутня обов'язкова змінна середовища: ${name}`);
   }
   return process.env[name];
 }
@@ -49,7 +49,7 @@ module.exports = {
   },
 
   client: {
-    url: process.env.BACKEND_URL || "http://localhost:5000",
+    url: process.env.CLIENT_URL || "http://localhost:5173",
   },
 
   jwt: {

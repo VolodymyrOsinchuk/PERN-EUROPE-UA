@@ -34,7 +34,7 @@ export const loader = async () => {
     return data;
   } catch (error) {
     // Publications route may not be mounted yet — return mock data
-    console.warn("Publications API not available:", error?.message);
+    console.warn("API публікацій недоступний:", error?.message);
     return MOCK_PUBLICATIONS;
   }
 };

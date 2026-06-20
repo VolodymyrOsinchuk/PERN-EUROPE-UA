@@ -12,7 +12,7 @@ customFetch.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error("Erreur Axios:", error);
+    console.error("Помилка Axios:", error);
     return Promise.reject(error);
   },
 );

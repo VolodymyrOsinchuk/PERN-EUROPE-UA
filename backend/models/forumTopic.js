@@ -26,6 +26,11 @@ const ForumTopic = sequelize.define(
       type: DataTypes.STRING(100),
       allowNull: true,
     },
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: { model: "users", key: "id" },
+    },
     replies: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
@@ -42,7 +47,7 @@ const ForumTopic = sequelize.define(
   {
     tableName: "forum_topics",
     timestamps: true,
-  }
+  },
 );
 
 module.exports = { ForumTopic };

@@ -8,13 +8,13 @@ const validateUpdateFields = async (req, res, next) => {
     if (title !== undefined && title.length < 3) {
       return res
         .status(400)
-        .json({ error: "Le titre doit contenir au moins 3 caractères" });
+        .json({ error: "Заголовок має містити щонайменше 3 символи" });
     }
 
     if (description !== undefined && description.length < 10) {
       return res
         .status(400)
-        .json({ error: "La description doit contenir au moins 10 caractères" });
+        .json({ error: "Опис має містити щонайменше 10 символів" });
     }
 
     if (
@@ -24,13 +24,13 @@ const validateUpdateFields = async (req, res, next) => {
     ) {
       return res
         .status(400)
-        .json({ error: "Le prix doit être un nombre positif" });
+        .json({ error: "Ціна має бути додатним числом" });
     }
 
     if (categoryId) {
       const category = await Category.findByPk(categoryId);
       if (!category) {
-        return res.status(400).json({ error: "Catégorie invalide" });
+        return res.status(400).json({ error: "Невірна категорія" });
       }
     }
 
@@ -41,7 +41,7 @@ const validateUpdateFields = async (req, res, next) => {
         (categoryId && subcategory.categoryId !== parseInt(categoryId))
       ) {
         return res.status(400).json({
-          error: "Sous-catégorie invalide ou ne correspond pas à la catégorie",
+          error: "Невірна підкатегорія або вона не відповідає категорії",
         });
       }
     }
@@ -56,7 +56,7 @@ const validateUpdateFields = async (req, res, next) => {
       "Vendu",
     ];
     if (status !== undefined && !validStatus.includes(status)) {
-      return res.status(400).json({ error: "Statut invalide" });
+      return res.status(400).json({ error: "Невірний статус" });
     }
 
     next();

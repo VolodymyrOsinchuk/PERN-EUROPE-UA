@@ -68,7 +68,7 @@ export async function profileLoader() {
     };
   } catch (error) {
     toast.error("Помилка завантаження даних профілю");
-    console.error("Loader error:", error);
+    console.error("Помилка loader:", error);
     return { ads: [], publications: [], events: [] };
   }
 }

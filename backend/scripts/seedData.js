@@ -10,12 +10,12 @@ const sequelize = require("../config/db");
 
 async function seedDatabase() {
   try {
-    console.log("Starting database synchronization...");
+    console.log("Початок синхронізації бази даних...");
     await sequelize.sync({ force: process.env.NODE_ENV !== "production" });
-    console.log("Database synchronized.");
+    console.log("Базу даних синхронізовано.");
 
     // 1. Create Users
-    console.log("Creating users...");
+    console.log("Створення користувачів...");
     const adminUser = await User.create({
       firstName: "Admin",
       lastName: "System",
@@ -92,10 +92,10 @@ async function seedDatabase() {
       ],
       { individualHooks: true },
     );
-    console.log("Users created.");
+    console.log("Користувачів створено.");
 
     // 2. Create Categories & Subcategories
-    console.log("Creating categories and subcategories...");
+    console.log("Створення категорій і підкатегорій...");
     const catData = [
       {
         name: "Immobilier",
@@ -133,10 +133,10 @@ async function seedDatabase() {
         subcategoryMap[subName] = sub.id;
       }
     }
-    console.log("Categories created.");
+    console.log("Категорії створено.");
 
     // 3. Create Advertisements
-    console.log("Creating advertisements...");
+    console.log("Створення оголошень...");
     await Adv.bulkCreate([
       {
         title: "Appartement calme à Varsovie",
@@ -223,10 +223,10 @@ async function seedDatabase() {
         isPromoted: false,
       },
     ]);
-    console.log("Advertisements created.");
+    console.log("Оголошення створено.");
 
     // 4. Create Events
-    console.log("Creating events...");
+    console.log("Створення подій...");
     await Event.bulkCreate([
       {
         title: "Rencontre communautaire - Paris",
@@ -252,10 +252,10 @@ async function seedDatabase() {
         userId: 2,
       },
     ]);
-    console.log("Events created.");
+    console.log("Події створено.");
 
     // 5. Create News
-    console.log("Creating news...");
+    console.log("Створення новин...");
     await News.bulkCreate([
       {
         title: "Nouvelles régulations pour le statut de protection temporaire",
@@ -282,10 +282,10 @@ async function seedDatabase() {
         date: new Date(),
       },
     ]);
-    console.log("News created.");
+    console.log("Новини створено.");
 
     // 6. Create Publications
-    console.log("Creating publications...");
+    console.log("Створення публікацій...");
     await Publication.bulkCreate([
       {
         title: "Guide complet : S'installer en France",
@@ -308,10 +308,10 @@ async function seedDatabase() {
         userId: 3,
       },
     ]);
-    console.log("Publications created.");
+    console.log("Публікації створено.");
 
     // 7. Create Forum Topics & Replies
-    console.log("Creating forum data...");
+    console.log("Створення даних форуму...");
     const topic1 = await ForumTopic.create({
       title: "Comment trouver un logement à Prague ?",
       content:
@@ -354,11 +354,11 @@ async function seedDatabase() {
       author: "Admin System",
     });
 
-    console.log("Forum data created.");
+    console.log("Дані форуму створено.");
 
-    console.log("Base de données initialisée avec succès !");
+    console.log("Базу даних успішно ініціалізовано!");
   } catch (error) {
-    console.error("Erreur lors du peuplement de la base de données :", error);
+    console.error("Помилка заповнення бази даних:", error);
   } finally {
     await sequelize.close();
   }

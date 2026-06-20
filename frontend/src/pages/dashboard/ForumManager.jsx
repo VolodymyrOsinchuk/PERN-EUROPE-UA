@@ -51,7 +51,7 @@ const ICON_OPTIONS = [
   { value: "school", label: "Éducation" },
   { value: "local_hospital", label: "Santé" },
   { value: "groups", label: "Communauté" },
-  { value: "description", label: "Documents" },
+  { value: "description", label: "Документи" },
   { value: "travel_explore", label: "Voyage" },
   { value: "attach_money", label: "Finance" },
   { value: "language", label: "Langue" },

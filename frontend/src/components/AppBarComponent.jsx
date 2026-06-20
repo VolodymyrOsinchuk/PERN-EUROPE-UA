@@ -22,7 +22,7 @@ const AppBarComponent = ({ handleDrawerToggle }) => {
       <Toolbar sx={{ minHeight: "64px !important", px: { xs: 2, sm: 3 } }}>
         {/* Mobile menu toggle */}
         <IconButton
-          aria-label="open drawer"
+          aria-label="відкрити меню"
           edge="start"
           onClick={handleDrawerToggle}
           sx={{ mr: 2, display: { sm: "none" }, color: "text.secondary" }}

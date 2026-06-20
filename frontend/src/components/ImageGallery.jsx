@@ -190,7 +190,7 @@ const ImageGallery = ({ photos = [] }) => {
           <Box
             component="img"
             src={urls[currentIndex]}
-            alt={`Photo ${currentIndex + 1}`}
+            alt={`Фото ${currentIndex + 1}`}
             onLoad={() => setLoaded(true)}
             sx={{
               position: "relative",
@@ -229,7 +229,7 @@ const ImageGallery = ({ photos = [] }) => {
             }}
           >
             <ZoomInIcon sx={{ fontSize: 14 }} />
-            Agrandir
+            Збільшити
           </Box>
 
           {/* Counter badge */}
@@ -265,7 +265,7 @@ const ImageGallery = ({ photos = [] }) => {
                 }}
                 sx={{ ...navBtnSx, left: { xs: 8, sm: 12 } }}
                 size="small"
-                aria-label="Photo précédente"
+                aria-label="Попередня фото"
               >
                 <ChevronLeftIcon />
               </IconButton>
@@ -276,7 +276,7 @@ const ImageGallery = ({ photos = [] }) => {
                 }}
                 sx={{ ...navBtnSx, right: { xs: 8, sm: 12 } }}
                 size="small"
-                aria-label="Photo suivante"
+                aria-label="Наступна фото"
               >
                 <ChevronRightIcon />
               </IconButton>
@@ -304,7 +304,7 @@ const ImageGallery = ({ photos = [] }) => {
                 key={i}
                 component="img"
                 src={url}
-                alt={`Miniature ${i + 1}`}
+                alt={`Мініатюра ${i + 1}`}
                 onClick={() => {
                   setCurrentIndex(i);
                   setLoaded(false);
@@ -360,16 +360,16 @@ const ImageGallery = ({ photos = [] }) => {
               bgcolor: "rgba(255,255,255,0.1)",
               "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
             }}
-            aria-label="Fermer"
-          >
-            <CloseIcon />
-          </IconButton>
+                aria-label="Закрити"
+              >
+                <CloseIcon />
+              </IconButton>
 
           {/* Image */}
           <Box
             component="img"
             src={urls[currentIndex]}
-            alt={`Photo ${currentIndex + 1}`}
+            alt={`Фото ${currentIndex + 1}`}
             onClick={(e) => e.stopPropagation()}
             sx={{
               maxWidth: "90vw",
@@ -393,7 +393,7 @@ const ImageGallery = ({ photos = [] }) => {
                   bgcolor: "rgba(255,255,255,0.1)",
                   "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
                 }}
-                aria-label="Précédent"
+                aria-label="Попередня"
               >
                 <ChevronLeftIcon />
               </IconButton>
@@ -414,7 +414,7 @@ const ImageGallery = ({ photos = [] }) => {
                   bgcolor: "rgba(255,255,255,0.1)",
                   "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
                 }}
-                aria-label="Suivant"
+                aria-label="Наступна"
               >
                 <ChevronRightIcon />
               </IconButton>

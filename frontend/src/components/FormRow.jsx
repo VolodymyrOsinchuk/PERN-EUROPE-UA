@@ -34,7 +34,7 @@ const FormRow = ({ type, name, label, defaultValue, onChange }) => {
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
-                        aria-label="toggle password visibility"
+                        aria-label="перемкнути видимість пароля"
                         onClick={handleClickShowPassword}
                         onMouseDown={handleMouseDownPassword}
                         edge="end"

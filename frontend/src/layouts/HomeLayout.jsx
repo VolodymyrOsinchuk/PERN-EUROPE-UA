@@ -7,7 +7,7 @@ import { Loading } from "../components";
 const HomeLayout = () => {
   const isPageLoading = false;
   const handleCookieAccept = () => {
-    console.log("Cookies accepted");
+    console.log("Файли cookie прийнято");
   };
 
   return (

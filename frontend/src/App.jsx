@@ -579,6 +579,8 @@ import ForumManager, {
   // action as forumManagerAction,
 } from "./pages/dashboard/ForumManager";
 
+import AdExpirationSettings from "./pages/dashboard/AdExpirationSettings";
+
 // ─────────────────────────────────────────────────────────
 const router = createBrowserRouter(
   [
@@ -830,6 +832,10 @@ const router = createBrowserRouter(
             {
               path: "settings",
               element: <Settings />,
+            },
+            {
+              path: "settings/ad-expiration",
+              element: <AdExpirationSettings />,
             },
             // Admin
             {

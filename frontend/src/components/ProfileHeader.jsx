@@ -46,7 +46,7 @@ const ProfileHeader = ({ profileImage, handleImageChange }) => {
               backgroundColor: "rgba(255, 255, 255, 0.8)",
             }}
             onClick={handleIconClick}
-            aria-label="upload picture"
+            aria-label="завантажити фото"
             component="span"
           >
             <PhotoCameraIcon />

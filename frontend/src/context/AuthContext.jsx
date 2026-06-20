@@ -1,5 +1,11 @@
 import { Outlet } from "react-router-dom";
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import { Box, CircularProgress } from "@mui/material";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
@@ -13,8 +19,17 @@ export const AuthProvider = ({ children }) => {
   const fetchUser = useCallback(async () => {
     try {
       const { data } = await customFetch.get("/users/current-user");
+      // console.log("🚀 ~ fetchUser ~ data:", data);
       setUser(data);
-    } catch {
+    } catch (error) {
+      toast.error(
+        "Помилка отримання даних користувача. Будь ласка, увійдіть знову.",
+      );
+      console.log("🚀 ~ fetchUser ~ помилка:", error.response);
+      console.error(
+        "Помилка fetchUser:",
+        error.response?.data || error.message,
+      );
       setUser(null);
     } finally {
       setLoading(false);
@@ -38,14 +53,23 @@ export const AuthProvider = ({ children }) => {
 
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+        }}
+      >
         <CircularProgress />
       </Box>
     );
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, logoutUser, fetchUser, setUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, logoutUser, fetchUser, setUser }}
+    >
       {children ?? <Outlet />}
     </AuthContext.Provider>
   );

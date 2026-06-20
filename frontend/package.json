@@ -17,6 +17,7 @@
     "@mui/material": "^7.3.9",
     "@toolpad/core": "^0.16.0",
     "axios": "^1.14.0",
+    "libphonenumber-js": "^1.13.7",
     "react": "^19.2.4",
     "react-country-state-city": "^1.1.12",
     "react-dom": "^19.2.4",

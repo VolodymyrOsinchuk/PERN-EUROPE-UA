@@ -18,17 +18,17 @@ async function deleteCloudinaryFile(urlOrPublicId) {
     const publicId = match[1];
     await cloudinary.uploader.destroy(publicId);
   } catch (err) {
-    console.error("Erreur suppression Cloudinary:", err.message);
+    console.error("Помилка видалення з Cloudinary:", err.message);
   }
 }
 
-console.log("Cloudinary Config Check:");
+console.log("Перевірка конфігурації Cloudinary:");
 if (process.env.CLOUDINARY_CLOUD_NAME === "Untitled") {
   console.error(
-    "CRITICAL ERROR: Cloudinary Cloud Name is still set to 'Untitled' in your .env file!",
+    "КРИТИЧНА ПОМИЛКА: Cloudinary Cloud Name досі має значення 'Untitled' у вашому .env файлі!",
   );
   console.error(
-    "Please update CLOUDINARY_CLOUD_NAME in backend/.env.development with your real Cloudinary cloud name.",
+    "Оновіть CLOUDINARY_CLOUD_NAME у backend/.env.development, вказавши справжню назву Cloudinary cloud.",
   );
 } else {
   // console.log("CLOUDINARY_CLOUD_NAME:", process.env.CLOUDINARY_CLOUD_NAME);
@@ -38,7 +38,7 @@ if (process.env.CLOUDINARY_CLOUD_NAME === "Untitled") {
   //   process.env.CLOUDINARY_API_SECRET ? "PRESENT (MASKED)" : "MISSING",
   // );
   console.log(
-    "CLOUDINARY configuration appears to be set correctly. Cloudinary is ready to use.",
+    "Конфігурація CLOUDINARY виглядає коректною. Cloudinary готовий до використання.",
   );
 }
 

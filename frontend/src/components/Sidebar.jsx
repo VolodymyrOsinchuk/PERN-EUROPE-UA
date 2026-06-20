@@ -23,6 +23,11 @@ const links = [
   { text: "Статистика", path: "/dashboard/stats", icon: "bar_chart" },
   { text: "Налаштування", path: "/dashboard/settings", icon: "tune" },
   {
+    text: "Закінчення терміну дії оголошень",
+    path: "/dashboard/settings/ad-expiration",
+    icon: "timer",
+  },
+  {
     text: "Admin",
     path: "/dashboard/admin",
     icon: "admin_panel_settings",

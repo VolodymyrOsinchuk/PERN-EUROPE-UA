@@ -71,7 +71,7 @@ exports.createUser = async (req, res) => {
 
     // Seul un admin authentifié (déjà garanti par le router) peut définir
     // explicitement le rôle d'un compte créé via cette route admin.
-    if (req.body.role && req.user?.role === "admin") {
+    if (req.user.role === "admin") {
       allowed.role = req.body.role;
     }
 
@@ -126,7 +126,7 @@ exports.updateUser = async (req, res) => {
       about: about ?? user.about,
     };
 
-    // FIX P0-5: seul un admin peut changer le rôle d'un compte
+    // Seul un admin peut changer le rôle d'un compte
     if (role !== undefined && req.user.role === "admin") {
       updateData.role = role;
     }
@@ -151,16 +151,16 @@ exports.updateUser = async (req, res) => {
 
 exports.uploadProfilePicture = async (req, res) => {
   try {
-    console.log("uploadProfilePicture controller reached");
+    console.log("Контролер uploadProfilePicture викликано");
     if (!req.cloudinaryUrl) {
-      console.log("req.cloudinaryUrl is missing");
+      console.log("req.cloudinaryUrl відсутній");
       return res.status(400).json({ message: "Файл не завантажено" });
     }
 
-    console.log("User ID from token:", req.user.userId);
+    console.log("ID користувача з токена:", req.user.userId);
     const user = await User.findByPk(req.user.userId);
     if (!user) {
-      console.log("User not found in DB");
+      console.log("Користувача не знайдено в базі даних");
       return res.status(404).json({ message: "Користувача не знайдено" });
     }
 
@@ -169,9 +169,9 @@ exports.uploadProfilePicture = async (req, res) => {
       user.profilePicture &&
       user.profilePicture !== "/uploads/profile/default.png"
     ) {
-      console.log("Old profile picture exists:", user.profilePicture);
+      console.log("Старе фото профілю існує:", user.profilePicture);
       if (user.profilePicture.startsWith("http")) {
-        console.log("Deleting old photo from Cloudinary...");
+        console.log("Видалення старого фото з Cloudinary...");
         await deleteCloudinaryFile(user.profilePicture);
       } else {
         const oldImagePath = path.join(
@@ -180,16 +180,16 @@ exports.uploadProfilePicture = async (req, res) => {
           "public",
           user.profilePicture,
         );
-        console.log("Deleting old local photo:", oldImagePath);
+        console.log("Видалення старого локального фото:", oldImagePath);
         fs.unlink(oldImagePath, (err) => {
           if (err) console.error("Помилка видалення старого фото:", err);
         });
       }
     }
 
-    console.log("Updating user profile picture to:", req.cloudinaryUrl);
+    console.log("Оновлення фото профілю користувача на:", req.cloudinaryUrl);
     await user.update({ profilePicture: req.cloudinaryUrl });
-    console.log("User updated successfully");
+    console.log("Користувача успішно оновлено");
     res.status(200).json({ profilePicture: req.cloudinaryUrl });
   } catch (error) {
     console.error("Помилка uploadProfilePicture:", error);

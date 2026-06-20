@@ -16,7 +16,7 @@ const Category = sequelize.define(
       unique: true,
       validate: {
         len: [2, 100], // Name between 2 and 100 characters
-        notEmpty: { message: "Le nom de la catégorie est requis" },
+        notEmpty: { message: "Назва категорії обов'язкова" },
       },
     },
   },
@@ -45,7 +45,7 @@ const SubCategory = sequelize.define(
         async validateCategory(value) {
           const category = await Category.findByPk(value);
           if (!category) {
-            throw new Error("Invalid category");
+            throw new Error("Невірна категорія");
           }
         },
       },
