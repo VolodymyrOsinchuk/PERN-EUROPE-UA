@@ -8,7 +8,11 @@ const checkOwnership = async (req, res, next) => {
       return res.status(404).json({ message: "Оголошення не знайдено" });
     }
 
-    if (adv.userId !== req.user.userId) {
+    // FIX: autoriser les admins/modérateurs en plus du propriétaire
+    const isOwner = adv.userId === req.user.userId;
+    const isPrivileged = ["admin", "moderator"].includes(req.user.role);
+
+    if (!isOwner && !isPrivileged) {
       return res
         .status(403)
         .json({ message: "Не дозволено змінювати це оголошення" });

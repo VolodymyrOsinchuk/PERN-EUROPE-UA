@@ -6,18 +6,18 @@ const { deleteCloudinaryFile } = require("../config/cloudinary");
 exports.createAnnonce = async (req, res) => {
   try {
     const {
-      title,
-      description,
-      price,
+      amenities,
       categoryId,
-      subcategoryId,
-      country,
-      state,
       city,
+      country,
+      description,
+      email,
       location,
       phone,
-      email,
-      amenities,
+      price,
+      state,
+      subcategoryId,
+      title,
     } = req.body;
 
     // req.cloudinaryUrls est injecté par le middleware uploadToCloudinary()
@@ -185,14 +185,31 @@ exports.updateAnnonce = async (req, res) => {
   }
 };
 
+// exports.deleteAnnonce = async (req, res) => {
+//   try {
+//     const adv = await Adv.findByPk(req.params.id);
+//     if (!adv) {
+//       return res.status(404).json({ message: "Оголошення не знайдено" });
+//     }
+
+//     // Supprimer les photos Cloudinary avant de détruire la ligne DB
+//     if (adv.photos?.length) {
+//       await Promise.all(adv.photos.map((url) => deleteCloudinaryFile(url)));
+//     }
+
+//     await adv.destroy();
+//     res.status(204).send();
+//   } catch (error) {
+//     console.error("Помилка deleteAnnonce:", error);
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
 exports.deleteAnnonce = async (req, res) => {
   try {
-    const adv = await Adv.findByPk(req.params.id);
-    if (!adv) {
-      return res.status(404).json({ message: "Оголошення не знайдено" });
-    }
+    // req.adv est injecté par checkOwnership — garantit que adv.userId === req.user.userId
+    const adv = req.adv;
 
-    // Supprimer les photos Cloudinary avant de détruire la ligne DB
     if (adv.photos?.length) {
       await Promise.all(adv.photos.map((url) => deleteCloudinaryFile(url)));
     }

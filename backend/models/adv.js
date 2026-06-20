@@ -128,7 +128,13 @@ const Adv = sequelize.define(
           adv.expirationDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
         }
       },
+      beforeDestroy: async (adv) => {
+        if (adv.photos?.length) {
+          await Promise.all(adv.photos.map((url) => deleteCloudinaryFile(url)));
+        }
+      },
     },
+
     timestamps: true,
     tableName: "advs",
   },

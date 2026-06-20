@@ -1,4 +1,8 @@
+require("dotenv").config();
 const config = require("./config");
+const fs = require("fs");
+const path = require("path");
+
 const { Sequelize } = require("sequelize");
 let sequelize;
 
@@ -10,8 +14,12 @@ if (process.env.NODE_ENV === "production") {
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: false,
-        // ca: fs.readFileSync(path.join(__dirname, "./ca.pem"), "utf8").toString(),
+        rejectUnauthorized: true,
+        ca: process.env.DB_CA_CERT_BASE64
+          ? Buffer.from(process.env.DB_CA_CERT_BASE64, "base64").toString(
+              "utf8",
+            )
+          : undefined,
       },
     },
   });
@@ -32,9 +40,6 @@ if (process.env.NODE_ENV === "production") {
         min: 0,
         acquire: 30000,
         idle: 10000,
-      },
-      dialectOptions: {
-        // Pas besoin de spécifier ssl: false explicitement
       },
     },
   );

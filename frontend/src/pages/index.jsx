@@ -76,10 +76,11 @@ export { default as VerifyAccount } from "./VerifyAccount";
 export { default as Policy } from "./Policy";
 
 // Pages publiques avec loader API réel
-export { default as News } from "./public/News";
-export { default as Events } from "./public/Events";
-export { default as Publications } from "./public/Publications";
-export { default as PublicationsPublic } from "./public/Publications"; // alias
+export { default as News } from "./News";
+export { default as NewsDetail } from "./NewsDetail";
+export { default as Events } from "./Events";
+export { default as Publications } from "./Publications";
+// export { default as PublicationsPublic } from "./public/Publications"; // alias
 export { default as Ads } from "./public/Ads";
 export { default as AdDetailPage } from "./public/AdDetailPage";
 export { default as Contacts } from "./public/Contacts";
@@ -117,7 +118,7 @@ export { default as DashboardEditEvent } from "./dashboard/EditEvent";
 export { default as AdsManager } from "./AdsManager";
 export { default as EventsManager } from "./EventsManager";
 export { default as NewsManager } from "./NewsManager";
-export { default as ForumManager } from "./ForumManager";
+export { default as ForumManager } from "./dashboard/ForumManager";
 export { default as CategoryManager } from "./CategoryManager";
 export { default as CategoryDetails } from "./CategoryDetails";
 export { default as Users } from "./Users";

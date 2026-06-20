@@ -30,7 +30,7 @@ const Conversation = sequelize.define(
   {
     tableName: "conversations",
     timestamps: true,
-  }
+  },
 );
 
 const Message = sequelize.define(
@@ -69,7 +69,7 @@ const Message = sequelize.define(
   {
     tableName: "messages",
     timestamps: true,
-  }
+  },
 );
 
 // Associations
@@ -78,12 +78,33 @@ Conversation.hasMany(Message, {
   as: "messages",
   onDelete: "CASCADE",
 });
-Message.belongsTo(Conversation, { foreignKey: "conversationId", as: "conversation" });
+Message.belongsTo(Conversation, {
+  foreignKey: "conversationId",
+  as: "conversation",
+});
 
-Message.belongsTo(User, { foreignKey: "senderId", as: "sender" });
-Message.belongsTo(User, { foreignKey: "recipientId", as: "recipient" });
+// FIX P1-5: onDelete explicite sur sender/recipient — évite des messages
+// orphelins en base si un compte est supprimé.
+Message.belongsTo(User, {
+  foreignKey: "senderId",
+  as: "sender",
+  onDelete: "CASCADE",
+});
+Message.belongsTo(User, {
+  foreignKey: "recipientId",
+  as: "recipient",
+  onDelete: "CASCADE",
+});
 
-Conversation.belongsTo(Adv, { foreignKey: "adId", as: "ad" });
-Conversation.belongsTo(User, { foreignKey: "createdBy", as: "creator" });
+Conversation.belongsTo(Adv, {
+  foreignKey: "adId",
+  as: "ad",
+  onDelete: "SET NULL",
+});
+Conversation.belongsTo(User, {
+  foreignKey: "createdBy",
+  as: "creator",
+  onDelete: "CASCADE",
+});
 
 module.exports = { Conversation, Message };

@@ -1,5 +1,6 @@
 const { Publication } = require("../models/publication");
 const { User } = require("../models/user");
+const { sanitizeText, sanitizeRichText } = require("../utils/sanitize");
 
 exports.getAllPublications = async (req, res) => {
   try {
@@ -43,13 +44,15 @@ exports.getPublicationById = async (req, res) => {
 
 exports.createPublication = async (req, res) => {
   try {
-    // FIX: auto-fill "author" from authenticated user — frontend never sends it
     const user = await User.findByPk(req.user.userId, {
       attributes: ["firstName", "lastName"],
     });
 
+    // FIX P1-8: sanitisation avant stockage
     const newPublication = await Publication.create({
       ...req.body,
+      title: sanitizeText(req.body.title),
+      content: sanitizeRichText(req.body.content),
       userId: req.user.userId,
       author: user
         ? `${user.firstName} ${user.lastName}`.trim()
@@ -73,7 +76,13 @@ exports.updatePublication = async (req, res) => {
         .status(403)
         .json({ message: "Не дозволено змінювати цю публікацію" });
     }
-    await publication.update(req.body);
+
+    const updateData = { ...req.body };
+    if (updateData.title) updateData.title = sanitizeText(updateData.title);
+    if (updateData.content)
+      updateData.content = sanitizeRichText(updateData.content);
+
+    await publication.update(updateData);
     res.status(200).json(publication);
   } catch (error) {
     console.error("Помилка updatePublication:", error);

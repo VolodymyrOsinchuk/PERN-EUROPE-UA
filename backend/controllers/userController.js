@@ -4,6 +4,7 @@ const { Category } = require("../models/category");
 const { deleteCloudinaryFile } = require("../config/cloudinary");
 const path = require("path");
 const fs = require("fs");
+const { pick } = require("../utils/pick");
 
 exports.getAllUsers = async (req, res) => {
   try {
@@ -32,9 +33,49 @@ exports.getUserById = async (req, res) => {
   }
 };
 
+// exports.createUser = async (req, res) => {
+//   try {
+//     const newUser = await User.create(req.body);
+//     const userWithoutPassword = newUser.toJSON();
+//     delete userWithoutPassword.password;
+//     res.status(201).json(userWithoutPassword);
+//   } catch (error) {
+//     console.error("Помилка createUser:", error);
+//     if (error.name === "SequelizeValidationError") {
+//       return res.status(400).json({
+//         error: "Помилка валідації",
+//         details: error.errors.map((e) => e.message),
+//       });
+//     }
+//     if (error.name === "SequelizeUniqueConstraintError") {
+//       return res.status(409).json({ error: "Email вже використовується" });
+//     }
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
 exports.createUser = async (req, res) => {
   try {
-    const newUser = await User.create(req.body);
+    // FIX P1-1: liste blanche — empêche l'injection de role, isVerified, id...
+    const allowed = pick(req.body, [
+      "firstName",
+      "lastName",
+      "email",
+      "password",
+      "phoneNumber",
+      "country",
+      "state",
+      "city",
+      "location",
+    ]);
+
+    // Seul un admin authentifié (déjà garanti par le router) peut définir
+    // explicitement le rôle d'un compte créé via cette route admin.
+    if (req.body.role && req.user?.role === "admin") {
+      allowed.role = req.body.role;
+    }
+
+    const newUser = await User.create(allowed);
     const userWithoutPassword = newUser.toJSON();
     delete userWithoutPassword.password;
     res.status(201).json(userWithoutPassword);
@@ -66,14 +107,14 @@ exports.updateUser = async (req, res) => {
       city,
       location,
       about,
+      role, // FIX P0-5: extrait mais volontairement ignoré sauf si admin
     } = req.body;
 
     const user = await User.findByPk(id);
     if (!user)
       return res.status(404).json({ message: "Користувача не знайдено" });
 
-    // FIX: include "city" — Register sends it, Profile edit needs it
-    await user.update({
+    const updateData = {
       firstName: firstName ?? user.firstName,
       lastName: lastName ?? user.lastName,
       email: email ?? user.email,
@@ -83,7 +124,14 @@ exports.updateUser = async (req, res) => {
       city: city ?? user.city,
       location: location ?? user.location,
       about: about ?? user.about,
-    });
+    };
+
+    // FIX P0-5: seul un admin peut changer le rôle d'un compte
+    if (role !== undefined && req.user.role === "admin") {
+      updateData.role = role;
+    }
+
+    await user.update(updateData);
 
     const updatedUser = await User.findByPk(id, {
       attributes: { exclude: ["password"] },
@@ -190,24 +238,38 @@ exports.deleteUser = async (req, res) => {
     if (!user)
       return res.status(404).json({ message: "Користувача не знайдено" });
 
-    if (
-      user.profilePicture &&
-      user.profilePicture !== "/uploads/profile/default.png"
-    ) {
-      if (user.profilePicture.startsWith("http")) {
-        await deleteCloudinaryFile(user.profilePicture);
-      } else {
-        const abs = path.join(
-          __dirname,
-          "..",
-          "public",
-          user.profilePicture.replace(/^\//, ""),
-        );
-        fs.unlink(abs, (err) => {
-          if (err) console.error("Erreur suppression avatar:", err.message);
-        });
-      }
+    // if (
+    //   user.profilePicture &&
+    //   user.profilePicture !== "/uploads/profile/default.png"
+    // ) {
+    //   if (user.profilePicture.startsWith("http")) {
+    //     await deleteCloudinaryFile(user.profilePicture);
+    //   } else {
+    //     const abs = path.join(
+    //       __dirname,
+    //       "..",
+    //       "public",
+    //       user.profilePicture.replace(/^\//, ""),
+    //     );
+    //     fs.unlink(abs, (err) => {
+    //       if (err) console.error("Erreur suppression avatar:", err.message);
+    //     });
+    //   }
+    // }
+
+    // FIX P1-6: purge Cloudinary de l'avatar (était filtré sur !startsWith("http"),
+    // ce qui ratait systématiquement les avatars Cloudinary qui SONT des URLs http)
+    if (user.profilePicture) {
+      await deleteCloudinaryFile(user.profilePicture);
     }
+
+    // FIX P1-6 + D5: purge les annonces de l'utilisateur et leurs photos
+    // Cloudinary AVANT de supprimer le compte, en forçant individualHooks
+    // pour déclencher le hook beforeDestroy de chaque Adv.
+    await Adv.destroy({
+      where: { userId: user.id },
+      individualHooks: true,
+    });
 
     await user.destroy();
     res.status(204).send();

@@ -1,8 +1,10 @@
 const { Category, SubCategory } = require("../models/category");
+const { pick } = require("../utils/pick");
 
 exports.createCategory = async (req, res) => {
   try {
-    const category = await Category.create(req.body);
+    const allowed = pick(req.body, ["name"]);
+    const category = await Category.create(allowed);
     res.status(201).json(category);
   } catch (error) {
     console.error("Помилка createCategory:", error);
@@ -84,7 +86,9 @@ exports.addSubCategory = async (req, res) => {
     const parentCategory = await Category.findByPk(categoryId);
 
     if (!parentCategory) {
-      return res.status(404).json({ message: "Батьківську категорію не знайдено" });
+      return res
+        .status(404)
+        .json({ message: "Батьківську категорію не знайдено" });
     }
 
     const newCategory = await SubCategory.create({
@@ -118,7 +122,9 @@ exports.getSubCategoryById = async (req, res) => {
     const parentCategory = await Category.findByPk(categoryId);
 
     if (!parentCategory) {
-      return res.status(404).json({ message: "Батьківську категорію не знайдено" });
+      return res
+        .status(404)
+        .json({ message: "Батьківську категорію не знайдено" });
     }
     const sousCategories = await SubCategory.findByPk(id);
     res.status(200).json(sousCategories);
@@ -133,18 +139,28 @@ exports.updateSubCategory = async (req, res) => {
     const { id } = req.params;
     const { name, categoryId } = req.body;
 
-    const sousCategorie = await Category.findByPk(id);
+    // FIX P1-3: interroger SubCategory, pas Category — l'ancien code
+    // appelait Category.findByPk(id) sur un id de sous-catégorie, ce qui
+    // ne pouvait jamais fonctionner correctement.
+    const sousCategorie = await SubCategory.findByPk(id);
     if (!sousCategorie) {
       return res.status(404).json({ message: "Підкатегорію не знайдено" });
     }
 
-    if (sousCategorie.categoryId === null) {
-      return res
-        .status(400)
-        .json({ message: "Ця категорія не є підкатегорією" });
+    // Si categoryId est fourni, vérifier qu'elle existe
+    if (categoryId !== undefined) {
+      const parentCategory = await Category.findByPk(categoryId);
+      if (!parentCategory) {
+        return res
+          .status(400)
+          .json({ message: "Батьківську категорію не знайдено" });
+      }
     }
 
-    await sousCategorie.update({ name, categoryId });
+    await sousCategorie.update({
+      name: name ?? sousCategorie.name,
+      categoryId: categoryId ?? sousCategorie.categoryId,
+    });
     res.status(200).json(sousCategorie);
   } catch (error) {
     console.error("Помилка updateSubCategory:", error);
@@ -155,16 +171,12 @@ exports.updateSubCategory = async (req, res) => {
 exports.deleteSubCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    const sousCategorie = await Category.findByPk(id);
+
+    // FIX P1-3: interroger SubCategory, pas Category
+    const sousCategorie = await SubCategory.findByPk(id);
 
     if (!sousCategorie) {
       return res.status(404).json({ message: "Підкатегорію не знайдено" });
-    }
-
-    if (sousCategorie.categoryId === null) {
-      return res
-        .status(400)
-        .json({ message: "Ця категорія не є підкатегорією" });
     }
 
     await sousCategorie.destroy();
