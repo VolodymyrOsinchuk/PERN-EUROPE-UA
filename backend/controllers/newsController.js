@@ -1,4 +1,5 @@
 const { News } = require("../models/news");
+const { pick } = require("../utils/pick");
 
 exports.getAllNews = async (req, res) => {
   try {
@@ -26,7 +27,7 @@ exports.getNewsById = async (req, res) => {
 
 exports.createNews = async (req, res) => {
   try {
-    const newNews = await News.create(req.body);
+    const newNews = await News.create(pick(req.body, ["title", "content", "category", "importance", "date"]));
     res.status(201).json(newNews);
   } catch (error) {
     console.error("Помилка createNews:", error);
@@ -36,7 +37,7 @@ exports.createNews = async (req, res) => {
 
 exports.updateNews = async (req, res) => {
   try {
-    const [updated] = await News.update(req.body, {
+    const [updated] = await News.update(pick(req.body, ["title", "content", "category", "importance", "date"]), {
       where: { id: req.params.id },
     });
     if (updated) {
@@ -57,7 +58,7 @@ exports.deleteNews = async (req, res) => {
       where: { id: req.params.id },
     });
     if (deleted) {
-      res.status(204).send("Новину видалено");
+      res.status(200).json({ message: "Новину видалено" });
     } else {
       res.status(404).json({ message: "Новину не знайдено" });
     }

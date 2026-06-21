@@ -1,5 +1,6 @@
 const { Event } = require("../models/event");
 const { User } = require("../models/user");
+const { pick } = require("../utils/pick");
 
 exports.getAllEvents = async (req, res) => {
   try {
@@ -51,8 +52,9 @@ exports.createEvent = async (req, res) => {
       attributes: ["firstName", "lastName", "email"],
     });
 
+    const allowedData = pick(req.body, ["title", "description", "date", "location", "type"]);
     const newEvent = await Event.create({
-      ...req.body,
+      ...allowedData,
       userId: req.user.userId,
       authorName: user
         ? `${user.firstName} ${user.lastName}`.trim()
@@ -83,7 +85,7 @@ exports.updateEvent = async (req, res) => {
         .status(403)
         .json({ message: "Не дозволено змінювати цю подію" });
     }
-    await event.update(req.body);
+    await event.update(pick(req.body, ["title", "description", "date", "location", "type"]));
     res.status(200).json(event);
   } catch (error) {
     console.error("Помилка updateEvent:", error);

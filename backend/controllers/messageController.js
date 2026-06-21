@@ -12,6 +12,10 @@ exports.createMessage = async (req, res, next) => {
       return res.status(400).json({ error: "Відсутні обов'язкові поля" });
     }
 
+    if (recipientId && !Number.isInteger(Number(recipientId))) {
+      return res.status(400).json({ error: "recipientId має бути числом" });
+    }
+
     if (!recipientId && !conversationId) {
       return res
         .status(400)
@@ -59,7 +63,7 @@ exports.createMessage = async (req, res, next) => {
     const newMsg = await Message.create({
       conversationId: conv.id,
       senderId,
-      recipientId: parseInt(recipientId),
+      recipientId: recipientId ? parseInt(recipientId, 10) : null,
       body: message,
     });
 

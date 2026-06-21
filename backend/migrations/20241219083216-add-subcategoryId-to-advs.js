@@ -3,23 +3,31 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.addColumn("advs", "subcategoryId", {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-      references: {
-        model: "subcategories",
-        key: "id",
-      },
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
-    });
+    // La colonne peut déjà exister via sync() — ignorer si c'est le cas
+    try {
+      await queryInterface.addColumn("advs", "subcategoryId", {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: "subcategories",
+          key: "id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
+      });
+    } catch (err) {
+      if (err.parent?.code !== "42701") throw err;
+    }
 
-    // Créer un index pour améliorer les performances des requêtes
-    await queryInterface.addIndex("advs", ["subcategoryId"]);
+    try {
+      await queryInterface.addIndex("advs", ["subcategoryId"]);
+    } catch (err) {
+      if (err.parent?.code !== "55006") throw err;
+    }
   },
 
-  down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeIndex("advs", ["subcategoryId"]);
-    await queryInterface.removeColumn("advs", "subcategoryId");
+  down: async (queryInterface) => {
+    await queryInterface.removeIndex("advs", ["subcategoryId"]).catch(() => {});
+    await queryInterface.removeColumn("advs", "subcategoryId").catch(() => {});
   },
 };

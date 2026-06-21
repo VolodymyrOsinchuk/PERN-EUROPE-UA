@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_ENV=production node index.js",
+    "start": "NODE_ENV=production node scripts/runMigrations.js && node index.js",
     "dev": "NODE_ENV=development nodemon index.js",
     "keep-alive": "node scripts/keep-alive.js",
     "init-categories": "node scripts/initCategories.js",
-    "clean-up": "node scripts/cleanDb.js"
+    "clean-up": "node scripts/cleanDb.js",
+    "migrate": "node scripts/runMigrations.js"
   },
   "keywords": [],
   "author": "",
@@ -39,6 +40,7 @@
     "sharp": "^0.34.5",
     "slugify": "^1.6.9",
     "streamifier": "^0.1.1",
+    "umzug": "^3.8.3",
     "uuid": "^13.0.0"
   }
 }

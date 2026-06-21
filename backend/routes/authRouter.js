@@ -12,14 +12,13 @@ const {
   verifyEmailLimiter,
 } = require("../middleware/rateLimiters");
 
-router.get("/logout", logout);
+router.post("/logout", logout);
 // FIX P1-2: rate limiting sur les routes sensibles à l'abus
 router.post("/login", loginLimiter, login);
 router.post("/register", registerLimiter, register);
 router.get(
   "/verify-email/:token",
   verifyEmailLimiter,
-  verifyEmail,
   verifyEmail,
 );
 

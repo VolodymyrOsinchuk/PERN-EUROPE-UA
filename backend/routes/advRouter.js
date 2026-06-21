@@ -17,8 +17,8 @@ const validateUpdateFields = require("../middleware/validateUpdateFields");
 router
   .route("/")
   .post(
-    upload.array("photos", 5),
     authMiddleware,
+    upload.array("photos", 5),
     uploadToCloudinary("advs"),
     createAnnonce,
   )

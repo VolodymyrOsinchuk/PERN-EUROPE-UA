@@ -27,6 +27,12 @@ exports.register = async (req, res) => {
       });
     }
 
+    if (password.length < 8) {
+      return res.status(400).json({
+        message: "Пароль має містити щонайменше 8 символів",
+      });
+    }
+
     const isFirstAccount = (await User.count()) === 0;
     const role = isFirstAccount ? "admin" : "user";
 
@@ -116,8 +122,8 @@ exports.login = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       expires: new Date(Date.now() + oneDay),
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: true,
+      sameSite: "none",
     });
 
     res.status(200).json({
@@ -146,8 +152,8 @@ exports.logout = (req, res) => {
   res.cookie("token", "logout", {
     httpOnly: true,
     expires: new Date(Date.now()),
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: true,
+    sameSite: "none",
   });
   res.status(200).json({ message: "Користувач вийшов із системи" });
 };

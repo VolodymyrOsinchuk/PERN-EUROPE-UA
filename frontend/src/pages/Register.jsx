@@ -183,7 +183,7 @@ export const action = async ({ request }) => {
   try {
     await customFetch.post("/auth/register", dataForm);
     toast.success("Реєстрація пройшла успішно! Перевірте email.");
-    return redirect("/register");
+    return redirect("/login");
   } catch (error) {
     toast.error(error?.response?.data?.message || "Сталася помилка");
     return error;

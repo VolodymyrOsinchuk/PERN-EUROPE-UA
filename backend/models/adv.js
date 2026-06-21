@@ -2,6 +2,7 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 const { Category, SubCategory } = require("./category");
 const { User } = require("./user");
+const { deleteCloudinaryFile } = require("../config/cloudinary");
 
 const Adv = sequelize.define(
   "Adv",

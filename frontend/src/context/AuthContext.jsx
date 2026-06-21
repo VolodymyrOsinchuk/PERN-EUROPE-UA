@@ -22,9 +22,11 @@ export const AuthProvider = ({ children }) => {
       // console.log("🚀 ~ fetchUser ~ data:", data);
       setUser(data);
     } catch (error) {
-      toast.error(
-        "Помилка отримання даних користувача. Будь ласка, увійдіть знову.",
-      );
+      if (error.response?.status !== 401) {
+        toast.error(
+          "Помилка отримання даних користувача. Будь ласка, увійдіть знову.",
+        );
+      }
       console.log("🚀 ~ fetchUser ~ помилка:", error.response);
       console.error(
         "Помилка fetchUser:",
@@ -42,7 +44,7 @@ export const AuthProvider = ({ children }) => {
 
   const logoutUser = async () => {
     try {
-      await customFetch.get("/auth/logout");
+      await customFetch.post("/auth/logout");
       setUser(null);
       toast.success("Ви вийшли з системи...");
       window.location.href = "/";

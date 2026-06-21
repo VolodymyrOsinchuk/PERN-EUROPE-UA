@@ -2,6 +2,7 @@ const { ForumTopic } = require("../models/forumTopic");
 const { ForumReply } = require("../models/forumReply");
 const { ForumCategory } = require("../models/forumCategory");
 const { User } = require("../models/user");
+const { pick } = require("../utils/pick");
 
 // ─── Topics ───────────────────────────────────────────────
 
@@ -75,8 +76,9 @@ exports.createTopic = async (req, res) => {
       ? `${req.user.firstName} ${req.user.lastName || ""}`.trim()
       : req.body.author || "Анонім";
 
+    const topicData = pick(req.body, ["title", "content", "category"]);
     const newTopic = await ForumTopic.create({
-      ...req.body,
+      ...topicData,
       author,
       userId: req.user?.userId || null,
     });
@@ -100,7 +102,7 @@ exports.updateTopic = async (req, res) => {
         .json({ message: "Не дозволено змінювати цю тему" });
     }
 
-    await topic.update(req.body);
+    await topic.update(pick(req.body, ["title", "content", "category"]));
     res.status(200).json(topic);
   } catch (error) {
     console.error("Помилка updateTopic:", error);
@@ -242,7 +244,7 @@ exports.updateForumCategory = async (req, res) => {
     if (!category)
       return res.status(404).json({ message: "Категорію не знайдено" });
 
-    await category.update(req.body);
+    await category.update(pick(req.body, ["title", "description", "icon", "color", "bgColor", "sortOrder", "isActive"]));
     res.status(200).json(category);
   } catch (error) {
     console.error("Помилка updateForumCategory:", error);

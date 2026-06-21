@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { authMiddleware, roleMiddleware } = require("../middleware/authMiddleware");
 const {
   addSubCategory,
   createCategory,
@@ -13,23 +14,22 @@ const {
   updateSubCategory,
 } = require("../controllers/categoryController");
 
-router.route("/").post(createCategory).get(getAllCategories);
+router.route("/").post(authMiddleware, roleMiddleware(["admin"]), createCategory).get(getAllCategories);
 router
   .route("/:id")
   .get(getCategoryById)
-  .put(updateCategory)
-  .delete(deleteCategory);
+  .put(authMiddleware, roleMiddleware(["admin"]), updateCategory)
+  .delete(authMiddleware, roleMiddleware(["admin"]), deleteCategory);
 
-// Nouvelles routes pour les sous-catégories
 router
   .route("/:categoryId/sub-categories")
-  .post(addSubCategory)
+  .post(authMiddleware, roleMiddleware(["admin"]), addSubCategory)
   .get(getSubCategories);
 router
   .route("/:categoryId/sub-categories/:id")
   .get(getSubCategoryById)
-  .put(updateSubCategory)
-  .delete(deleteSubCategory);
+  .put(authMiddleware, roleMiddleware(["admin"]), updateSubCategory)
+  .delete(authMiddleware, roleMiddleware(["admin"]), deleteSubCategory);
 
 // router.post("/", categoryController.createCategory);
 // router.get("/", categoryController.getAllCategories);

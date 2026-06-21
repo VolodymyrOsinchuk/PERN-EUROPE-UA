@@ -11,6 +11,7 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const helmet = require("helmet");
 const cron = require("node-cron");
 const app = express();
 
@@ -29,6 +30,12 @@ const adExpirationSettingsRouter = require("./routes/adExpirationSettingsRouter"
 const config = require("./config/config");
 const { authMiddleware } = require("./middleware/authMiddleware");
 
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: false,
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -60,7 +67,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", authMiddleware, userRoutes);
 app.use("/api/v1/adv", advRoutes);
 app.use("/api/v1/categories", categoryRoutes);
-app.use("/api/v1/events", authMiddleware, eventRoutes);
+app.use("/api/v1/events", eventRoutes);
 app.use("/api/v1/news", newsRoutes);
 app.use("/api/v1/publications", publicationRoutes);
 app.use("/api/v1/forum", forumRoutes);
@@ -144,7 +151,7 @@ cron.schedule("*/15 * * * *", async () => {
 
 const testDbConnection = async () => {
   try {
-    await sequelize.sync({ alter: true });
+    await sequelize.sync();
     console.log("З'єднання з базою даних встановлено успішно");
     app.listen(port, () => {
       console.log(`Сервер працює на порту ${port}`);
