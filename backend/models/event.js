@@ -54,4 +54,12 @@ const Event = sequelize.define(
   },
 );
 
+const { User } = require("./user");
+
+Event.belongsTo(User, {
+  foreignKey: "userId",
+  as: "creator",
+  onDelete: "SET NULL",
+});
+
 module.exports = { Event };

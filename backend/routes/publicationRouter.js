@@ -9,6 +9,7 @@ router.get(
   authMiddleware,
   publicationController.getUserPublications,
 );
+router.get("/:id", publicationController.getPublicationById);
 router.post("/", authMiddleware, publicationController.createPublication);
 router.put("/:id", authMiddleware, publicationController.updatePublication);
 router.delete("/:id", authMiddleware, publicationController.deletePublication);

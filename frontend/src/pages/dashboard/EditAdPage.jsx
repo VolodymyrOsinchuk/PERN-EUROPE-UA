@@ -1160,6 +1160,7 @@ import {
   redirect,
   Link,
   useNavigation,
+  useSubmit,
 } from "react-router-dom";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
@@ -1621,6 +1622,15 @@ export default function EditAdPage() {
     setNewPhotoFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
+  const submit = useSubmit();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    newPhotoFiles.forEach(({ file }) => formData.append("photos", file));
+    submit(formData, { method: "post", encType: "multipart/form-data" });
+  };
+
   const totalPhotos = existingPhotos.length + newPhotoFiles.length;
 
   /* Context: profile vs dashboard */
@@ -1879,7 +1889,7 @@ export default function EditAdPage() {
           py: { xs: 4, md: 6 },
         }}
       >
-        <Form method="post" encType="multipart/form-data">
+        <form onSubmit={handleSubmit}>
           {/* Hidden field: pass remaining existing photos as JSON */}
           <input
             type="hidden"
@@ -2231,11 +2241,6 @@ export default function EditAdPage() {
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
                     {newPhotoFiles.map(({ url, file }, idx) => (
                       <Box key={`new-${idx}`}>
-                        <input
-                          type="file"
-                          name="photos"
-                          style={{ display: "none" }}
-                        />
                         <NewPhoto
                           url={url}
                           index={idx}
@@ -2246,23 +2251,6 @@ export default function EditAdPage() {
                   </Box>
                 </Box>
               )}
-
-              {/* Hidden inputs for new files */}
-              {newPhotoFiles.map(({ file }, idx) => (
-                <input
-                  key={`file-input-${idx}`}
-                  type="file"
-                  name="photos"
-                  style={{ display: "none" }}
-                  ref={(el) => {
-                    if (el) {
-                      const dt = new DataTransfer();
-                      dt.items.add(file);
-                      el.files = dt.files;
-                    }
-                  }}
-                />
-              ))}
 
               {/* Dropzone */}
               {totalPhotos < 5 && (
@@ -2402,7 +2390,7 @@ export default function EditAdPage() {
               </Button>
             </Box>
           </Box>
-        </Form>
+        </form>
       </Box>
     </Box>
   );

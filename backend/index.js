@@ -27,6 +27,8 @@ const publicationRoutes = require("./routes/publicationRouter");
 const forumRoutes = require("./routes/forumRouter");
 const messageRoutes = require("./routes/messageRouter");
 const adExpirationSettingsRouter = require("./routes/adExpirationSettingsRouter");
+const settingsRouter = require("./routes/settingsRouter");
+const adminRouter = require("./routes/adminRouter");
 const config = require("./config/config");
 const { authMiddleware } = require("./middleware/authMiddleware");
 
@@ -73,6 +75,8 @@ app.use("/api/v1/publications", publicationRoutes);
 app.use("/api/v1/forum", forumRoutes);
 app.use("/api/v1/messages", authMiddleware, messageRoutes);
 app.use("/api/v1/admin/ad-expiration-settings", adExpirationSettingsRouter);
+app.use("/api/v1/admin/settings", settingsRouter);
+app.use("/api/v1/admin", adminRouter);
 
 startAdExpirationCron();
 

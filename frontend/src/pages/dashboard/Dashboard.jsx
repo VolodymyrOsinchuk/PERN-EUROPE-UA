@@ -12,19 +12,17 @@ export const loader = async () => {
       error?.response?.data?.message ||
         "Помилка завантаження статистики панелі",
     );
-    return { users: 0, ads: 0, categories: 0 };
+    return { users: 0, ads: 0, categories: 0, trends: {} };
   }
 };
 
-const stats = [
+const statsMeta = [
   {
     key: "users",
     label: "Користувачі",
     icon: "people_alt",
     color: "#2563EB",
     bg: "#EFF6FF",
-    trend: "+12%",
-    trendUp: true,
   },
   {
     key: "ads",
@@ -32,8 +30,6 @@ const stats = [
     icon: "article",
     color: "#10B981",
     bg: "#ECFDF5",
-    trend: "+8%",
-    trendUp: true,
   },
   {
     key: "categories",
@@ -41,8 +37,6 @@ const stats = [
     icon: "category",
     color: "#F59E0B",
     bg: "#FFF7ED",
-    trend: "0%",
-    trendUp: null,
   },
 ];
 
@@ -145,11 +139,22 @@ const Dashboard = () => {
 
       {/* Stat cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        {stats.map((s) => {
-          const { key, ...props } = s;
+        {statsMeta.map((s) => {
+          const { key, ...rest } = s;
+          const trend = data?.trends?.[key] || "0%";
+          const trendUp = trend.startsWith("+")
+            ? true
+            : trend === "0%"
+              ? null
+              : false;
           return (
             <Grid key={key} size={{ xs: 12, sm: 6, md: 4 }}>
-              <StatCard {...props} value={data?.[key]} />
+              <StatCard
+                {...rest}
+                value={data?.[key]}
+                trend={trend}
+                trendUp={trendUp}
+              />
             </Grid>
           );
         })}

@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const { User } = require("../models/user");
 const { Adv } = require("../models/adv");
 const { Category } = require("../models/category");
@@ -257,9 +258,7 @@ exports.deleteUser = async (req, res) => {
     //   }
     // }
 
-    // FIX P1-6: purge Cloudinary de l'avatar (était filtré sur !startsWith("http"),
-    // ce qui ratait systématiquement les avatars Cloudinary qui SONT des URLs http)
-    if (user.profilePicture) {
+    if (user.profilePicture?.startsWith("http")) {
       await deleteCloudinaryFile(user.profilePicture);
     }
 
@@ -281,14 +280,45 @@ exports.deleteUser = async (req, res) => {
 
 exports.getDashboardStats = async (req, res) => {
   try {
-    const [userCount, adCount, categoryCount] = await Promise.all([
+    const lastMonth = new Date();
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+    const prevMonth = new Date();
+    prevMonth.setMonth(prevMonth.getMonth() - 2);
+
+    const [
+      userCount,
+      adCount,
+      categoryCount,
+      prevUsers,
+      prevAds,
+    ] = await Promise.all([
       User.count(),
       Adv.count(),
       Category.count(),
+      User.count({ where: { createdAt: { [Op.lt]: lastMonth } } }),
+      Adv.count({ where: { createdAt: { [Op.lt]: lastMonth } } }),
     ]);
-    res
-      .status(200)
-      .json({ users: userCount, ads: adCount, categories: categoryCount });
+
+    const prevCategories = categoryCount;
+
+    const calcTrend = (current, previous) => {
+      if (previous === 0) return current > 0 ? "+100%" : "0%";
+      const diff = ((current - previous) / previous) * 100;
+      const sign = diff >= 0 ? "+" : "";
+      return `${sign}${diff.toFixed(0)}%`;
+    };
+
+    res.status(200).json({
+      users: userCount,
+      ads: adCount,
+      categories: categoryCount,
+      trends: {
+        users: calcTrend(userCount, prevUsers),
+        ads: calcTrend(adCount, prevAds),
+        categories: calcTrend(categoryCount, prevCategories),
+      },
+    });
   } catch (error) {
     console.error("Помилка getDashboardStats:", error);
     res.status(500).json({ error: error.message });

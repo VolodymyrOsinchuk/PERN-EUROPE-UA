@@ -35,7 +35,7 @@ const User = sequelize.define(
       type: DataTypes.STRING(20),
       allowNull: true,
       validate: {
-        is: /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/,
+        is: /^\+[1-9]\d{6,14}$/,
       },
     },
     profilePicture: {
@@ -82,6 +82,10 @@ const User = sequelize.define(
     },
     verificationToken: {
       type: DataTypes.STRING,
+      allowNull: true,
+    },
+    verificationTokenExpires: {
+      type: DataTypes.DATE,
       allowNull: true,
     },
     resetPasswordToken: {

@@ -162,10 +162,15 @@ export default function TopicDetail() {
   const actionData = useActionData();
   const { user } = useAuthContext(); // ← guard auth
   const [replyText, setReplyText] = useState("");
-  const [replies] = useState(initialReplies || []);
+  const [replies, setReplies] = useState(initialReplies || []);
 
   useEffect(() => {
-    if (actionData?.success) setReplyText("");
+    if (actionData?.success) {
+      setReplyText("");
+      if (actionData.data) {
+        setReplies((prev) => [...prev, actionData.data]);
+      }
+    }
   }, [actionData]);
 
   if (!topic) {

@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const { sendVerificationEmail } = require("../utils/emailService");
 const { createJWT } = require("../utils/tokenUtils");
 const bcrypt = require("bcryptjs");
+const config = require("../config/config");
 
 exports.register = async (req, res) => {
   try {
@@ -33,7 +34,8 @@ exports.register = async (req, res) => {
       });
     }
 
-    const isFirstAccount = (await User.count()) === 0;
+    const isFirstAccount =
+      config.features.enableAdminBootstrap && (await User.count()) === 0;
     const role = isFirstAccount ? "admin" : "user";
 
     const existingUser = await User.findOne({ where: { email } });
@@ -50,6 +52,7 @@ exports.register = async (req, res) => {
       password,
       phoneNumber: phoneNumber || null,
       verificationToken,
+      verificationTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
       country: country || null,
       // FIX: save "city" from register form — was sent but never stored
       city: city || null,
@@ -167,7 +170,15 @@ exports.verifyEmail = async (req, res) => {
       return res.status(400).json({ message: "Невірний токен підтвердження" });
     }
 
-    await user.update({ isVerified: true, verificationToken: null });
+    if (user.verificationTokenExpires && user.verificationTokenExpires < new Date()) {
+      return res.status(410).json({ message: "Термін дії токена минув" });
+    }
+
+    await user.update({
+      isVerified: true,
+      verificationToken: null,
+      verificationTokenExpires: null,
+    });
 
     res.status(200).json({ message: "Електронну пошту успішно підтверджено" });
   } catch (error) {

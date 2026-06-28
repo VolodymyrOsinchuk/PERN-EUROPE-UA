@@ -456,10 +456,16 @@ import News, { loader as newsLoader } from "./pages/News";
 import NewsDetail, { loader as newsDetailLoader } from "./pages/NewsDetail";
 // Events public — loader API réel
 import Events, { loader as eventsLoader } from "./pages/Events";
+import EventDetail, {
+  loader as eventDetailLoader,
+} from "./pages/EventDetail";
 // Publications public — loader API réel
 import Publications, {
   loader as publicationsLoader,
 } from "./pages/Publications";
+import PublicationDetail, {
+  loader as publicationDetailLoader,
+} from "./pages/PublicationDetail";
 
 import Ads, { loader as adsLoader } from "./pages/public/Ads";
 import AdDetailPage, {
@@ -570,8 +576,11 @@ import NewsManager, {
 
 // Stats, Settings, Admin
 import Stats, { loader as statsLoader } from "./pages/Stats";
-import Settings from "./pages/dashboard/SettingsNew";
-import Admin from "./pages/dashboard/Admin";
+import Settings, {
+  loader as settingsLoader,
+  action as settingsAction,
+} from "./pages/dashboard/SettingsNew";
+import Admin, { loader as adminLoader, action as adminAction } from "./pages/dashboard/Admin";
 
 // Forum menager — loader + action câblés
 import ForumManager, {
@@ -617,11 +626,21 @@ const router = createBrowserRouter(
               element: <Events />,
               loader: eventsLoader,
             },
+            {
+              path: "events/:id",
+              element: <EventDetail />,
+              loader: eventDetailLoader,
+            },
             // Publications public — loader API
             {
               path: "publications",
               element: <Publications />,
               loader: publicationsLoader,
+            },
+            {
+              path: "publications/:id",
+              element: <PublicationDetail />,
+              loader: publicationDetailLoader,
             },
 
             // Ads
@@ -832,6 +851,8 @@ const router = createBrowserRouter(
             {
               path: "settings",
               element: <Settings />,
+              loader: settingsLoader,
+              action: settingsAction,
             },
             {
               path: "settings/ad-expiration",
@@ -841,6 +862,8 @@ const router = createBrowserRouter(
             {
               path: "admin",
               element: <Admin />,
+              loader: adminLoader,
+              action: adminAction,
             },
           ],
         },

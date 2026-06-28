@@ -3,12 +3,29 @@ const { ForumReply } = require("../models/forumReply");
 const { ForumCategory } = require("../models/forumCategory");
 const { User } = require("../models/user");
 const { pick } = require("../utils/pick");
+const sequelize = require("../config/db");
+
+async function resolveForumCategory(category) {
+  if (!category) return null;
+  const fc = await ForumCategory.findOne({
+    where: { title: category },
+    attributes: ["id", "title"],
+  });
+  return fc?.id || null;
+}
 
 // ─── Topics ───────────────────────────────────────────────
 
 exports.getAllTopics = async (req, res) => {
   try {
     const topics = await ForumTopic.findAll({
+      include: [
+        {
+          model: ForumCategory,
+          as: "forumCategory",
+          attributes: ["id", "title", "icon", "color", "bgColor"],
+        },
+      ],
       order: [["lastUpdate", "DESC"]],
     });
     res.status(200).json(topics);
@@ -20,7 +37,15 @@ exports.getAllTopics = async (req, res) => {
 
 exports.getTopicById = async (req, res) => {
   try {
-    const topic = await ForumTopic.findByPk(req.params.id);
+    const topic = await ForumTopic.findByPk(req.params.id, {
+      include: [
+        {
+          model: ForumCategory,
+          as: "forumCategory",
+          attributes: ["id", "title", "icon", "color", "bgColor"],
+        },
+      ],
+    });
     if (!topic) return res.status(404).json({ message: "Тему не знайдено" });
     await topic.increment("views");
     res.status(200).json(topic);
@@ -34,6 +59,9 @@ exports.getReplies = async (req, res) => {
   try {
     const replies = await ForumReply.findAll({
       where: { topicId: req.params.id },
+      include: [
+        { model: User, as: "user", attributes: ["id", "firstName", "lastName"] },
+      ],
       order: [["createdAt", "ASC"]],
     });
     res.status(200).json(replies);
@@ -47,9 +75,15 @@ exports.createReply = async (req, res) => {
   try {
     const topicId = req.params.id;
     const { content } = req.body;
-    const author = req.user?.firstName
-      ? `${req.user.firstName} ${req.user.lastName || ""}`.trim()
-      : req.body.author || "Анонім";
+    let author = req.body.author || "Анонім";
+    if (req.user?.userId) {
+      const user = await User.findByPk(req.user.userId, {
+        attributes: ["firstName", "lastName"],
+      });
+      if (user) {
+        author = `${user.firstName} ${user.lastName}`.trim();
+      }
+    }
 
     const newReply = await ForumReply.create({
       topicId,
@@ -72,15 +106,22 @@ exports.createReply = async (req, res) => {
 
 exports.createTopic = async (req, res) => {
   try {
-    const author = req.user?.firstName
-      ? `${req.user.firstName} ${req.user.lastName || ""}`.trim()
-      : req.body.author || "Анонім";
+    let author = req.body.author || "Анонім";
+    if (req.user?.userId) {
+      const user = await User.findByPk(req.user.userId, {
+        attributes: ["firstName", "lastName"],
+      });
+      if (user) {
+        author = `${user.firstName} ${user.lastName}`.trim();
+      }
+    }
 
     const topicData = pick(req.body, ["title", "content", "category"]);
     const newTopic = await ForumTopic.create({
       ...topicData,
       author,
       userId: req.user?.userId || null,
+      forumCategoryId: await resolveForumCategory(topicData.category),
     });
     res.status(201).json(newTopic);
   } catch (error) {
@@ -102,7 +143,13 @@ exports.updateTopic = async (req, res) => {
         .json({ message: "Не дозволено змінювати цю тему" });
     }
 
-    await topic.update(pick(req.body, ["title", "content", "category"]));
+    const updateData = pick(req.body, ["title", "content", "category"]);
+    if (updateData.category !== undefined) {
+      updateData.forumCategoryId = await resolveForumCategory(
+        updateData.category,
+      );
+    }
+    await topic.update(updateData);
     res.status(200).json(topic);
   } catch (error) {
     console.error("Помилка updateTopic:", error);
@@ -165,22 +212,28 @@ exports.getAllForumCategories = async (req, res) => {
       ],
     });
 
-    // Enrich each category with live topic count
-    const enriched = await Promise.all(
-      categories.map(async (cat) => {
-        const topicsCount = await ForumTopic.count({
-          where: { category: cat.title },
-        });
-        const repliesResult = await ForumTopic.sum("replies", {
-          where: { category: cat.title },
-        });
-        return {
-          ...cat.toJSON(),
-          topicsCount,
-          postsCount: repliesResult || 0,
-        };
-      }),
-    );
+    const topicStats = await ForumTopic.findAll({
+      attributes: [
+        "category",
+        [sequelize.fn("COUNT", sequelize.col("id")), "topicsCount"],
+        [sequelize.fn("SUM", sequelize.col("replies")), "postsCount"],
+      ],
+      group: ["category"],
+      raw: true,
+    });
+    const statsMap = {};
+    for (const row of topicStats) {
+      statsMap[row.category] = {
+        topicsCount: Number(row.topicsCount),
+        postsCount: Number(row.postsCount) || 0,
+      };
+    }
+
+    const enriched = categories.map((cat) => ({
+      ...cat.toJSON(),
+      topicsCount: statsMap[cat.title]?.topicsCount || 0,
+      postsCount: statsMap[cat.title]?.postsCount || 0,
+    }));
 
     res.status(200).json(enriched);
   } catch (error) {
@@ -198,14 +251,23 @@ exports.getAllForumCategoriesAdmin = async (req, res) => {
       ],
     });
 
-    const enriched = await Promise.all(
-      categories.map(async (cat) => {
-        const topicsCount = await ForumTopic.count({
-          where: { category: cat.title },
-        });
-        return { ...cat.toJSON(), topicsCount };
-      }),
-    );
+    const topicStats = await ForumTopic.findAll({
+      attributes: [
+        "category",
+        [sequelize.fn("COUNT", sequelize.col("id")), "topicsCount"],
+      ],
+      group: ["category"],
+      raw: true,
+    });
+    const statsMap = {};
+    for (const row of topicStats) {
+      statsMap[row.category] = Number(row.topicsCount);
+    }
+
+    const enriched = categories.map((cat) => ({
+      ...cat.toJSON(),
+      topicsCount: statsMap[cat.title] || 0,
+    }));
 
     res.status(200).json(enriched);
   } catch (error) {

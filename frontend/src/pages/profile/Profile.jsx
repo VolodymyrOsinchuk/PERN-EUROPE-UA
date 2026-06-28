@@ -28,6 +28,7 @@ import {
   useLoaderData,
   useFetcher,
   useNavigate,
+  redirect,
 } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -67,6 +68,9 @@ export async function profileLoader() {
       events: eventsRes.data || [],
     };
   } catch (error) {
+    if (error?.response?.status === 401) {
+      return redirect("/login");
+    }
     toast.error("Помилка завантаження даних профілю");
     console.error("Помилка loader:", error);
     return { ads: [], publications: [], events: [] };

@@ -6,6 +6,7 @@ const { News } = require("../models/news");
 const { Publication } = require("../models/publication");
 const { ForumTopic } = require("../models/forumTopic");
 const { ForumReply } = require("../models/forumReply");
+const { ForumCategory } = require("../models/forumCategory");
 const sequelize = require("../config/db");
 
 async function seedDatabase() {
@@ -24,6 +25,7 @@ async function seedDatabase() {
       phoneNumber: "+33100000000",
       country: "France",
       state: "Île-de-France",
+      city: "Paris",
       location: "Paris",
       about: "Administrateur de la plateforme Ukrainians in Europe.",
       role: "admin",
@@ -41,6 +43,7 @@ async function seedDatabase() {
           phoneNumber: "+48600111222",
           country: "Poland",
           state: "Mazovian",
+          city: "Warsaw",
           location: "Warsaw",
           about: "Bénévole et traductrice, j'aide les nouveaux arrivants.",
           role: "moderator",
@@ -55,6 +58,7 @@ async function seedDatabase() {
           phoneNumber: "+491701234567",
           country: "Germany",
           state: "Berlin",
+          city: "Berlin",
           location: "Berlin",
           about: "Développeur software à la recherche de collaborations.",
           role: "user",
@@ -69,6 +73,7 @@ async function seedDatabase() {
           phoneNumber: "+33655443322",
           country: "France",
           state: "Provence-Alpes-Côte d'Azur",
+          city: "Nice",
           location: "Nice",
           about: "Professeure de français et d'ukrainien.",
           role: "user",
@@ -83,6 +88,7 @@ async function seedDatabase() {
           phoneNumber: "+420777111222",
           country: "Czech Republic",
           state: "Prague",
+          city: "Prague",
           location: "Prague",
           about: "Entrepreneur dans le domaine de la logistique.",
           role: "user",
@@ -93,6 +99,14 @@ async function seedDatabase() {
       { individualHooks: true },
     );
     console.log("Користувачів створено.");
+
+    // Build name → id map for FK references in forum & event seeds
+    const userMap = {
+      "Admin System": adminUser.id,
+    };
+    for (const u of users) {
+      userMap[`${u.firstName} ${u.lastName}`] = u.id;
+    }
 
     // 2. Create Categories & Subcategories
     console.log("Створення категорій і підкатегорій...");
@@ -150,7 +164,7 @@ async function seedDatabase() {
         amenities: ["Meublé", "Wifi", "Lave-linge"],
         categoryId: categoryMap["Immobilier"],
         subcategoryId: subcategoryMap["Location"],
-        userId: 2,
+        userId: userMap["Olena Shevchenko"],
         views: 45,
         isPromoted: true,
       },
@@ -167,7 +181,7 @@ async function seedDatabase() {
         amenities: ["Remote possible", "Horaires flexibles"],
         categoryId: categoryMap["Emploi"],
         subcategoryId: subcategoryMap["Offres d'emploi"],
-        userId: 3,
+        userId: userMap["Andriy Kovalenko"],
         views: 120,
         isPromoted: false,
       },
@@ -184,7 +198,7 @@ async function seedDatabase() {
         amenities: ["Support pédagogique inclus"],
         categoryId: categoryMap["Services"],
         subcategoryId: subcategoryMap["Cours de langue"],
-        userId: 4,
+        userId: userMap["Svitlana Petrenko"],
         views: 85,
         isPromoted: true,
       },
@@ -201,7 +215,7 @@ async function seedDatabase() {
         amenities: ["Ponctuel", "Sûr"],
         categoryId: categoryMap["Véhicules"],
         subcategoryId: subcategoryMap["Covoiturage"],
-        userId: 5,
+        userId: userMap["Dmytro Ivanov"],
         views: 30,
         isPromoted: false,
       },
@@ -218,7 +232,7 @@ async function seedDatabase() {
         amenities: ["Gratuit"],
         categoryId: categoryMap["Communauté"],
         subcategoryId: subcategoryMap["Aide humanitaire"],
-        userId: 1,
+        userId: userMap["Admin System"],
         views: 210,
         isPromoted: false,
       },
@@ -234,7 +248,10 @@ async function seedDatabase() {
           "Une après-midi pour faire connaissance et échanger des conseils.",
         date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         location: "Centre culturel, Paris",
-        userId: 1,
+        type: "rencontre",
+        authorName: "Admin System",
+        authorEmail: "admin@ukraine-europe.eu",
+        userId: userMap["Admin System"],
       },
       {
         title: "Webinaire : Travailler en Allemagne",
@@ -242,14 +259,20 @@ async function seedDatabase() {
           "Tout ce qu'il faut savoir sur le marché du travail allemand.",
         date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
         location: "En ligne (Zoom)",
-        userId: 3,
+        type: "webinar",
+        authorName: "Andriy Kovalenko",
+        authorEmail: "andriy.k@example.com",
+        userId: userMap["Andriy Kovalenko"],
       },
       {
         title: "Atelier CV et lettre de motivation",
         description: "Apprenez à adapter votre CV aux standards européens.",
         date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
         location: "Médiathèque de Varsovie",
-        userId: 2,
+        type: "atelier",
+        authorName: "Olena Shevchenko",
+        authorEmail: "olena.s@example.com",
+        userId: userMap["Olena Shevchenko"],
       },
     ]);
     console.log("Події створено.");
@@ -295,7 +318,7 @@ async function seedDatabase() {
         author: "Olena Shevchenko",
         readTime: "15 min",
         date: new Date(),
-        userId: 2,
+        userId: userMap["Olena Shevchenko"],
       },
       {
         title: "Comment apprendre l'allemand rapidement ?",
@@ -305,19 +328,37 @@ async function seedDatabase() {
         author: "Andriy Kovalenko",
         readTime: "10 min",
         date: new Date(),
-        userId: 3,
+        userId: userMap["Andriy Kovalenko"],
       },
     ]);
     console.log("Публікації створено.");
 
-    // 7. Create Forum Topics & Replies
+    // 7. Create Forum Categories, Topics & Replies
     console.log("Створення даних форуму...");
+    const fcLogement = await ForumCategory.create({
+      title: "Logement",
+      description: "Questions sur le logement",
+      isActive: true,
+    });
+    const fcTravail = await ForumCategory.create({
+      title: "Travail",
+      description: "Questions sur le travail et l'emploi",
+      isActive: true,
+    });
+    const fcFormalites = await ForumCategory.create({
+      title: "Formalités administratives",
+      description: "Questions sur les démarches administratives",
+      isActive: true,
+    });
+
     const topic1 = await ForumTopic.create({
       title: "Comment trouver un logement à Prague ?",
       content:
         "Je cherche des conseils sur les meilleurs quartiers et les sites web les plus fiables pour louer un appartement à Prague.",
       category: "Logement",
+      forumCategoryId: fcLogement.id,
       author: "Svitlana Petrenko",
+      userId: userMap["Svitlana Petrenko"],
       views: 156,
       replies: 2,
     });
@@ -328,12 +369,14 @@ async function seedDatabase() {
         content:
           "Je te conseille de regarder sur Sreality.cz, c'est la référence ici. Évite le centre-ville qui est très cher.",
         author: "Dmytro Ivanov",
+        userId: userMap["Dmytro Ivanov"],
       },
       {
         topicId: topic1.id,
         content:
           "Prague 7 et Prague 10 sont très sympas et un peu plus abordables.",
         author: "Admin System",
+        userId: userMap["Admin System"],
       },
     ]);
 
@@ -342,7 +385,9 @@ async function seedDatabase() {
       content:
         "Bonjour, je suis médecin en Ukraine et je voudrais savoir quelles sont les étapes pour exercer en France.",
       category: "Travail",
+      forumCategoryId: fcTravail.id,
       author: "Olena Shevchenko",
+      userId: userMap["Olena Shevchenko"],
       views: 342,
       replies: 1,
     });
@@ -352,6 +397,7 @@ async function seedDatabase() {
       content:
         "C'est un processus assez long appelé Padhue. Il faut passer des épreuves de vérification des connaissances.",
       author: "Admin System",
+      userId: userMap["Admin System"],
     });
 
     console.log("Дані форуму створено.");

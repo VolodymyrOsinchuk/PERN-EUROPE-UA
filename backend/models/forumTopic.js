@@ -22,6 +22,11 @@ const ForumTopic = sequelize.define(
       type: DataTypes.STRING(100),
       allowNull: true,
     },
+    forumCategoryId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: { model: "forum_categories", key: "id" },
+    },
     author: {
       type: DataTypes.STRING(100),
       allowNull: true,
@@ -49,5 +54,20 @@ const ForumTopic = sequelize.define(
     timestamps: true,
   },
 );
+
+const { User } = require("./user");
+const { ForumCategory } = require("./forumCategory");
+
+ForumTopic.belongsTo(User, {
+  foreignKey: "userId",
+  as: "user",
+  onDelete: "SET NULL",
+});
+
+ForumTopic.belongsTo(ForumCategory, {
+  foreignKey: "forumCategoryId",
+  as: "forumCategory",
+  onDelete: "SET NULL",
+});
 
 module.exports = { ForumTopic };

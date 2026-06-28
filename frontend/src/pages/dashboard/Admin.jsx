@@ -1,4 +1,10 @@
-import { useState } from "react";
+import {
+  useState,
+  useEffect,
+} from "react";
+import { useLoaderData, useFetcher, Form } from "react-router-dom";
+import customFetch from "../../utils/customFetch";
+import { toast } from "react-toastify";
 import {
   Box,
   Paper,
@@ -36,60 +42,91 @@ import BuildOutlinedIcon from "@mui/icons-material/BuildOutlined";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { PageHeader } from "../../components";
 
-// ── Mock data ──────────────────────────────────────────────
-const MOCK_ADMINS = [
-  {
-    id: 1,
-    name: "Олена Коваль",
-    email: "o.koval@diaspora.ua",
-    role: "super-admin",
-    active: true,
-    lastLogin: "2 хв тому",
-  },
-  {
-    id: 2,
-    name: "Михайло Бондар",
-    email: "m.bondar@diaspora.ua",
-    role: "moderator",
-    active: true,
-    lastLogin: "1 год тому",
-  },
-  {
-    id: 3,
-    name: "Тетяна Лисенко",
-    email: "t.lysenko@diaspora.ua",
-    role: "editor",
-    active: false,
-    lastLogin: "3 дні тому",
-  },
-];
+// ── Routes ────────────────────────────────────────────────
+export const loader = async () => {
+  try {
+    const [adminsRes, sysRes] = await Promise.all([
+      customFetch.get("/admin/admins"),
+      customFetch.get("/admin/system-info"),
+    ]);
+    return {
+      admins: adminsRes.data || [],
+      systemInfo: sysRes.data || null,
+    };
+  } catch (error) {
+    toast.error("Помилка завантаження адмін-панелі");
+    return { admins: [], systemInfo: null };
+  }
+};
 
-const MOCK_ROLES = [
-  {
-    id: 1,
-    name: "super-admin",
-    label: "Суперадмін",
-    color: "#FEF3C7",
-    textColor: "#92400E",
-    perms: ["users", "ads", "categories", "events", "settings", "admin"],
-  },
-  {
-    id: 2,
-    name: "moderator",
-    label: "Модератор",
-    color: "#EFF6FF",
-    textColor: "#1D4ED8",
-    perms: ["ads", "categories", "events"],
-  },
-  {
-    id: 3,
-    name: "editor",
-    label: "Редактор",
-    color: "#F0FDF4",
-    textColor: "#166534",
-    perms: ["ads", "events"],
-  },
-];
+export const action = async ({ request }) => {
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+  try {
+    switch (intent) {
+      case "toggle-active": {
+        const id = formData.get("id");
+        await customFetch.put(`/admin/admins/${id}/role`, {
+          role: formData.get("role"),
+        });
+        return { ok: true };
+      }
+      case "delete-admin": {
+        const id = formData.get("id");
+        await customFetch.delete(`/admin/admins/${id}`);
+        toast.success("Адміністратора видалено");
+        return { ok: true };
+      }
+      case "add-admin": {
+        const firstName = formData.get("firstName");
+        const email = formData.get("email");
+        const password = formData.get("password");
+        await customFetch.post("/admin/admins", {
+          firstName,
+          lastName: "",
+          email,
+          password,
+          role: "admin",
+        });
+        toast.success("Адміністратора додано");
+        return { ok: true };
+      }
+      case "edit-admin": {
+        const id = formData.get("id");
+        await customFetch.put(`/admin/admins/${id}/role`, {
+          role: "admin",
+        });
+        toast.success("Дані оновлено");
+        return { ok: true };
+      }
+      case "maintenance": {
+        const enabled = formData.get("enabled") === "true";
+        await customFetch.post("/admin/maintenance", { enabled });
+        toast.success(
+          enabled
+            ? "Режим обслуговування активовано"
+            : "Режим обслуговування вимкнено",
+        );
+        return { ok: true, maintenance: enabled };
+      }
+      case "clear-cache": {
+        await customFetch.post("/admin/clear-cache");
+        toast.success("Кеш очищено успішно");
+        return { ok: true };
+      }
+      case "backup": {
+        await customFetch.post("/admin/backup");
+        toast.success("Резервну копію створено");
+        return { ok: true };
+      }
+      default:
+        return { ok: false };
+    }
+  } catch (error) {
+    toast.error(error?.response?.data?.error || "Помилка");
+    return { ok: false };
+  }
+};
 
 const ALL_PERMS = [
   { key: "users", label: "Користувачі" },
@@ -98,19 +135,6 @@ const ALL_PERMS = [
   { key: "events", label: "Події" },
   { key: "settings", label: "Налаштування" },
   { key: "admin", label: "Адмін-панель" },
-];
-
-const SYSTEM_STATS = [
-  { label: "Версія додатку", value: "v2.4.1", icon: "code" },
-  { label: "Node.js", value: "20.11.0 LTS", icon: "terminal" },
-  { label: "База даних", value: "PostgreSQL 16", icon: "storage" },
-  { label: "Середовище", value: "Production", icon: "cloud" },
-];
-
-const DISK_USAGE = [
-  { label: "Бд даних", used: 62, total: 100, unit: "GB" },
-  { label: "Файли / фото", used: 38, total: 200, unit: "GB" },
-  { label: "Пам'ять (RAM)", used: 3.2, total: 8, unit: "GB" },
 ];
 
 // ── Sub-components ─────────────────────────────────────────
@@ -157,8 +181,23 @@ const SectionCard = ({ icon, title, subtitle, action, children }) => (
   </Paper>
 );
 
+const ROLE_CFG = {
+  "super-admin": { label: "Суперадмін", color: "#FEF3C7", textColor: "#92400E" },
+  admin: { label: "Адмін", color: "#FEF3C7", textColor: "#92400E" },
+  moderator: { label: "Модератор", color: "#EFF6FF", textColor: "#1D4ED8" },
+  editor: { label: "Редактор", color: "#F0FDF4", textColor: "#166534" },
+  user: { label: "Користувач", color: "#F8FAFC", textColor: "#475569" },
+};
+
+const ROLES = [
+  { id: 1, name: "super-admin", perms: ["users", "ads", "categories", "events", "settings", "admin"], ...ROLE_CFG["super-admin"] },
+  { id: 2, name: "moderator", perms: ["ads", "categories", "events"], ...ROLE_CFG["moderator"] },
+  { id: 3, name: "editor", perms: ["ads", "events"], ...ROLE_CFG["editor"] },
+  { id: 4, name: "user", perms: [], ...ROLE_CFG["user"] },
+];
+
 const RoleChip = ({ role }) => {
-  const cfg = MOCK_ROLES.find((r) => r.name === role) || {};
+  const cfg = ROLE_CFG[role] || {};
   return (
     <Chip
       label={cfg.label || role}
@@ -175,21 +214,22 @@ const RoleChip = ({ role }) => {
 
 // ── Main component ─────────────────────────────────────────
 const Admin = () => {
-  const [admins, setAdmins] = useState(MOCK_ADMINS);
-  const [roles, setRoles] = useState(MOCK_ROLES);
+  const { admins: initialAdmins, systemInfo } = useLoaderData();
+  const fetcher = useFetcher();
+
+  const [admins, setAdmins] = useState(initialAdmins || []);
   const [maintenance, setMaintenance] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "" });
   const [dialog, setDialog] = useState({ open: false, mode: "", data: null });
 
+  useEffect(() => {
+    if (fetcher.data?.ok) {
+      toast.success("Статус оновлено");
+    }
+  }, [fetcher.data]);
+
   const showmessage = (message) =>
     setSnackbar({ open: true, message: message });
-
-  const toggleAdminActive = (id) => {
-    setAdmins((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, active: !a.active } : a)),
-    );
-    showmessage("Статус оновлено");
-  };
 
   const openDialog = (mode, data = null) =>
     setDialog({ open: true, mode, data });
@@ -297,11 +337,22 @@ const Admin = () => {
                       </Typography>
                     </TableCell>
                     <TableCell align="center">
-                      <Switch
-                        checked={admin.active}
-                        size="small"
-                        onChange={() => toggleAdminActive(admin.id)}
-                      />
+                      <fetcher.Form method="post" style={{ display: "inline" }}>
+                        <input type="hidden" name="intent" value="toggle-active" />
+                        <input type="hidden" name="id" value={admin.id} />
+                        <input
+                          type="hidden"
+                          name="role"
+                          value={admin.active ? "moderator" : "admin"}
+                        />
+                        <Switch
+                          checked={admin.active}
+                          size="small"
+                          onChange={(e) => {
+                            e.target.form && fetcher.submit(e.target.form);
+                          }}
+                        />
+                      </fetcher.Form>
                     </TableCell>
                     <TableCell align="right">
                       <Tooltip title="Редагувати">
@@ -318,10 +369,12 @@ const Admin = () => {
                         <IconButton
                           size="small"
                           onClick={() => {
-                            setAdmins((prev) =>
-                              prev.filter((a) => a.id !== admin.id),
-                            );
-                            showmessage("Адміністратора видалено");
+                            if (window.confirm("Видалити адміністратора?")) {
+                              const form = new FormData();
+                              form.append("intent", "delete-admin");
+                              form.append("id", admin.id);
+                              fetcher.submit(form, { method: "post" });
+                            }
                           }}
                         >
                           <DeleteOutlineIcon
@@ -347,7 +400,7 @@ const Admin = () => {
             subtitle="Права доступу для кожної ролі"
           >
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              {roles.map((role) => (
+              {ROLES.map((role) => (
                 <Box
                   key={role.id}
                   sx={{
@@ -436,7 +489,12 @@ const Admin = () => {
             subtitle="Версії та середовище"
           >
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              {SYSTEM_STATS.map((s) => (
+              {[
+                { label: "Версія додатку", value: systemInfo?.appVersion || "—", icon: "code" },
+                { label: "Node.js", value: systemInfo?.nodeVersion || "—", icon: "terminal" },
+                { label: "База даних", value: systemInfo?.dbVersion || "—", icon: "storage" },
+                { label: "Середовище", value: systemInfo?.environment || "—", icon: "cloud" },
+              ].map((s) => (
                 <Box
                   key={s.label}
                   sx={{
@@ -479,48 +537,54 @@ const Admin = () => {
             subtitle="Дискові та пам'ять"
           >
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-              {DISK_USAGE.map((d) => {
-                const pct = Math.round((d.used / d.total) * 100);
-                const color =
-                  pct > 80 ? "#EF4444" : pct > 60 ? "#F59E0B" : "#10B981";
-                return (
-                  <Box key={d.label}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        mb: 0.8,
-                      }}
-                    >
-                      <Typography variant="caption" fontWeight={600}>
-                        {d.label}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {d.used} / {d.total} {d.unit}
+              {(systemInfo?.diskUsage || []).length > 0 ? (
+                systemInfo.diskUsage.map((d) => {
+                  const pct = Math.round((d.used / d.total) * 100);
+                  const color =
+                    pct > 80 ? "#EF4444" : pct > 60 ? "#F59E0B" : "#10B981";
+                  return (
+                    <Box key={d.label}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          mb: 0.8,
+                        }}
+                      >
+                        <Typography variant="caption" fontWeight={600}>
+                          {d.label}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {d.used} / {d.total} {d.unit}
+                        </Typography>
+                      </Box>
+                      <LinearProgress
+                        variant="determinate"
+                        value={pct}
+                        sx={{
+                          height: 6,
+                          borderRadius: 99,
+                          bgcolor: "#F1F5F9",
+                          "& .MuiLinearProgress-bar": {
+                            bgcolor: color,
+                            borderRadius: 99,
+                          },
+                        }}
+                      />
+                      <Typography
+                        variant="caption"
+                        sx={{ color, fontWeight: 600, display: "block", mt: 0.5 }}
+                      >
+                        {pct}% використано
                       </Typography>
                     </Box>
-                    <LinearProgress
-                      variant="determinate"
-                      value={pct}
-                      sx={{
-                        height: 6,
-                        borderRadius: 99,
-                        bgcolor: "#F1F5F9",
-                        "& .MuiLinearProgress-bar": {
-                          bgcolor: color,
-                          borderRadius: 99,
-                        },
-                      }}
-                    />
-                    <Typography
-                      variant="caption"
-                      sx={{ color, fontWeight: 600, display: "block", mt: 0.5 }}
-                    >
-                      {pct}% використано
-                    </Typography>
-                  </Box>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <Typography variant="caption" color="text.secondary">
+                  Дані недоступні
+                </Typography>
+              )}
             </Box>
           </SectionCard>
 
@@ -558,11 +622,10 @@ const Admin = () => {
                   checked={maintenance}
                   onChange={(e) => {
                     setMaintenance(e.target.checked);
-                    showmessage(
-                      e.target.checked
-                        ? "Режим обслуговування активовано"
-                        : "Режим обслуговування вимкнено",
-                    );
+                    const form = new FormData();
+                    form.append("intent", "maintenance");
+                    form.append("enabled", String(e.target.checked));
+                    fetcher.submit(form, { method: "post" });
                   }}
                   color="error"
                 />
@@ -578,7 +641,11 @@ const Admin = () => {
                     delete_sweep
                   </span>
                 }
-                onClick={() => showmessage("Кеш очищено успішно")}
+                onClick={() => {
+                  const form = new FormData();
+                  form.append("intent", "clear-cache");
+                  fetcher.submit(form, { method: "post" });
+                }}
               >
                 Очистити кеш
               </Button>
@@ -593,7 +660,11 @@ const Admin = () => {
                     backup
                   </span>
                 }
-                onClick={() => showmessage("Резервну копію створено")}
+                onClick={() => {
+                  const form = new FormData();
+                  form.append("intent", "backup");
+                  fetcher.submit(form, { method: "post" });
+                }}
               >
                 Резервна копія БД
               </Button>
@@ -603,50 +674,56 @@ const Admin = () => {
       </Grid>
 
       {/* Add/Edit Admin dialog */}
-      <Dialog
-        open={dialog.open && dialog.mode.includes("admin")}
-        onClose={closeDialog}
-        maxWidth="xs"
-        fullWidth
-      >
-        <DialogTitle>
-          {dialog.mode === "add-admin"
-            ? "Новий адміністратор"
-            : "Редагувати адміністратора"}
-        </DialogTitle>
-        <DialogContent
-          sx={{ pt: 2, display: "flex", flexDirection: "column", gap: 2 }}
+      <Form method="post">
+        <Dialog
+          open={dialog.open && dialog.mode.includes("admin")}
+          onClose={closeDialog}
+          maxWidth="xs"
+          fullWidth
         >
-          <TextField label="Ім'я" fullWidth defaultValue={dialog.data?.name} />
-          <TextField
-            label="Email"
-            type="email"
-            fullWidth
-            defaultValue={dialog.data?.email}
-          />
-          {dialog.mode === "add-admin" && (
-            <TextField label="Пароль" type="password" fullWidth />
-          )}
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2.5 }}>
-          <Button onClick={closeDialog} variant="outlined" color="inherit">
-            Скасувати
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => {
-              closeDialog();
-              showmessage(
-                dialog.mode === "add-admin"
-                  ? "Адміністратора додано"
-                  : "Дані оновлено",
-              );
-            }}
+          <DialogTitle>
+            {dialog.mode === "add-admin"
+              ? "Новий адміністратор"
+              : "Редагувати адміністратора"}
+          </DialogTitle>
+          <DialogContent
+            sx={{ pt: 2, display: "flex", flexDirection: "column", gap: 2 }}
           >
-            {dialog.mode === "add-admin" ? "Додати" : "Зберегти"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <input type="hidden" name="intent" value={dialog.mode} />
+            {dialog.mode === "edit-admin" && dialog.data?.id && (
+              <input type="hidden" name="id" value={dialog.data.id} />
+            )}
+            <TextField
+              label="Ім'я"
+              name="firstName"
+              fullWidth
+              defaultValue={dialog.data?.firstName || ""}
+            />
+            <TextField
+              label="Email"
+              name="email"
+              type="email"
+              fullWidth
+              defaultValue={dialog.data?.email || ""}
+            />
+            {dialog.mode === "add-admin" && (
+              <TextField label="Пароль" name="password" type="password" fullWidth />
+            )}
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2.5 }}>
+            <Button onClick={closeDialog} variant="outlined" color="inherit">
+              Скасувати
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              onClick={closeDialog}
+            >
+              {dialog.mode === "add-admin" ? "Додати" : "Зберегти"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Form>
 
       {/* Edit role dialog */}
       <Dialog
@@ -679,7 +756,7 @@ const Admin = () => {
             variant="contained"
             onClick={() => {
               closeDialog();
-              showmessage("Дозволи оновлено");
+              toast.success("Дозволи оновлено");
             }}
           >
             Зберегти

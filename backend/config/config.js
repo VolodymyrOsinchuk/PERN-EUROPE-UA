@@ -71,5 +71,6 @@ module.exports = {
   // Optionnel : flags et comportements
   features: {
     enableAutoExpiry: process.env.ENABLE_AUTO_EXPIRY === "true" || false,
+    enableAdminBootstrap: process.env.ENABLE_ADMIN_BOOTSTRAP === "true" || false,
   },
 };

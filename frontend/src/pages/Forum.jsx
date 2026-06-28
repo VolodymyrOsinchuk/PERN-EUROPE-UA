@@ -1033,9 +1033,10 @@ function CategoryRow({ cat, isSelected, onClick, isLast }) {
 
 // ── Topic Card ────────────────────────────────────────────
 function TopicCard({ topic, categories, index }) {
-  const cat = categories.find((c) => c.title === topic.category);
+  const cat =
+    topic.forumCategory || categories.find((c) => c.title === topic.category);
   const color = cat?.color || "#64748b";
-  const bg = cat?.bg || "#f1f5f9";
+  const bg = cat?.bgColor || "#f1f5f9";
   const icon = cat?.icon || "forum";
 
   const authorInitial = topic.author ? topic.author[0].toUpperCase() : "?";

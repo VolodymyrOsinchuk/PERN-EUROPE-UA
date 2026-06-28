@@ -153,8 +153,14 @@ exports.updateAnnonce = async (req, res) => {
         await Promise.all(removed.map((url) => deleteCloudinaryFile(url)));
         // Fusionner les photos conservées avec les nouvelles
         updateData.photos = [...kept, ...(req.cloudinaryUrls || [])];
-      } catch (_) {
-        // Si le parsing échoue, on garde juste les nouvelles
+      } catch (parseError) {
+        console.error(
+          "updateAnnonce: existingPhotos mal formé —",
+          parseError.message,
+        );
+        return res.status(400).json({
+          error: "existingPhotos doit être un tableau JSON valide",
+        });
       }
     }
 

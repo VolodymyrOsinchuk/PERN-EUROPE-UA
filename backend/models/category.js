@@ -36,7 +36,7 @@ const SubCategory = sequelize.define(
       autoIncrement: true,
       // allowNull: false,
     },
-    name: { type: DataTypes.STRING, allowNull: false, unique: true },
+    name: { type: DataTypes.STRING, allowNull: false },
     categoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -51,7 +51,11 @@ const SubCategory = sequelize.define(
       },
     },
   },
-  { tableName: "subcategories", timestamps: true },
+  {
+    tableName: "subcategories",
+    timestamps: true,
+    indexes: [{ fields: ["categoryId", "name"], unique: true }],
+  },
 );
 
 SubCategory.belongsTo(Category, {

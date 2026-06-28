@@ -46,17 +46,19 @@ const validateUpdateFields = async (req, res, next) => {
       }
     }
 
-    // FIX: accept both English and French status values
-    const validStatus = [
-      "Active",
-      "Inactive",
-      "Sold",
-      "Actif",
-      "Inactif",
-      "Vendu",
-    ];
-    if (status !== undefined && !validStatus.includes(status)) {
-      return res.status(400).json({ error: "Невірний статус" });
+    const statusMap = {
+      Active: "Active",
+      Inactive: "Inactive",
+      Sold: "Sold",
+      Actif: "Active",
+      Inactif: "Inactive",
+      Vendu: "Sold",
+    };
+    if (status !== undefined) {
+      if (!statusMap[status]) {
+        return res.status(400).json({ error: "Невірний статус" });
+      }
+      req.body.status = statusMap[status];
     }
 
     next();
