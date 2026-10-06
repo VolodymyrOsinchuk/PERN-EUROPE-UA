@@ -35,4 +35,21 @@ const verifyEmailLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-module.exports = { loginLimiter, registerLimiter, verifyEmailLimiter };
+// 5 messages de contact / heure / IP — évite le spam du formulaire
+const contactLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: "Забагато повідомлень",
+    message: "Спробуйте знову через годину",
+  },
+});
+
+module.exports = {
+  loginLimiter,
+  registerLimiter,
+  verifyEmailLimiter,
+  contactLimiter,
+};

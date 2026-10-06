@@ -200,14 +200,23 @@ import {
 } from "@mui/material";
 import { Form, useActionData, useNavigation } from "react-router-dom";
 import { toast } from "react-toastify";
+import customFetch from "../../utils/customFetch";
 
 export const action = async ({ request }) => {
   const formData = await request.formData();
+  const data = Object.fromEntries(formData);
+
   try {
-    toast.success("Дякуємо! Ми зв'яжемося з вами найближчим часом.");
+    await customFetch.post("/contact", data);
+    toast.success(
+      "Дякуємо! Ми зв'яжемося з вами найближчим часом.",
+    );
     return { success: true };
   } catch (error) {
-    toast.error("Помилка при відправці повідомлення");
+    toast.error(
+      error?.response?.data?.error ||
+        "Помилка при відправці повідомлення",
+    );
     return { error: "Помилка" };
   }
 };

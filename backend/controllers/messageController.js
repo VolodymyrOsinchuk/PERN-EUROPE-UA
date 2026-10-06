@@ -3,6 +3,19 @@ const { Conversation, Message } = require("../models/conversation");
 const { User } = require("../models/user");
 const { Adv } = require("../models/adv");
 
+// Une personne fait partie d'une conversation si elle l'a créée
+// ou si elle a envoyé/reçu au moins un message dedans.
+async function isParticipant(conversation, userId) {
+  if (conversation.createdBy === userId) return true;
+  const count = await Message.count({
+    where: {
+      conversationId: conversation.id,
+      [Op.or]: [{ senderId: userId }, { recipientId: userId }],
+    },
+  });
+  return count > 0;
+}
+
 exports.createMessage = async (req, res, next) => {
   try {
     const senderId = req.user.userId;
@@ -26,7 +39,9 @@ exports.createMessage = async (req, res, next) => {
 
     if (conversationId) {
       conv = await Conversation.findByPk(conversationId);
-      if (!conv) return res.status(404).json({ error: "Розмову не знайдено" });
+      if (!conv || !(await isParticipant(conv, senderId))) {
+        return res.status(404).json({ error: "Розмову не знайдено" });
+      }
     } else {
       // Try to find existing conversation for this ad between these two users
       if (adId) {
@@ -120,6 +135,11 @@ exports.getConversations = async (req, res, next) => {
               as: "sender",
               attributes: ["id", "firstName", "lastName"],
             },
+            {
+              model: User,
+              as: "recipient",
+              attributes: ["id", "firstName", "lastName"],
+            },
           ],
         },
         {
@@ -150,7 +170,9 @@ exports.getMessages = async (req, res, next) => {
     const conversationId = parseInt(req.params.conversationId, 10);
 
     const conv = await Conversation.findByPk(conversationId);
-    if (!conv) return res.status(404).json({ error: "Розмову не знайдено" });
+    if (!conv || !(await isParticipant(conv, userId))) {
+      return res.status(404).json({ error: "Розмову не знайдено" });
+    }
 
     const messages = await Message.findAll({
       where: { conversationId },

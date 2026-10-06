@@ -1,5 +1,11 @@
-import { Fragment } from "react";
-import { Form, Link, useNavigation } from "react-router-dom";
+import { Fragment, useEffect } from "react";
+import {
+  Form,
+  Link,
+  useNavigation,
+  useActionData,
+  useNavigate,
+} from "react-router-dom";
 import {
   Box,
   Typography,
@@ -14,9 +20,9 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useState } from "react";
 import { FormRow } from "../components";
-import customFetch from "../utils/customFetch";
+import customFetch, { apiUrl } from "../utils/customFetch";
 import { toast } from "react-toastify";
-import { redirect } from "react-router-dom";
+import { useAuthContext } from "../context/AuthContext";
 
 export const action = async ({ request }) => {
   const formData = await request.formData();
@@ -24,9 +30,13 @@ export const action = async ({ request }) => {
   try {
     await customFetch.post("/auth/login", dataForm);
     toast.success("Ви увійшли успішно");
-    throw redirect("/profile");
+    // Le cookie JWT est enregistré par le backend. Pas de redirect()
+    // ici : le contexte AuthContext doit d'abord être rafraîchi
+    // (user y est encore null), sinon le garde de ProfileLayout
+    // renvoie immédiatement sur /login. La redirection est faite
+    // dans le composant via useEffect + navigate().
+    return { success: true };
   } catch (error) {
-    if (error instanceof Response) throw error;
     toast.error(error?.response?.data?.message || "Сталася помилка");
     return error;
   }
@@ -42,6 +52,7 @@ const SOCIAL_PROVIDERS = [
     color: "#374151",
     border: "#e5e7eb",
     favicon: "https://www.google.com/favicon.ico",
+    href: `${apiUrl}/api/v1/auth/google`,
   },
   {
     name: "Facebook",
@@ -49,6 +60,7 @@ const SOCIAL_PROVIDERS = [
     color: "#fff",
     border: "#1877F2",
     favicon: "https://www.facebook.com/favicon.ico",
+    href: `${apiUrl}/api/v1/auth/facebook`,
   },
 ];
 
@@ -56,6 +68,22 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const actionData = useActionData();
+  const { fetchUser } = useAuthContext();
+  const navigate = useNavigate();
+
+  /* ── Redirection après connexion réussie ──
+     1. fetchUser() charge l'utilisateur connecté dans AuthContext
+        (setUser) — le cookie JWT du backend est déjà enregistré.
+     2. navigate("/profile") UNIQUEMENT après : tant que user est null,
+        le garde de ProfileLayout renvoie sur /login. */
+  useEffect(() => {
+    if (actionData?.success) {
+      fetchUser().finally(() => {
+        navigate("/profile", { replace: true });
+      });
+    }
+  }, [actionData, fetchUser, navigate]);
 
   return (
     <Box
@@ -288,12 +316,14 @@ export default function Login() {
             </Box>
           </Typography>
 
-          {/* Social buttons */}
+          {/* Social buttons — redirigent vers le backend OAuth */}
           <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
             {SOCIAL_PROVIDERS.map((p) => (
               <Button
                 key={p.name}
                 fullWidth
+                component="a"
+                href={p.href}
                 sx={{
                   fontFamily: fontBody,
                   fontWeight: 600,

@@ -767,10 +767,14 @@ export default function CreateAdPage() {
                     type="tel"
                     required
                     fullWidth
-                    helperText="Формат: 0123456789"
+                    helperText="Формат: 0123456789 або +380671234567"
                     sx={inputSx}
                   />
                 </Grid>
+                {/* Le code pays doit être soumis avec le formulaire :
+                    sans cet input caché, l'action reçoit phoneCode = null
+                    et tout numéro saisi est rejeté à tort. */}
+                <input type="hidden" name="phoneCode" value={phoneCode} />
               </Grid>
             </StepSection>
 

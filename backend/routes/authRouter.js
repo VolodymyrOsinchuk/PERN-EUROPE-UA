@@ -5,6 +5,10 @@ const {
   login,
   logout,
   verifyEmail,
+  googleLogin,
+  googleCallback,
+  facebookLogin,
+  facebookCallback,
 } = require("../controllers/authController");
 const {
   loginLimiter,
@@ -21,5 +25,13 @@ router.get(
   verifyEmailLimiter,
   verifyEmail,
 );
+
+// OAuth social — Google
+router.get("/google", googleLogin);
+router.get("/google/callback", googleCallback);
+
+// OAuth social — Facebook
+router.get("/facebook", facebookLogin);
+router.get("/facebook/callback", facebookCallback);
 
 module.exports = router;

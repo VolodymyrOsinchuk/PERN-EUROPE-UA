@@ -1,6 +1,7 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 const bcrypt = require("bcryptjs");
+const { PHONE_PATTERN } = require("../utils/normalizePhone");
 
 const User = sequelize.define(
   "User",
@@ -35,7 +36,7 @@ const User = sequelize.define(
       type: DataTypes.STRING(20),
       allowNull: true,
       validate: {
-        is: /^\+[1-9]\d{6,14}$/,
+        is: { args: PHONE_PATTERN },
       },
     },
     profilePicture: {
@@ -78,6 +79,15 @@ const User = sequelize.define(
     },
     lastLogin: {
       type: DataTypes.DATE,
+      allowNull: true,
+    },
+    // FIX: OAuth provider tracking — Google / Facebook login
+    provider: {
+      type: DataTypes.ENUM("local", "google", "facebook"),
+      defaultValue: "local",
+    },
+    providerId: {
+      type: DataTypes.STRING(100),
       allowNull: true,
     },
     verificationToken: {

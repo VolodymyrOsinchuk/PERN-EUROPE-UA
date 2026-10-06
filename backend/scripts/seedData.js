@@ -11,9 +11,26 @@ const sequelize = require("../config/db");
 
 async function seedDatabase() {
   try {
+    const isProduction = process.env.NODE_ENV === "production";
+    if (isProduction && process.env.ALLOW_PRODUCTION_SEED !== "true") {
+      throw new Error(
+        "Production seeding requires ALLOW_PRODUCTION_SEED=true.",
+      );
+    }
+
+    const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+    const demoPassword = process.env.SEED_DEMO_PASSWORD;
+    if (!adminPassword || !demoPassword) {
+      throw new Error(
+        "Set SEED_ADMIN_PASSWORD and SEED_DEMO_PASSWORD before running the seed.",
+      );
+    }
+
     console.log("Початок синхронізації бази даних...");
-    await sequelize.sync({ force: process.env.NODE_ENV !== "production" });
-    console.log("Базу даних синхронізовано.");
+    if (!isProduction) {
+      await sequelize.sync();
+      console.log("Базу даних синхронізовано.");
+    }
 
     // 1. Create Users
     console.log("Створення користувачів...");
@@ -21,7 +38,7 @@ async function seedDatabase() {
       firstName: "Admin",
       lastName: "System",
       email: "admin@ukraine-europe.eu",
-      password: "AdminPassword123!",
+      password: adminPassword,
       phoneNumber: "+33100000000",
       country: "France",
       state: "Île-de-France",
@@ -39,7 +56,7 @@ async function seedDatabase() {
           firstName: "Olena",
           lastName: "Shevchenko",
           email: "olena.s@example.com",
-          password: "UserPassword123!",
+          password: demoPassword,
           phoneNumber: "+48600111222",
           country: "Poland",
           state: "Mazovian",
@@ -54,7 +71,7 @@ async function seedDatabase() {
           firstName: "Andriy",
           lastName: "Kovalenko",
           email: "andriy.k@example.com",
-          password: "UserPassword123!",
+          password: demoPassword,
           phoneNumber: "+491701234567",
           country: "Germany",
           state: "Berlin",
@@ -69,7 +86,7 @@ async function seedDatabase() {
           firstName: "Svitlana",
           lastName: "Petrenko",
           email: "svitlana.p@example.com",
-          password: "UserPassword123!",
+          password: demoPassword,
           phoneNumber: "+33655443322",
           country: "France",
           state: "Provence-Alpes-Côte d'Azur",
@@ -84,7 +101,7 @@ async function seedDatabase() {
           firstName: "Dmytro",
           lastName: "Ivanov",
           email: "dmytro.i@example.com",
-          password: "UserPassword123!",
+          password: demoPassword,
           phoneNumber: "+420777111222",
           country: "Czech Republic",
           state: "Prague",
@@ -405,6 +422,7 @@ async function seedDatabase() {
     console.log("Базу даних успішно ініціалізовано!");
   } catch (error) {
     console.error("Помилка заповнення бази даних:", error);
+    process.exitCode = 1;
   } finally {
     await sequelize.close();
   }

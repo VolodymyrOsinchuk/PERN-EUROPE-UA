@@ -1,4 +1,4 @@
-import { useLoaderData, Link } from "react-router-dom";
+import { useLoaderData, Link, useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -16,9 +16,12 @@ import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
 import { useAuthContext } from "../context/AuthContext";
+import { useState } from "react";
 
 /* ── Design tokens ── */
 const F_BODY = "'Plus Jakarta Sans', sans-serif";
@@ -37,7 +40,17 @@ const TYPE_COLORS = {
 export async function loader({ params }) {
   try {
     const { data } = await customFetch.get(`/events/${params.id}`);
-    return { event: data };
+    // Statut d'inscription si connecté (le cookie de session est envoyé automatiquement)
+    let registration = null;
+    try {
+      const { data: reg } = await customFetch.get(
+        `/events/${params.id}/registration`,
+      );
+      registration = reg;
+    } catch {
+      /* non connecté — ignoré */
+    }
+    return { event: data, registration };
   } catch (error) {
     toast.error(error?.response?.data?.message || "Помилка завантаження події");
     return { event: null };
@@ -103,8 +116,19 @@ function InfoRow({ icon, label, value }) {
 
 /* ── Main Component ── */
 export default function EventDetail() {
-  const { event } = useLoaderData();
+  const { event, registration } = useLoaderData();
   const { user } = useAuthContext();
+  const navigate = useNavigate();
+
+  const [registered, setRegistered] = useState(
+    registration?.registered ?? false,
+  );
+  const [participants, setParticipants] = useState(
+    registration?.registrationsCount ??
+      event?.registrationsCount ??
+      0,
+  );
+  const [submitting, setSubmitting] = useState(false);
 
   if (!event) {
     return (
@@ -158,6 +182,49 @@ export default function EventDetail() {
         .slice(0, 2)
         .toUpperCase()
     : "?";
+
+  /* ── Inscription à l'événement ── */
+  const handleRegister = async () => {
+    if (!user) {
+      toast.info("Увійдіть, щоб зареєструватися на подію");
+      navigate("/login");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await customFetch.post(`/events/${event.id}/register`);
+      toast.success("Ви зареєстровані на подію");
+      setRegistered(true);
+      setParticipants((c) => c + 1);
+    } catch (error) {
+      if (error?.response?.status === 401) {
+        toast.info("Увійдіть, щоб зареєструватися");
+        navigate("/login");
+      } else {
+        toast.error(
+          error?.response?.data?.message || "Помилка реєстрації",
+        );
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUnregister = async () => {
+    setSubmitting(true);
+    try {
+      await customFetch.delete(`/events/${event.id}/register`);
+      toast.success("Реєстрацію скасовано");
+      setRegistered(false);
+      setParticipants((c) => Math.max(0, c - 1));
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || "Помилка скасування",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <Box sx={{ bgcolor: "#f8fafc", minHeight: "100vh" }}>
@@ -455,6 +522,11 @@ export default function EventDetail() {
                     value={event.type}
                   />
                 )}
+                <InfoRow
+                  icon={<GroupOutlinedIcon sx={{ fontSize: 16 }} />}
+                  label="Учасники"
+                  value={`${participants} зареєстровано`}
+                />
                 {event.authorName && (
                   <InfoRow
                     icon={<PersonOutlinedIcon sx={{ fontSize: 16 }} />}
@@ -467,30 +539,76 @@ export default function EventDetail() {
 
             {/* CTA */}
             {!isPast ? (
-              <Button
-                fullWidth
-                variant="contained"
-                size="large"
-                sx={{
-                  fontFamily: F_BODY,
-                  fontWeight: 700,
-                  textTransform: "none",
-                  bgcolor: BLUE,
-                  borderRadius: "14px",
-                  py: 1.5,
-                  fontSize: "0.95rem",
-                  boxShadow: "0 4px 14px rgba(0,87,184,.35)",
-                  "&:hover": {
-                    bgcolor: "#003d82",
-                    transform: "translateY(-1px)",
-                    boxShadow: "0 6px 20px rgba(0,87,184,.45)",
-                  },
-                  transition: "all 0.25s ease",
-                  mb: 2,
-                }}
-              >
-                Зареєструватися на подію
-              </Button>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 2 }}>
+                {registered ? (
+                  <>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      size="large"
+                      disabled
+                      startIcon={<CheckCircleOutlineIcon />}
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontWeight: 700,
+                        textTransform: "none",
+                        bgcolor: "#065f46",
+                        borderRadius: "14px",
+                        py: 1.5,
+                        fontSize: "0.95rem",
+                        boxShadow: "0 4px 14px rgba(6,95,70,.35)",
+                      }}
+                    >
+                      Ви зареєстровані
+                    </Button>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      size="large"
+                      onClick={handleUnregister}
+                      disabled={submitting}
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontWeight: 600,
+                        textTransform: "none",
+                        borderRadius: "14px",
+                        py: 1.3,
+                        borderColor: "#e2e8f0",
+                        color: "#64748b",
+                        "&:hover": { borderColor: "#ef4444", color: "#ef4444" },
+                      }}
+                    >
+                      {submitting ? "Обробка..." : "Скасувати реєстрацію"}
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    onClick={handleRegister}
+                    disabled={submitting}
+                    sx={{
+                      fontFamily: F_BODY,
+                      fontWeight: 700,
+                      textTransform: "none",
+                      bgcolor: BLUE,
+                      borderRadius: "14px",
+                      py: 1.5,
+                      fontSize: "0.95rem",
+                      boxShadow: "0 4px 14px rgba(0,87,184,.35)",
+                      "&:hover": {
+                        bgcolor: "#003d82",
+                        transform: "translateY(-1px)",
+                        boxShadow: "0 6px 20px rgba(0,87,184,.45)",
+                      },
+                      transition: "all 0.25s ease",
+                    }}
+                  >
+                    {submitting ? "Зареєстрація..." : "Зареєструватися на подію"}
+                  </Button>
+                )}
+              </Box>
             ) : (
               <Box
                 sx={{

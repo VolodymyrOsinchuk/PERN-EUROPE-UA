@@ -666,9 +666,11 @@ import {
   Box,
   Avatar,
   Fade,
+  Badge,
 } from "@mui/material";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthContext } from "../context/AuthContext";
+import customFetch from "../utils/customFetch";
 
 const NAV_LINKS = [
   { label: "Новини", href: "/news" },
@@ -700,6 +702,25 @@ export default function Navbar() {
   const [langAnchor, setLangAnchor] = useState(null);
   const [userAnchor, setUserAnchor] = useState(null);
   const [lang, setLang] = useState("uk");
+  const [unread, setUnread] = useState(0);
+
+  /* Nombre de messages non lus */
+  useEffect(() => {
+    if (!user) {
+      setUnread(0);
+      return;
+    }
+    let cancelled = false;
+    customFetch
+      .get("/messages/unread-count")
+      .then(({ data }) => {
+        if (!cancelled) setUnread(data.unread || 0);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   /* Scroll shadow */
   useEffect(() => {
@@ -855,6 +876,33 @@ export default function Navbar() {
                   </Button>
                 ))}
               </Box>
+
+              {/* ── Messages (badge non lus) ── */}
+              {user && (
+                <IconButton
+                  component={Link}
+                  to="/messages"
+                  size="small"
+                  sx={{
+                    color: "#64748b",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "8px",
+                    p: "6px",
+                    mr: 1,
+                    "&:hover": {
+                      borderColor: "#0057B8",
+                      color: "#0057B8",
+                      bgcolor: "rgba(0,87,184,.04)",
+                    },
+                  }}
+                >
+                  <Badge badgeContent={unread} color="error" max={9}>
+                    <span className="material-icons" style={{ fontSize: 18 }}>
+                      chat_bubble
+                    </span>
+                  </Badge>
+                </IconButton>
+              )}
 
               {/* ── Language selector ── */}
               <IconButton
@@ -1012,6 +1060,40 @@ export default function Navbar() {
                         Панель
                       </MenuItem>
                     )}
+                    <MenuItem
+                      component={Link}
+                      to="/messages"
+                      onClick={() => setUserAnchor(null)}
+                      sx={{
+                        gap: 1.5,
+                        fontFamily: "'Plus Jakarta Sans',sans-serif",
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      <span
+                        className="material-icons"
+                        style={{ fontSize: 18, color: "#64748b" }}
+                      >
+                        chat_bubble
+                      </span>
+                      Повідомлення
+                      {unread > 0 && (
+                        <Typography
+                          component="span"
+                          sx={{
+                            ml: "auto",
+                            bgcolor: "#dc2626",
+                            color: "#fff",
+                            fontSize: "0.65rem",
+                            fontWeight: 700,
+                            px: 1,
+                            borderRadius: "99px",
+                          }}
+                        >
+                          {unread}
+                        </Typography>
+                      )}
+                    </MenuItem>
                     <Box sx={{ my: 0.5, borderTop: "1px solid #f1f5f9" }} />
                     <MenuItem
                       onClick={() => {
@@ -1194,6 +1276,20 @@ export default function Navbar() {
                 }}
               >
                 Профіль
+              </Button>
+              <Button
+                component={Link}
+                to="/messages"
+                onClick={() => setMobileOpen(false)}
+                variant="outlined"
+                fullWidth
+                sx={{
+                  textTransform: "none",
+                  fontFamily: "'Plus Jakarta Sans',sans-serif",
+                  borderRadius: "10px",
+                }}
+              >
+                Повідомлення{unread > 0 ? ` (${unread})` : ""}
               </Button>
               <Button
                 onClick={() => {

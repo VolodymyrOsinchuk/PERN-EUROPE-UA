@@ -474,6 +474,9 @@ import AdDetailPage, {
 } from "./pages/public/AdDetailPage";
 import Contacts, { action as contactAction } from "./pages/public/Contacts";
 
+// Messages — messagerie entre utilisateurs
+import Messages, { loader as messagesLoader } from "./pages/Messages";
+
 // Forum — Dialog de création câblé + guard auth
 import Forum, {
   loader as forumLoader,
@@ -663,6 +666,13 @@ const router = createBrowserRouter(
 
             // Contact
             { path: "contact", element: <Contacts />, action: contactAction },
+
+            // Messages — messagerie intégrée
+            {
+              path: "messages",
+              element: <Messages />,
+              loader: messagesLoader,
+            },
 
             // Forum — Dialog de création + action
             {

@@ -2,6 +2,7 @@ const { Adv } = require("../models/adv");
 const { Category, SubCategory } = require("../models/category");
 const { User } = require("../models/user");
 const { deleteCloudinaryFile } = require("../config/cloudinary");
+const { normalizePhone } = require("../utils/normalizePhone");
 
 exports.createAnnonce = async (req, res) => {
   try {
@@ -33,7 +34,10 @@ exports.createAnnonce = async (req, res) => {
       state,
       city,
       location: location || null,
-      phone: phone || null,
+      // Normalisation serveur (même règle que le frontend) :
+      // espaces, tirets et parenthèses retirés avant la
+      // validation du modèle.
+      phone: normalizePhone(phone),
       email,
       amenities: amenities || [],
       photos: photoPaths,
@@ -135,7 +139,7 @@ exports.updateAnnonce = async (req, res) => {
     if (city !== undefined) updateData.city = city;
     if (location !== undefined) updateData.location = location;
     if (email !== undefined) updateData.email = email;
-    if (phone !== undefined) updateData.phone = phone || null;
+    if (phone !== undefined) updateData.phone = normalizePhone(phone);
     if (status !== undefined) updateData.status = status;
     if (amenities !== undefined) updateData.amenities = amenities;
 

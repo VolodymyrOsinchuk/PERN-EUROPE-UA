@@ -6,6 +6,7 @@ const { deleteCloudinaryFile } = require("../config/cloudinary");
 const path = require("path");
 const fs = require("fs");
 const { pick } = require("../utils/pick");
+const { normalizePhone } = require("../utils/normalizePhone");
 
 exports.getAllUsers = async (req, res) => {
   try {
@@ -119,7 +120,10 @@ exports.updateUser = async (req, res) => {
       firstName: firstName ?? user.firstName,
       lastName: lastName ?? user.lastName,
       email: email ?? user.email,
-      phoneNumber: phoneNumber ?? user.phoneNumber,
+      phoneNumber:
+        phoneNumber !== undefined
+          ? normalizePhone(phoneNumber)
+          : user.phoneNumber,
       country: country ?? user.country,
       state: state ?? user.state,
       city: city ?? user.city,

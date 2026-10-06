@@ -3,6 +3,7 @@ const sequelize = require("../config/db");
 const { Category, SubCategory } = require("./category");
 const { User } = require("./user");
 const { deleteCloudinaryFile } = require("../config/cloudinary");
+const { PHONE_PATTERN } = require("../utils/normalizePhone");
 
 const Adv = sequelize.define(
   "Adv",
@@ -52,14 +53,15 @@ const Adv = sequelize.define(
       // FIX: removed unique:true — multiple ads from same email must be allowed
       validate: { isEmail: { message: "Невірний формат email" } },
     },
-    // FIX: phone added
+    // FIX: phone added — STRING obligatoire (un INTEGER perdrait
+    // le « + », les zéros initiaux et les indicatifs internationaux)
     phone: {
       type: DataTypes.STRING(30),
       allowNull: true,
       validate: {
         is: {
-          args: /^\+[1-9]\d{6,14}$/,
-          msg: "Номер телефону має бути у міжнародному форматі E.164",
+          args: PHONE_PATTERN,
+          msg: "Номер телефону повинен містити 7-15 цифр (міжнародний формат з «+» або національний)",
         },
       },
     },

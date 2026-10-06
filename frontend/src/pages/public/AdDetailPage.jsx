@@ -31,6 +31,7 @@ import {
   useActionData,
   useNavigation,
   Link,
+  redirect,
 } from "react-router-dom";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
@@ -69,11 +70,24 @@ export const action = async ({ request, params }) => {
       await customFetch.post("/messages", { adId, recipientId, message });
       toast.success("Повідомлення надіслано");
     } else if (intent === "report") {
-      toast.success("Скаргу надіслано");
+      const reason = formData.get("reason");
+      const details = formData.get("details");
+      const adId = formData.get("adId");
+      await customFetch.post("/reports", {
+        adId: Number(adId),
+        reason,
+        details,
+      });
+      toast.success("Скаргу надіслано на модерацію");
     }
     return { success: true };
   } catch (error) {
-    toast.error(error?.response?.data?.message || "Помилка");
+    // Non connecté → rediriger vers la connexion
+    if (error?.response?.status === 401) {
+      toast.info("Увійдіть, щоб виконати цю дію");
+      throw redirect("/login");
+    }
+    toast.error(error?.response?.data?.error || error?.response?.data?.message || "Помилка");
     return { error: error?.response?.data?.message || "Error" };
   }
 };
@@ -455,7 +469,7 @@ function MessageDialog({
   );
 }
 
-function ReportDialog({ open, onClose, adTitle, isSubmitting }) {
+function ReportDialog({ open, onClose, adTitle, adId, isSubmitting }) {
   return (
     <Dialog
       open={open}
@@ -466,6 +480,7 @@ function ReportDialog({ open, onClose, adTitle, isSubmitting }) {
     >
       <Form method="post" onSubmit={onClose}>
         <input type="hidden" name="intent" value="report" />
+        <input type="hidden" name="adId" value={adId} />
         <DialogTitle
           sx={{
             fontFamily: F_DISPLAY,
@@ -1176,6 +1191,7 @@ export default function AdDetailPage() {
         open={reportOpen}
         onClose={() => setReportOpen(false)}
         adTitle={ad.title}
+        adId={ad.id}
         isSubmitting={isSubmitting}
       />
     </>
