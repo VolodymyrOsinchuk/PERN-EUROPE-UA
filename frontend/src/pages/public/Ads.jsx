@@ -81,9 +81,11 @@ export default function Ads() {
     if (v) setViewMode(v);
   };
 
-  /* Client-side filtering */
+  /* Client-side filtering — public board shows only "Active" ads */
   const filtered = (data || []).filter((ad) => {
     if (!ad) return false;
+    // Hide deactivated ("Inactive") and sold ("Sold") ads
+    if (ad.status && ad.status !== "Active") return false;
     const matchCat = !category || ad.category?.slug === category;
     const adCity =
       ad.location && typeof ad.location === "object"

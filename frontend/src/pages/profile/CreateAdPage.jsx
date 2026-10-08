@@ -715,7 +715,7 @@ export default function CreateAdPage() {
                   <TextField
                     name="location"
                     label="Точна адреса або квартал"
-                    required
+                    // required
                     fullWidth
                     placeholder="вул. Головна, 12 або центр міста"
                     sx={inputSx}

@@ -1503,6 +1503,9 @@ export default function EditAdPage() {
     ad.subcategoryId || ad.subcategory?.id || "",
   );
 
+  /* ── Status state (controlled so the value is always submitted) ── */
+  const [status, setStatus] = useState(ad.status || "Active");
+
   /* ── Location state ── */
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
@@ -2012,7 +2015,8 @@ export default function EditAdPage() {
                     <Select
                       name="status"
                       label="Статус"
-                      defaultValue={ad.status || "Active"}
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
                       sx={selectSx}
                     >
                       <MenuItem value="Active" sx={{ fontFamily: F_BODY }}>

@@ -8,7 +8,8 @@
     "keep-alive": "node scripts/keep-alive.js",
     "init-categories": "node scripts/initCategories.js",
     "clean-up": "node scripts/cleanDb.js",
-    "migrate": "node scripts/runMigrations.js"
+    "migrate": "node scripts/runMigrations.js",
+    "seed": "node scripts/seedData.js"
   },
   "keywords": [],
   "author": "",
