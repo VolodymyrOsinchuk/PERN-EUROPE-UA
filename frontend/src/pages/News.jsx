@@ -1,45 +1,38 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLoaderData, Link } from "react-router-dom";
 import { HeroSection } from "../components";
 import {
   Box,
   Button,
   Card,
-  CardContent,
   CardActions,
+  CardContent,
   Chip,
   CircularProgress,
   Container,
+  Grid,
   InputAdornment,
   TextField,
   Typography,
-  Grid,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
-import ExternalNews from "../components/ExternalNews";
 
 const fontBody = "'Plus Jakarta Sans', sans-serif";
 const fontDisplay = "'Playfair Display', serif";
 
-const CATEGORIES = [
-  { label: "Всі", key: "all" },
-  { label: "Соціальна допомога", key: "Соціальна допомога" },
-  { label: "Культура", key: "Культура" },
-  { label: "Робота", key: "Робота" },
-  { label: "Освіта", key: "Освіта" },
-];
+const LOCAL_SOURCE = "Редакція";
+const PAGE_SIZE = 9;
 
-const CAT_COLORS = {
-  "Соціальна допомога": { bg: "#fef2f2", text: "#991b1b" },
-  Культура: { bg: "#f5f3ff", text: "#6d28d9" },
-  Робота: { bg: "#ecfdf5", text: "#065f46" },
-  Освіта: { bg: "#fff7ed", text: "#9a3412" },
+const SOURCE_COLORS = {
+  [LOCAL_SOURCE]: { bg: "#eff6ff", text: "#1d4ed8" },
+  default: { bg: "#ecfdf5", text: "#065f46" },
 };
 
-// ── Loader — récupère les vraies données depuis l'API ──
+// ── Loader: новини з бази (як і раніше) ──
 export async function loader() {
   try {
     const { data } = await customFetch.get("/news");
@@ -50,31 +43,104 @@ export async function loader() {
   }
 }
 
-export default function News() {
-  const { news: initialNews } = useLoaderData();
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [search, setSearch] = useState("");
-  const [visibleCount, setVisibleCount] = useState(6);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+// Приводимо обидва типи новин до одного формату
+function normalizeLocal(item) {
+  return {
+    key: `db-${item.id}`,
+    title: item.title,
+    summary: item.content,
+    date: item.date,
+    source: LOCAL_SOURCE,
+    importance: item.importance,
+    href: `/news/${item.id}`,
+    external: false,
+  };
+}
 
-  const filtered = initialNews.filter((item) => {
-    const matchCat =
-      selectedCategory === "all" || item.category === selectedCategory;
-    const matchSearch =
-      !search || item.title.toLowerCase().includes(search.toLowerCase());
-    return matchCat && matchSearch;
-  });
+function normalizeExternal(item) {
+  return {
+    key: `ext-${item.link}`,
+    title: item.title,
+    summary: item.summary,
+    date: item.date,
+    source: item.source,
+    importance: "medium",
+    href: item.link,
+    external: true,
+  };
+}
+
+// Правильна форма слова: 1 новина, 2 новини, 5 новин
+function pluralNews(n) {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return "новина";
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return "новини";
+  return "новин";
+}
+
+export default function News() {
+  const { news: localNews } = useLoaderData();
+
+  const [externalNews, setExternalNews] = useState([]);
+  const [externalLoading, setExternalLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [source, setSource] = useState("all");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  // Зовнішні новини завантажуємо окремо, щоб сторінка не блокувалась
+  useEffect(() => {
+    let cancelled = false;
+
+    customFetch
+      .get("/external-news")
+      .then(({ data }) => {
+        if (!cancelled) setExternalNews(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setExternalLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Один список з обох джерел, від новішого до старішого
+  const allItems = useMemo(() => {
+    const merged = [
+      ...(localNews || []).map(normalizeLocal),
+      ...externalNews.map(normalizeExternal),
+    ];
+    return merged.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+  }, [localNews, externalNews]);
+
+  // Список джерел для чіпів фільтра
+  const sources = useMemo(
+    () => [...new Set(allItems.map((i) => i.source))],
+    [allItems],
+  );
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return allItems.filter((item) => {
+      const matchSource = source === "all" || item.source === source;
+      const matchSearch =
+        !q ||
+        item.title?.toLowerCase().includes(q) ||
+        item.summary?.toLowerCase().includes(q);
+      return matchSource && matchSearch;
+    });
+  }, [allItems, source, search]);
+
+  // Після зміни фільтрів показуємо знову першу сторінку
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [search, source]);
 
   const visible = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
-
-  const loadMore = () => {
-    setIsLoadingMore(true);
-    setTimeout(() => {
-      setVisibleCount((v) => v + 6);
-      setIsLoadingMore(false);
-    }, 400);
-  };
 
   return (
     <>
@@ -87,131 +153,99 @@ export default function News() {
 
       <Box sx={{ py: { xs: 6, md: 8 } }}>
         <Container maxWidth="lg">
-          {/* Filter bar */}
+          {/* ── Фільтри ── */}
           <Box
             sx={{
               bgcolor: "#fff",
               border: "1px solid #e2e8f0",
               borderRadius: "20px",
               p: { xs: 2.5, md: 3 },
-              mb: 5,
+              mb: 4,
               boxShadow: "0 2px 16px rgba(0,87,184,.05)",
             }}
           >
-            <Box
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Пошук новин..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               sx={{
-                display: "flex",
-                gap: 2,
-                flexWrap: "wrap",
-                alignItems: "center",
+                mb: 2.5,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "12px",
+                  fontFamily: fontBody,
+                  bgcolor: "#f8fafc",
+                  "&:hover fieldset": { borderColor: "#0057B8" },
+                  "&.Mui-focused fieldset": { borderColor: "#0057B8" },
+                },
               }}
-            >
-              <TextField
-                placeholder="Пошук новин..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                size="small"
-                sx={{
-                  flex: { xs: "1 1 100%", sm: "1 1 280px" },
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "12px",
-                    fontFamily: fontBody,
-                    bgcolor: "#f8fafc",
-                    "&:hover fieldset": { borderColor: "#0057B8" },
-                    "&.Mui-focused fieldset": { borderColor: "#0057B8" },
-                  },
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon sx={{ fontSize: 18, color: "#94a3b8" }} />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                {CATEGORIES.map((cat) => (
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ fontSize: 18, color: "#94a3b8" }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+              {["all", ...sources].map((s) => {
+                const isActive = source === s;
+                const clr = SOURCE_COLORS[s] || SOURCE_COLORS.default;
+                return (
                   <Chip
-                    key={cat.key}
-                    label={cat.label}
+                    key={s}
+                    label={s === "all" ? "Усі джерела" : s}
                     clickable
-                    onClick={() => setSelectedCategory(cat.key)}
+                    onClick={() => setSource(s)}
                     sx={{
                       fontFamily: fontBody,
                       fontWeight: 600,
                       fontSize: "0.8rem",
                       borderRadius: "10px",
-                      bgcolor:
-                        selectedCategory === cat.key ? "#0057B8" : "#f1f5f9",
-                      color: selectedCategory === cat.key ? "#fff" : "#64748b",
-                      border:
-                        selectedCategory === cat.key
-                          ? "none"
-                          : "1px solid #e2e8f0",
+                      bgcolor: isActive ? "#0057B8" : clr.bg,
+                      color: isActive ? "#fff" : clr.text,
+                      border: isActive ? "none" : "1px solid #e2e8f0",
                       transition: "all 0.2s",
                       "&:hover": {
-                        bgcolor:
-                          selectedCategory === cat.key ? "#003d82" : "#e8f0fc",
+                        bgcolor: isActive ? "#003d82" : "#e8f0fc",
                       },
                     }}
                   />
-                ))}
-              </Box>
+                );
+              })}
             </Box>
           </Box>
 
-          {/* Count */}
-          <Typography
-            sx={{
-              fontFamily: fontBody,
-              fontSize: "0.875rem",
-              color: "#64748b",
-              mb: 3,
-              fontWeight: 500,
-            }}
-          >
-            {filtered.length} новин знайдено
-          </Typography>
+          {/* ── Лічильник ── */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
+            <Typography
+              sx={{
+                fontFamily: fontBody,
+                fontSize: "0.875rem",
+                color: "#64748b",
+                fontWeight: 500,
+              }}
+            >
+              Знайдено {filtered.length} {pluralNews(filtered.length)}
+            </Typography>
+            {externalLoading && (
+              <CircularProgress size={14} sx={{ color: "#94a3b8" }} />
+            )}
+          </Box>
 
-          {/* Empty state */}
-          {filtered.length === 0 && (
-            <Box sx={{ textAlign: "center", py: 10 }}>
-              <Typography
-                sx={{
-                  fontFamily: fontDisplay,
-                  fontSize: "1.4rem",
-                  color: "#94a3b8",
-                  mb: 1,
-                }}
-              >
-                Новин не знайдено
-              </Typography>
-              <Typography
-                sx={{
-                  fontFamily: fontBody,
-                  fontSize: "0.875rem",
-                  color: "#cbd5e1",
-                }}
-              >
-                Спробуйте змінити фільтри або пошуковий запит
-              </Typography>
-            </Box>
-          )}
-
-          {/* News grid */}
+          {/* ── Список ── */}
           <Grid container spacing={3}>
             {visible.map((item, i) => {
-              const catClr = CAT_COLORS[item.category] || {
-                bg: "#f1f5f9",
-                text: "#475569",
-              };
+              const clr = SOURCE_COLORS[item.source] || SOURCE_COLORS.default;
               return (
                 <Grid
-                  key={item.id ?? i}
-                  size={{ xs: 12, md: 6 }}
+                  key={item.key}
+                  size={{ xs: 12, md: 6, lg: 4 }}
                   sx={{
                     animation: "fadeUp 0.5s ease both",
-                    animationDelay: `${(i % 6) * 0.08}s`,
+                    animationDelay: `${(i % PAGE_SIZE) * 0.06}s`,
                     "@keyframes fadeUp": {
                       from: { opacity: 0, transform: "translateY(20px)" },
                       to: { opacity: 1, transform: "translateY(0)" },
@@ -240,26 +274,21 @@ export default function News() {
                           justifyContent: "space-between",
                           alignItems: "center",
                           mb: 2,
+                          gap: 1,
                         }}
                       >
                         <Chip
-                          label={item.category || "Загальне"}
+                          label={item.source}
                           size="small"
                           sx={{
-                            bgcolor: catClr.bg,
-                            color: catClr.text,
+                            bgcolor: clr.bg,
+                            color: clr.text,
                             fontFamily: fontBody,
                             fontWeight: 700,
                             fontSize: "0.72rem",
                           }}
                         />
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.5,
-                          }}
-                        >
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                           {item.importance === "high" && (
                             <Box
                               sx={{
@@ -278,14 +307,11 @@ export default function News() {
                             }}
                           >
                             {item.date
-                              ? new Date(item.date).toLocaleDateString(
-                                  "uk-UA",
-                                  {
-                                    day: "2-digit",
-                                    month: "short",
-                                    year: "numeric",
-                                  },
-                                )
+                              ? new Date(item.date).toLocaleDateString("uk-UA", {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                })
                               : "—"}
                           </Typography>
                         </Box>
@@ -307,74 +333,71 @@ export default function News() {
                       >
                         {item.title}
                       </Typography>
-                      <Typography
-                        sx={{
-                          fontFamily: fontBody,
-                          fontSize: "0.875rem",
-                          color: "#64748b",
-                          lineHeight: 1.7,
-                          display: "-webkit-box",
-                          WebkitLineClamp: 3,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {item.content}
-                      </Typography>
+
+                      {item.summary && (
+                        <Typography
+                          sx={{
+                            fontFamily: fontBody,
+                            fontSize: "0.875rem",
+                            color: "#64748b",
+                            lineHeight: 1.7,
+                            display: "-webkit-box",
+                            WebkitLineClamp: 3,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {item.summary}
+                        </Typography>
+                      )}
                     </CardContent>
 
-                    <CardActions
-                      sx={{
-                        px: 3,
-                        pb: 2.5,
-                        pt: 0,
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Button
-                        size="small"
-                        endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
-                        component={Link}
-                        to={`/news/${item.id}`}
-                        sx={{
-                          fontFamily: fontBody,
-                          fontWeight: 700,
-                          textTransform: "none",
-                          color: "#0057B8",
-                          fontSize: "0.8rem",
-                          p: 0,
-                          "&:hover": {
-                            bgcolor: "transparent",
-                            textDecoration: "underline",
-                          },
-                        }}
-                      >
-                        Читати далі
-                      </Button>
-                      <Button
-                        size="small"
-                        startIcon={
-                          <span
-                            className="material-icons"
-                            style={{ fontSize: 14 }}
-                          >
-                            share
-                          </span>
-                        }
-                        sx={{
-                          fontFamily: fontBody,
-                          fontWeight: 500,
-                          textTransform: "none",
-                          color: "#94a3b8",
-                          fontSize: "0.8rem",
-                          "&:hover": {
-                            color: "#64748b",
-                            bgcolor: "transparent",
-                          },
-                        }}
-                      >
-                        Поділитися
-                      </Button>
+                    <CardActions sx={{ px: 3, pb: 2.5, pt: 0 }}>
+                      {item.external ? (
+                        <Button
+                          size="small"
+                          component="a"
+                          href={item.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          endIcon={<OpenInNewIcon sx={{ fontSize: 14 }} />}
+                          sx={{
+                            fontFamily: fontBody,
+                            fontWeight: 700,
+                            textTransform: "none",
+                            color: "#0057B8",
+                            fontSize: "0.8rem",
+                            p: 0,
+                            "&:hover": {
+                              bgcolor: "transparent",
+                              textDecoration: "underline",
+                            },
+                          }}
+                        >
+                          Читати в джерелі
+                        </Button>
+                      ) : (
+                        <Button
+                          size="small"
+                          component={Link}
+                          to={item.href}
+                          endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
+                          sx={{
+                            fontFamily: fontBody,
+                            fontWeight: 700,
+                            textTransform: "none",
+                            color: "#0057B8",
+                            fontSize: "0.8rem",
+                            p: 0,
+                            "&:hover": {
+                              bgcolor: "transparent",
+                              textDecoration: "underline",
+                            },
+                          }}
+                        >
+                          Читати далі
+                        </Button>
+                      )}
                     </CardActions>
                   </Card>
                 </Grid>
@@ -382,43 +405,31 @@ export default function News() {
             })}
           </Grid>
 
-          {/* Load more */}
+          {/* ── Завантажити ще ── */}
           {hasMore && (
             <Box sx={{ textAlign: "center", mt: 6 }}>
               <Button
-                onClick={loadMore}
-                disabled={isLoadingMore}
+                onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
                 sx={{
                   fontFamily: fontBody,
                   fontWeight: 700,
                   textTransform: "none",
-                  bgcolor: isLoadingMore ? "#f1f5f9" : "#0057B8",
-                  color: isLoadingMore ? "#94a3b8" : "#fff",
+                  bgcolor: "#0057B8",
+                  color: "#fff",
                   borderRadius: "12px",
                   px: 4,
                   py: 1.4,
                   fontSize: "0.9rem",
-                  boxShadow: isLoadingMore
-                    ? "none"
-                    : "0 4px 14px rgba(0,87,184,.3)",
+                  boxShadow: "0 4px 14px rgba(0,87,184,.3)",
                   "&:hover": { bgcolor: "#003d82" },
-                  transition: "all 0.25s ease",
                 }}
               >
-                {isLoadingMore ? (
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                    <CircularProgress size={16} sx={{ color: "#94a3b8" }} />
-                    Завантаження...
-                  </Box>
-                ) : (
-                  `Завантажити ще (${filtered.length - visibleCount})`
-                )}
+                Завантажити ще ({filtered.length - visibleCount})
               </Button>
             </Box>
           )}
         </Container>
       </Box>
-      <ExternalNews />
     </>
   );
 }
