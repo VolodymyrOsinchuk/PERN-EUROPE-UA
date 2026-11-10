@@ -14,25 +14,25 @@ const SectionsGrid = () => {
       title: "Новини",
       icon: "article",
       description: "Останні новини та події для українців у Європі",
-      link: "/новини",
+      link: "/news",
     },
     {
       title: "Афіша",
       icon: "event",
       description: "Культурні заходи та події української діаспори",
-      link: "/афіша",
+      link: "/events",
     },
     {
       title: "Публікації",
       icon: "library_books",
       description: "Корисні статті та інформація для життя за кордоном",
-      link: "/публікації",
+      link: "/publications",
     },
     {
       title: "Форум",
       icon: "forum",
       description: "Спілкування та обмін досвідом з іншими українцями",
-      link: "/форум",
+      link: "/forum",
     },
   ];
 
