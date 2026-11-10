@@ -35,12 +35,13 @@ const verifyEmailLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// 5 messages de contact / heure / IP — évite le spam du formulaire
+// 10 messages par heure et par utilisateur connecté
 const contactLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 5,
+  max: 10,
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => String(req.user.userId),
   message: {
     error: "Забагато повідомлень",
     message: "Спробуйте знову через годину",

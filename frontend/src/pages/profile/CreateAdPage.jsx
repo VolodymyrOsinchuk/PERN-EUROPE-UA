@@ -59,11 +59,14 @@ export const action = async ({ request }) => {
   const data = await request.formData();
 
   for (const [key, value] of data.entries()) {
-    if (key !== "photos") formData.append(key, value);
+    if (key !== "photos" && key !== "phone") formData.append(key, value);
   }
   data.getAll("photos").forEach((photo) => formData.append("photos", photo));
 
-  // FIX P2-3: normalisation E.164 avant envoi au backend
+  // FIX P2-3: normalisation E.164 avant envoi au backend.
+  // Le champ "phone" est exclu de la boucle ci-dessus pour n'être envoyé
+  // qu'une seule fois, avec sa valeur normalisée (évite la concaténation
+  // brute + normalisée qui échouerait la validation Sequelize).
   const phoneCode = data.get("phoneCode");
   const rawPhone = data.get("phone");
   const normalizedPhone = toE164(phoneCode, rawPhone);

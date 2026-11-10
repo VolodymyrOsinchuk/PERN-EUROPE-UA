@@ -1,94 +1,58 @@
-// // utils/emailService.js
-// const transporter = require("../config/nodemailer");
-// const config = require("../config/config");
-
-// async function sendVerificationEmail(email, firstName, verificationToken) {
-//   const verificationLink = `${config.client.url}/verify-account/${verificationToken}`;
-
-//   console.log(
-//     "🚀 ~ sendVerificationEmail ~ verificationLink:",
-//     verificationLink
-//   );
-
-//   const mailOptions = {
-//     from: '"Українці в Європі" <osinvolo@gmail.com>',
-//     to: email,
-//     subject: "Підтвердження електронної пошти",
-//     html: `
-//     <!DOCTYPE html/>
-//     <html lang="uk">
-//     <meta charSet="UTF-8" />
-//     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-//     <title>Підтвердження вашого акаунту</title>
-//     <style>
-//       body {
-//         font-family: Arial, sans-serif;
-//         line-height: 1.6;
-//         color: #333;
-//       }
-//       .container {
-//         max-width: 600px;
-//         margin: 0 auto;
-//         padding: 20px;
-//         border: 1px solid #ddd;
-//         border-radius: 5px;
-//       }
-//       .button {
-//         display: inline-block;
-//         padding: 10px 20px;
-//         background-color: #007bff;
-//         color: #ffffff;
-//         text-decoration: none;
-//         border-radius: 5px;
-//       }
-//     </style>
-//   </head>
-//   <body>
-//     <div className="container">
-//       <h2>Вітаємо, ${firstName}!</h2>
-//       <p>
-//         Дякуємо за реєстрацію на нашому сайті. Щоб активувати свій акаунт,
-//         натисніть кнопку нижче:
-//       </p>
-//       <p>
-//         <a href="${verificationLink}" className="button" target="_blank">Підтвердити акаунт</a>
-//       </p>
-//       <p>
-//         Якщо кнопка не працює, ви можете скопіювати та вставити наступне посилання
-//         у свій браузер:
-//       </p>
-//       <p>${verificationLink}</p>
-//       <p>Це посилання буде дійсним протягом 24 годин.</p>
-//       <p>
-//         Якщо ви не створювали акаунт на нашому сайті, ви можете ігнорувати
-//         цей лист.
-//       </p>
-//       <p>З повагою,<br />Команда сайту</p>
-//     </div>
-//   </body>
-// </html>`,
-//   };
-
-//   try {
-//     const info = await transporter.sendMail(mailOptions);
-//     console.log("Лист для підтвердження надіслано", info.messageId);
-//     return true;
-//   } catch (error) {
-//     console.error("Помилка надсилання листа:", error);
-//     return false;
-//   }
-// }
-
-// module.exports = { sendVerificationEmail };
-
 // utils/emailService.js
 const mg = require("../config/mailgun");
 
 const DOMAIN = process.env.MAILGUN_DOMAIN;
 const FROM = `"Українці в Європі" <no-reply@${DOMAIN}>`;
-const CLIENT_URL = process.env.CLIENT_URL;
+// Retire un éventuel "/" final pour éviter les URLs en "//"
+const CLIENT_URL = (process.env.CLIENT_URL ?? "").replace(/\/+$/, "");
 
-// ─── Templates HTML ──────────────────────────────────────────────────────────
+if (!DOMAIN || !CLIENT_URL) {
+  console.warn(
+    "⚠️ MAILGUN_DOMAIN ou CLIENT_URL est manquant : les emails seront mal formés.",
+  );
+}
+
+// ─── Utilitaires ─────────────────────────────────────────────────────────────
+
+// Empêche l'injection de HTML (liens, mise en forme) dans un email
+// envoyé depuis TON domaine.
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
+ * Wrapper générique d'envoi via Mailgun.
+ * @param {{ to: string, subject: string, html: string, text?: string, replyTo?: string }} options
+ * @returns {Promise<boolean>}
+ */
+async function sendMail({ to, subject, html, text, replyTo }) {
+  try {
+    const data = await mg.messages.create(DOMAIN, {
+      from: FROM,
+      to: [to],
+      subject,
+      html,
+      text: text ?? subject,
+      // Si replyTo est fourni, "Répondre" écrira à cette adresse
+      ...(replyTo ? { "h:Reply-To": replyTo } : {}),
+    });
+    console.log(`✅ Email надіслано на ${to} — ID: ${data.id}`);
+    return true;
+  } catch (error) {
+    console.error(
+      `❌ Помилка надсилання email на ${to}:`,
+      error?.message ?? error,
+    );
+    return false;
+  }
+}
+
+// ─── Template HTML ───────────────────────────────────────────────────────────
 
 function baseTemplate(content) {
   return `<!DOCTYPE html>
@@ -172,24 +136,17 @@ function baseTemplate(content) {
 </html>`;
 }
 
-// ─── Fonctions d'envoi ────────────────────────────────────────────────────────
+// ─── Fonctions d'envoi ───────────────────────────────────────────────────────
 
 /**
  * Envoie un email de vérification de compte.
- * @param {string} email
- * @param {string} firstName
- * @param {string} verificationToken
  * @returns {Promise<boolean>}
  */
-async function sendVerificationEmail(
-  email,
-  firstName,
-  verificationToken,
-) {
+async function sendVerificationEmail(email, firstName, verificationToken) {
   const verificationLink = `${CLIENT_URL}/verify-account/${verificationToken}`;
 
   const html = baseTemplate(`
-    <h2>Вітаємо, ${firstName}!</h2>
+    <h2>Вітаємо, ${escapeHtml(firstName)}!</h2>
     <p>
       Дякуємо за реєстрацію. Щоб активувати свій акаунт,
       натисніть кнопку нижче:
@@ -197,73 +154,107 @@ async function sendVerificationEmail(
     <p>
       <a href="${verificationLink}" class="button">Підтвердити акаунт</a>
     </p>
-    <p>Якщо кнопка не працює, скопіюйте це посилання у браузер :</p>
+    <p>Якщо кнопка не працює, скопіюйте це посилання у браузер:</p>
     <p class="link-fallback">${verificationLink}</p>
     <p>⏳ Посилання дійсне протягом <strong>24 годин</strong>.</p>
     <p>Якщо ви не реєструвалися — просто ігноруйте цей лист.</p>
     <p>З повагою,<br/>Команда сайту</p>
   `);
 
+  const text =
+    `Вітаємо, ${firstName}!\n\n` +
+    `Щоб активувати свій акаунт, перейдіть за посиланням:\n${verificationLink}\n\n` +
+    `Посилання дійсне протягом 24 годин.\n` +
+    `Якщо ви не реєструвалися — просто ігноруйте цей лист.`;
+
   return sendMail({
     to: email,
     subject: "Підтвердження електронної пошти",
     html,
+    text,
   });
 }
 
 /**
  * Envoie un email de réinitialisation de mot de passe.
- * @param {string} email
- * @param {string} firstName
- * @param {string} resetToken
  * @returns {Promise<boolean>}
  */
 async function sendPasswordResetEmail(email, firstName, resetToken) {
   const resetLink = `${CLIENT_URL}/reset-password/${resetToken}`;
 
   const html = baseTemplate(`
-    <h2>Скидання паролю, ${firstName}</h2>
+    <h2>Скидання паролю, ${escapeHtml(firstName)}</h2>
     <p>Ми отримали запит на скидання паролю для вашого акаунту.</p>
     <p>
       <a href="${resetLink}" class="button">Скинути пароль</a>
     </p>
-    <p>Якщо кнопка не працює, скопіюйте це посилання :</p>
+    <p>Якщо кнопка не працює, скопіюйте це посилання:</p>
     <p class="link-fallback">${resetLink}</p>
     <p>⏳ Посилання дійсне протягом <strong>1 години</strong>.</p>
     <p>Якщо ви не робили цей запит — ваш пароль залишається незмінним.</p>
     <p>З повагою,<br/>Команда сайту</p>
   `);
 
+  const text =
+    `Скидання паролю, ${firstName}\n\n` +
+    `Ми отримали запит на скидання паролю для вашого акаунту:\n${resetLink}\n\n` +
+    `Посилання дійсне протягом 1 години.\n` +
+    `Якщо ви не робили цей запит — ваш пароль залишається незмінним.`;
+
   return sendMail({
     to: email,
     subject: "Скидання паролю",
     html,
+    text,
   });
 }
 
-// ─── Utilitaire interne ───────────────────────────────────────────────────────
-
 /**
- * Wrapper générique d'envoi via Mailgun.
- * @param {{ to: string, subject: string, html: string, text?: string }} options
+ * Envoie au vendeur le message d'un acheteur.
  * @returns {Promise<boolean>}
  */
-async function sendMail({ to, subject, html, text }) {
-  try {
-    const data = await mg.messages.create(DOMAIN, {
-      from: FROM,
-      to: [to],
-      subject,
-      html,
-      // Fallback texte généré automatiquement si non fourni
-      text: text ?? subject,
-    });
-    console.log(`✅ Email надіслано на ${to} — ID: ${data.id}`);
-    return true;
-  } catch (error) {
-    console.error(`❌ Помилка надсилання email на ${to}:`, error?.message ?? error);
-    return false;
-  }
+async function sendAdContactEmail({
+  to,
+  adId,
+  adTitle,
+  senderName,
+  senderEmail,
+  message,
+}) {
+  const adLink = `${CLIENT_URL}/ads/${encodeURIComponent(adId)}`;
+  const safeMessage = escapeHtml(message).replace(/\n/g, "<br/>");
+
+  const html = baseTemplate(`
+    <h2>Нове повідомлення щодо вашого оголошення</h2>
+    <p>
+      <strong>${escapeHtml(senderName)}</strong> написав(ла) вам щодо
+      оголошення «<a href="${adLink}">${escapeHtml(adTitle)}</a>»:
+    </p>
+    <blockquote style="margin:16px 0;padding:12px 16px;background:#f4f4f4;border-left:4px solid #005BBB;">
+      ${safeMessage}
+    </blockquote>
+    <p>
+      Щоб відповісти, натисніть «Відповісти» у вашій поштовій програмі —
+      відповідь прийде на адресу <strong>${escapeHtml(senderEmail)}</strong>.
+    </p>
+  `);
+
+  const text =
+    `${senderName} (${senderEmail}) написав(ла) вам щодо оголошення «${adTitle}»:\n\n` +
+    `${message}\n\nОголошення: ${adLink}`;
+
+  return sendMail({
+    to,
+    // On retire les retours à la ligne éventuels du titre
+    subject: `Нове повідомлення: ${adTitle}`.replace(/[\r\n]+/g, " "),
+    html,
+    text,
+    replyTo: senderEmail,
+  });
 }
 
-module.exports = { sendVerificationEmail, sendPasswordResetEmail };
+module.exports = {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+  sendAdContactEmail,
+};

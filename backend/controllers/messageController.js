@@ -2,6 +2,7 @@ const { Op } = require("sequelize");
 const { Conversation, Message } = require("../models/conversation");
 const { User } = require("../models/user");
 const { Adv } = require("../models/adv");
+const { sendAdContactEmail } = require("../utils/emailService");
 
 // Une personne fait partie d'une conversation si elle l'a créée
 // ou si elle a envoyé/reçu au moins un message dedans.
@@ -19,83 +20,57 @@ async function isParticipant(conversation, userId) {
 exports.createMessage = async (req, res, next) => {
   try {
     const senderId = req.user.userId;
-    const { conversationId, recipientId, adId, message } = req.body;
+    const { adId, message } = req.body;
 
-    if (!message || (!recipientId && !conversationId)) {
-      return res.status(400).json({ error: "Відсутні обов'язкові поля" });
-    }
-
-    if (recipientId && !Number.isInteger(Number(recipientId))) {
-      return res.status(400).json({ error: "recipientId має бути числом" });
-    }
-
-    if (!recipientId && !conversationId) {
+    const text = typeof message === "string" ? message.trim() : "";
+    if (!Number.isInteger(Number(adId)) || !text) {
       return res
         .status(400)
-        .json({ error: "recipientId або conversationId є обов'язковим" });
+        .json({ message: "Вкажіть оголошення та текст повідомлення" });
+    }
+    if (text.length > 2000) {
+      return res.status(400).json({
+        message: "Повідомлення занадто довге (максимум 2000 символів)",
+      });
     }
 
-    let conv = null;
-
-    if (conversationId) {
-      conv = await Conversation.findByPk(conversationId);
-      if (!conv || !(await isParticipant(conv, senderId))) {
-        return res.status(404).json({ error: "Розмову не знайдено" });
-      }
-    } else {
-      // Try to find existing conversation for this ad between these two users
-      if (adId) {
-        conv = await Conversation.findOne({
-          where: {
-            adId,
-            [Op.or]: [{ createdBy: senderId }, { createdBy: recipientId }],
-          },
-          include: [
-            {
-              model: Message,
-              as: "messages",
-              where: {
-                [Op.or]: [
-                  { senderId, recipientId },
-                  { senderId: recipientId, recipientId: senderId },
-                ],
-              },
-              required: true,
-            },
-          ],
-        });
-      }
-
-      // Create new conversation if none found
-      if (!conv) {
-        conv = await Conversation.create({
-          adId: adId || null,
-          createdBy: senderId,
-        });
-      }
+    // Le destinataire vient de l'annonce (pas du navigateur)
+    const ad = await Adv.findByPk(adId, {
+      attributes: ["id", "title", "email", "userId", "status", "isArchived"],
+    });
+    if (!ad || ad.isArchived === true || ad.status !== "Active") {
+      return res.status(404).json({ message: "Оголошення не знайдено" });
+    }
+    if (ad.userId === senderId) {
+      return res
+        .status(400)
+        .json({ message: "Ви не можете написати власному оголошенню" });
     }
 
-    const newMsg = await Message.create({
-      conversationId: conv.id,
-      senderId,
-      recipientId: recipientId ? parseInt(recipientId, 10) : null,
-      body: message,
+    // L'adresse de réponse est celle du compte vérifié de l'acheteur
+    const sender = await User.findByPk(senderId, {
+      attributes: ["firstName", "lastName", "email"],
+    });
+    if (!sender) {
+      return res.status(401).json({ message: "Потрібна автентифікація" });
+    }
+
+    const sent = await sendAdContactEmail({
+      to: ad.email,
+      adId: ad.id,
+      adTitle: ad.title,
+      senderName: `${sender.firstName} ${sender.lastName}`.trim(),
+      senderEmail: sender.email,
+      message: text,
     });
 
-    await conv.update({ lastMessageAt: newMsg.createdAt });
+    if (!sent) {
+      return res
+        .status(502)
+        .json({ message: "Не вдалося надіслати лист. Спробуйте пізніше" });
+    }
 
-    // Return message with sender info
-    const created = await Message.findByPk(newMsg.id, {
-      include: [
-        {
-          model: User,
-          as: "sender",
-          attributes: ["id", "firstName", "lastName", "profilePicture"],
-        },
-      ],
-    });
-
-    res.status(201).json(created);
+    return res.status(200).json({ message: "Повідомлення надіслано" });
   } catch (err) {
     console.error("Помилка createMessage:", err);
     next(err);

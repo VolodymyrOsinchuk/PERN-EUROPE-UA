@@ -6,6 +6,15 @@ const bcrypt = require("bcryptjs");
 const config = require("../config/config");
 const { normalizePhone } = require("../utils/normalizePhone");
 
+// Imports supposés présents en haut de ton fichier (à adapter à tes chemins) :
+// const crypto = require("crypto");
+// const config = require("../config/config");
+// const { User } = require("../models");
+// const { sendVerificationEmail } = require("../utils/emailService");
+// const { normalizePhone } = require("../utils/phone");
+
+const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 h
+
 exports.register = async (req, res) => {
   try {
     if (!req.body || Object.keys(req.body).length === 0) {
@@ -23,7 +32,10 @@ exports.register = async (req, res) => {
       agreeToTerms,
     } = req.body;
 
-    if (!email || !password || !firstName || !lastName) {
+    // Vérifie la présence ET le type (évite un TypeError sur password.length
+    // si le client envoie un nombre, un tableau, etc.)
+    const requiredFields = [email, password, firstName, lastName];
+    if (requiredFields.some((v) => !v || typeof v !== "string")) {
       return res.status(400).json({
         message: "Електронна пошта, пароль, ім'я та прізвище обов'язкові",
       });
@@ -35,14 +47,13 @@ exports.register = async (req, res) => {
       });
     }
 
-    const isFirstAccount =
-      config.features.enableAdminBootstrap && (await User.count()) === 0;
-    const role = isFirstAccount ? "admin" : "user";
-
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ message: "Користувач вже існує" });
     }
+
+    const isFirstAccount =
+      config.features.enableAdminBootstrap && (await User.count()) === 0;
 
     const verificationToken = crypto.randomBytes(32).toString("hex");
 
@@ -53,20 +64,23 @@ exports.register = async (req, res) => {
       password,
       phoneNumber: normalizePhone(phoneNumber),
       verificationToken,
-      verificationTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      verificationTokenExpires: new Date(
+        Date.now() + VERIFICATION_TOKEN_TTL_MS,
+      ),
       country: country || null,
-      // FIX: save "city" from register form — was sent but never stored
       city: city || null,
       agreeToTerms: agreeToTerms === true || agreeToTerms === "on",
-      role,
+      role: isFirstAccount ? "admin" : "user",
     });
 
-    const testEmailSent = await sendVerificationEmail(
+    const emailSent = await sendVerificationEmail(
       user.email,
       firstName,
       verificationToken,
     );
-    console.log("🚀 ~ тестовий email надіслано:", testEmailSent);
+    if (!emailSent) {
+      console.warn(`⚠️ Email de vérification non envoyé à ${user.email}`);
+    }
 
     res.status(201).json({
       message: "Користувача успішно створено. Перевірте електронну пошту.",
@@ -74,6 +88,7 @@ exports.register = async (req, res) => {
     });
   } catch (error) {
     console.error("Помилка під час реєстрації:", error);
+
     if (error.name === "SequelizeValidationError") {
       return res.status(400).json({
         message: "Помилка валідації",
@@ -83,9 +98,12 @@ exports.register = async (req, res) => {
     if (error.name === "SequelizeUniqueConstraintError") {
       return res.status(409).json({ message: "Email вже використовується" });
     }
-    res
-      .status(500)
-      .json({ message: "Помилка під час реєстрації", error: error.message });
+
+    res.status(500).json({
+      message: "Помилка під час реєстрації",
+      // Ne pas exposer le message interne en production
+      ...(process.env.NODE_ENV !== "production" && { error: error.message }),
+    });
   }
 };
 
@@ -171,7 +189,10 @@ exports.verifyEmail = async (req, res) => {
       return res.status(400).json({ message: "Невірний токен підтвердження" });
     }
 
-    if (user.verificationTokenExpires && user.verificationTokenExpires < new Date()) {
+    if (
+      user.verificationTokenExpires &&
+      user.verificationTokenExpires < new Date()
+    ) {
       return res.status(410).json({ message: "Термін дії токена минув" });
     }
 
@@ -240,9 +261,7 @@ const findOrCreateSocialUser = async ({
     const nameParts = (name || "").trim().split(/\s+/).filter(Boolean);
     // firstName/lastName ont une validation len [2, 50] dans le modèle
     const firstName =
-      nameParts[0] && nameParts[0].length >= 2
-        ? nameParts[0]
-        : "Utilisateur";
+      nameParts[0] && nameParts[0].length >= 2 ? nameParts[0] : "Utilisateur";
     const lastName =
       nameParts.slice(1).join(" ").trim().length >= 2
         ? nameParts.slice(1).join(" ").trim()
@@ -280,8 +299,7 @@ const redirectToLoginError = (res) =>
 
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
-const GOOGLE_USERINFO_URL =
-  "https://openidconnect.googleapis.com/v1/userinfo";
+const GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo";
 
 exports.googleLogin = (req, res) => {
   const { clientId } = config.oauth.google;
@@ -384,7 +402,8 @@ exports.facebookCallback = async (req, res) => {
   try {
     const { code, state } = req.query;
     if (!code || !state) return redirectToLoginError(res);
-    if (verifyOAuthState(state) !== "facebook") return redirectToLoginError(res);
+    if (verifyOAuthState(state) !== "facebook")
+      return redirectToLoginError(res);
 
     const { appId, appSecret } = config.oauth.facebook;
     const redirectUri = `${config.oauth.backendUrl}/api/v1/auth/facebook/callback`;

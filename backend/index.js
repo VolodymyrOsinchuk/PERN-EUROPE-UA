@@ -159,7 +159,12 @@ cron.schedule("*/15 * * * *", async () => {
 
 const testDbConnection = async () => {
   try {
-    await sequelize.sync();
+    // Le schéma est géré exclusivement par les migrations
+    // (umzug, exécutées par scripts/runMigrations.js via
+    // `npm start`). sequelize.sync() est abandonné : il
+    // recréait des index et des contraintes en double à
+    // chaque démarrage (accumulation _key1, _key2…).
+    await sequelize.authenticate();
     console.log("З'єднання з базою даних встановлено успішно");
     app.listen(port, () => {
       console.log(`Сервер працює на порту ${port}`);

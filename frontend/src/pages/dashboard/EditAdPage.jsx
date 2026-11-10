@@ -2058,7 +2058,9 @@ export default function EditAdPage() {
                     <Select
                       name="country"
                       label="Країна"
-                      value={selectedCountry}
+                      // value set only after countries loaded to avoid MUI
+                      // out-of-range warning on first render (options empty)
+                      value={countries.length > 0 ? selectedCountry : ""}
                       onChange={(e) => setSelectedCountry(e.target.value)}
                       sx={selectSx}
                       disabled={locationLoading && countries.length === 0}
@@ -2085,7 +2087,9 @@ export default function EditAdPage() {
                       <Select
                         name="state"
                         label="Регіон"
-                        value={selectedState}
+                        // value set only after states loaded to avoid MUI
+                        // out-of-range warning on first render (options empty)
+                        value={states.length > 0 ? selectedState : ""}
                         onChange={(e) => setSelectedState(e.target.value)}
                         sx={selectSx}
                       >
@@ -2114,7 +2118,9 @@ export default function EditAdPage() {
                       <Select
                         name="city"
                         label="Місто"
-                        value={selectedCity}
+                        // value set only after cities loaded to avoid MUI
+                        // out-of-range warning on first render (options empty)
+                        value={cities.length > 0 ? selectedCity : ""}
                         onChange={(e) => setSelectedCity(e.target.value)}
                         sx={selectSx}
                       >

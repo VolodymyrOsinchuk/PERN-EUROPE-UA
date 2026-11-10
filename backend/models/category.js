@@ -23,7 +23,10 @@ const Category = sequelize.define(
   {
     tableName: "categories",
     timestamps: true,
-    indexes: [{ fields: ["name"], unique: true }],
+    // L'unicité de « name » est déjà déclarée par
+    // unique: true sur l'attribut ci-dessus. Ne pas la
+    // déclarer aussi ici : la double déclaration créait
+    // des contraintes en double à chaque sync().
   },
 );
 
