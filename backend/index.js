@@ -78,6 +78,7 @@ app.use("/api/v1/forum", forumRoutes);
 app.use("/api/v1/messages", authMiddleware, messageRoutes);
 app.use("/api/v1/reports", reportRoutes);
 app.use("/api/v1/contact", contactRoutes);
+app.use("/api/v1/external-news", require("./routes/externalNewsRouter"));
 app.use("/api/v1/admin/ad-expiration-settings", adExpirationSettingsRouter);
 app.use("/api/v1/admin/settings", settingsRouter);
 app.use("/api/v1/admin", adminRouter);

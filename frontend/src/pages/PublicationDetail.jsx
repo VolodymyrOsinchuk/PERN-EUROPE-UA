@@ -97,8 +97,7 @@ export default function PublicationDetail() {
     bg: "#f1f5f9",
     text: "#64748b",
   };
-  const isOwner =
-    user && (user.id === article.createdBy || user.role === "admin");
+  const isOwner = user && (user.id === article.userId || user.role === "admin");
 
   const authorInitials = article.author
     ? article.author

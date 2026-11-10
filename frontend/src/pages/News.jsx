@@ -19,6 +19,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
+import ExternalNews from "../components/ExternalNews";
 
 const fontBody = "'Plus Jakarta Sans', sans-serif";
 const fontDisplay = "'Playfair Display', serif";
@@ -417,6 +418,7 @@ export default function News() {
           )}
         </Container>
       </Box>
+      <ExternalNews />
     </>
   );
 }

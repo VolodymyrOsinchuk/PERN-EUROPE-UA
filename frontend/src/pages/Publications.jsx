@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData, Link } from "react-router-dom";
 import {
   Box,
   Button,
@@ -143,7 +143,6 @@ export default function Publications() {
               ))}
             </Box>
           </Box>
-
           {/* Count */}
           <Typography
             sx={{
@@ -156,7 +155,6 @@ export default function Publications() {
           >
             {filtered.length} публікацій знайдено
           </Typography>
-
           {/* Empty state */}
           {filtered.length === 0 && (
             <Box sx={{ textAlign: "center", py: 10 }}>
@@ -181,7 +179,6 @@ export default function Publications() {
               </Typography>
             </Box>
           )}
-
           {/* Cards grid */}
           <Grid container spacing={3}>
             {visible.map((article, i) => {
@@ -371,6 +368,8 @@ export default function Publications() {
                     >
                       <Button
                         size="small"
+                        component={Link}
+                        to={`/publications/${article.id}`}
                         endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
                         sx={{
                           fontFamily: fontBody,

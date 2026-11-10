@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData, Link } from "react-router-dom";
 import { HeroSection } from "../components";
 import {
   Box,
@@ -376,6 +376,8 @@ export default function Events() {
                         fullWidth
                         variant="contained"
                         size="small"
+                        component={Link}
+                        to={`/events/${event.id}`}
                         disabled={!isUpcoming}
                         sx={{
                           fontFamily: fontBody,
