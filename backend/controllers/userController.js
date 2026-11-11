@@ -7,6 +7,7 @@ const path = require("path");
 const fs = require("fs");
 const { pick } = require("../utils/pick");
 const { normalizePhone } = require("../utils/normalizePhone");
+const { sendPasswordChangedEmail } = require("../services/brevo/mailService");
 
 exports.getAllUsers = async (req, res) => {
   try {
@@ -228,6 +229,7 @@ exports.updatePassword = async (req, res) => {
 
     user.password = newPassword;
     await user.save();
+    await sendPasswordChangedEmail(user.email, user.firstName);
 
     res.status(200).json({ message: "Пароль успішно оновлено" });
   } catch (error) {
@@ -290,19 +292,14 @@ exports.getDashboardStats = async (req, res) => {
     const prevMonth = new Date();
     prevMonth.setMonth(prevMonth.getMonth() - 2);
 
-    const [
-      userCount,
-      adCount,
-      categoryCount,
-      prevUsers,
-      prevAds,
-    ] = await Promise.all([
-      User.count(),
-      Adv.count(),
-      Category.count(),
-      User.count({ where: { createdAt: { [Op.lt]: lastMonth } } }),
-      Adv.count({ where: { createdAt: { [Op.lt]: lastMonth } } }),
-    ]);
+    const [userCount, adCount, categoryCount, prevUsers, prevAds] =
+      await Promise.all([
+        User.count(),
+        Adv.count(),
+        Category.count(),
+        User.count({ where: { createdAt: { [Op.lt]: lastMonth } } }),
+        Adv.count({ where: { createdAt: { [Op.lt]: lastMonth } } }),
+      ]);
 
     const prevCategories = categoryCount;
 

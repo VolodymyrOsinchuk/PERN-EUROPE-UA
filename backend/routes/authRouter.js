@@ -9,22 +9,25 @@ const {
   googleCallback,
   facebookLogin,
   facebookCallback,
+  forgotPassword,
+  resetPassword,
 } = require("../controllers/authController");
 const {
   loginLimiter,
   registerLimiter,
   verifyEmailLimiter,
+  passwordResetLimiter,
 } = require("../middleware/rateLimiters");
 
 router.post("/logout", logout);
 // FIX P1-2: rate limiting sur les routes sensibles à l'abus
 router.post("/login", loginLimiter, login);
 router.post("/register", registerLimiter, register);
-router.get(
-  "/verify-email/:token",
-  verifyEmailLimiter,
-  verifyEmail,
-);
+router.get("/verify-email/:token", verifyEmailLimiter, verifyEmail);
+
+// додайте до деструктуризації контролера: forgotPassword, resetPassword
+router.post("/forgot-password", passwordResetLimiter, forgotPassword);
+router.post("/reset-password/:token", passwordResetLimiter, resetPassword);
 
 // OAuth social — Google
 router.get("/google", googleLogin);

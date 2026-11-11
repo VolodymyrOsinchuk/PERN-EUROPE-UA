@@ -5,6 +5,20 @@ const { createJWT, verifyJWT } = require("../utils/tokenUtils");
 const bcrypt = require("bcryptjs");
 const config = require("../config/config");
 const { normalizePhone } = require("../utils/normalizePhone");
+const { Op } = require("sequelize");
+const {
+  sendWelcomeEmail,
+  sendPasswordResetEmail,
+  sendPasswordChangedEmail,
+} = require("../services/brevo/mailService");
+
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 година
+const hashToken = (raw) =>
+  crypto.createHash("sha256").update(raw).digest("hex");
+const GENERIC_RESET_RESPONSE = {
+  message:
+    "Якщо акаунт існує, ми надіслали на його пошту лист із інструкціями.",
+};
 
 // Imports supposés présents en haut de ton fichier (à adapter à tes chemins) :
 // const crypto = require("crypto");
@@ -81,6 +95,8 @@ exports.register = async (req, res) => {
     if (!emailSent) {
       console.warn(`⚠️ Email de vérification non envoyé à ${user.email}`);
     }
+
+    await sendWelcomeEmail(user.email, firstName);
 
     res.status(201).json({
       message: "Користувача успішно створено. Перевірте електронну пошту.",
@@ -444,5 +460,78 @@ exports.facebookCallback = async (req, res) => {
   } catch (error) {
     console.error("facebookCallback:", error);
     redirectToLoginError(res);
+  }
+};
+
+// POST /auth/forgot-password  { email }
+exports.forgotPassword = async (req, res) => {
+  try {
+    const email =
+      typeof req.body?.email === "string" ? req.body.email.trim() : "";
+    if (!email || email.length > 150) {
+      return res.status(400).json({ message: "Вкажіть коректний email" });
+    }
+
+    const user = await User.findOne({ where: { email } });
+
+    // Відповідь однакова незалежно від існування акаунта (захист від перебору email)
+    if (user && user.isVerified) {
+      const rawToken = crypto.randomBytes(32).toString("hex");
+      await user.update({
+        resetPasswordToken: hashToken(rawToken), // у БД лише хеш
+        resetPasswordExpires: new Date(Date.now() + RESET_TOKEN_TTL_MS),
+      });
+      await sendPasswordResetEmail(user.email, user.firstName, rawToken);
+    }
+
+    return res.status(200).json(GENERIC_RESET_RESPONSE);
+  } catch (error) {
+    console.error("Помилка forgotPassword:", error.name);
+    return res.status(500).json({ message: "Помилка сервера" });
+  }
+};
+
+// POST /auth/reset-password/:token  { password }
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const password = req.body?.password;
+
+    if (typeof token !== "string" || !/^[a-f0-9]{64}$/.test(token)) {
+      return res.status(400).json({ message: "Посилання недійсне" });
+    }
+    if (
+      typeof password !== "string" ||
+      password.length < 8 ||
+      password.length > 255
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Пароль має містити від 8 до 255 символів" });
+    }
+
+    const user = await User.findOne({
+      where: {
+        resetPasswordToken: hashToken(token),
+        resetPasswordExpires: { [Op.gt]: new Date() },
+      },
+    });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: "Посилання недійсне або термін його дії минув" });
+    }
+
+    // Хук beforeUpdate у моделі User сам хешує пароль
+    user.password = password;
+    user.resetPasswordToken = null; // одноразовий токен
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    await sendPasswordChangedEmail(user.email, user.firstName);
+    return res.status(200).json({ message: "Пароль успішно змінено" });
+  } catch (error) {
+    console.error("Помилка resetPassword:", error.name);
+    return res.status(500).json({ message: "Помилка сервера" });
   }
 };
