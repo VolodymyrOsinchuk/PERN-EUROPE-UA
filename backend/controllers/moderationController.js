@@ -2,6 +2,7 @@ const sequelize = require("../config/db");
 const { Adv } = require("../models/adv");
 const { Category } = require("../models/category");
 const { User } = require("../models/user");
+const { notifyAdOwner } = require("../services/notificationService");
 const { ModerationLog } = require("../models/moderationLog");
 
 const LIST_STATUSES = ["pending", "needs_changes", "rejected", "approved"];
@@ -66,6 +67,12 @@ async function changeModerationStatus(adv, newStatus, { moderatorId, reason }) {
     changes.publishedAt = adv.publishedAt || now;
   }
 
+  const NOTIFY_TYPE = {
+    approved: "ad_approved",
+    rejected: "ad_rejected",
+    needs_changes: "ad_needs_changes",
+  };
+
   return sequelize.transaction(async (t) => {
     // Condition sur l'ancien statut : protège contre deux modérations simultanées.
     const [updated] = await Adv.update(changes, {
@@ -87,6 +94,15 @@ async function changeModerationStatus(adv, newStatus, { moderatorId, reason }) {
       },
       { transaction: t },
     );
+
+    await notifyAdOwner({
+      userId: adv.userId,
+      advId: adv.id,
+      title: adv.title,
+      type: NOTIFY_TYPE[newStatus],
+      reason,
+      transaction: t,
+    });
 
     return adv.reload({ transaction: t });
   });

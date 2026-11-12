@@ -12,6 +12,7 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import { Link } from "react-router-dom";
+import NotificationBell from "./NotificationBell";
 
 const AppBarComponent = ({ handleDrawerToggle }) => {
   return (
@@ -65,9 +66,9 @@ const AppBarComponent = ({ handleDrawerToggle }) => {
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Tooltip title="Сповіщення">
             <IconButton size="small" sx={{ color: "text.secondary" }}>
-              <Badge badgeContent={3} color="error">
-                <NotificationsOutlinedIcon fontSize="small" />
-              </Badge>
+              {/* <Badge badgeContent={3} color="error"> */}
+              <NotificationBell fontSize="small" />
+              {/* </Badge> */}
             </IconButton>
           </Tooltip>
 
@@ -85,22 +86,41 @@ const AppBarComponent = ({ handleDrawerToggle }) => {
             На сайт
           </Button>
 
-          <Tooltip title="Профіль">
+          <Tooltip title="Mon profil" arrow placement="bottom" enterDelay={300}>
             <Avatar
+              component={Link}
+              to="/profile"
+              aria-label="Accéder à mon profil"
               sx={{
-                width: 34,
-                height: 34,
+                width: 36,
+                height: 36,
                 bgcolor: "#EFF6FF",
                 color: "#2563EB",
-                fontSize: "0.8rem",
+                fontSize: "0.85rem",
                 fontWeight: 700,
                 cursor: "pointer",
                 border: "2px solid #DBEAFE",
+                transition: "all 0.2s ease-in-out",
+                boxShadow: "0 1px 3px rgba(37, 99, 235, 0.08)",
+
+                "&:hover": {
+                  bgcolor: "#DBEAFE",
+                  borderColor: "#93C5FD",
+                  boxShadow: "0 3px 8px rgba(37, 99, 235, 0.18)",
+                  transform: "translateY(-2px)",
+                },
+
+                "&:active": {
+                  transform: "scale(0.95)",
+                },
+
+                "&:focus-visible": {
+                  outline: "2px solid #2563EB",
+                  outlineOffset: "3px",
+                },
               }}
-              component={Link}
-              to="/profile"
             >
-              А
+              A
             </Avatar>
           </Tooltip>
         </Box>

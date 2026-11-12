@@ -21,6 +21,7 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthContext } from "../context/AuthContext";
 import customFetch from "../utils/customFetch";
+import NotificationBell from "./NotificationBell";
 
 const NAV_LINKS = [
   { label: "Новини", href: "/news" },
@@ -253,6 +254,9 @@ export default function Navbar() {
                   </Badge>
                 </IconButton>
               )}
+
+              {/* ── Notifications (cloche) ── */}
+              {user && <NotificationBell />}
 
               {/* ── Language selector ── */}
               {/* <IconButton
@@ -673,6 +677,17 @@ export default function Navbar() {
               >
                 Повідомлення{unread > 0 ? ` (${unread})` : ""}
               </Button>
+              <Box
+                onClick={() => setMobileOpen(false)}
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  py: 1,
+                  cursor: "pointer",
+                }}
+              >
+                <NotificationBell />
+              </Box>
               <Button
                 onClick={() => {
                   logoutUser();

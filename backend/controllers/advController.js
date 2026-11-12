@@ -1,6 +1,8 @@
 const { Adv, PUBLIC_WHERE } = require("../models/adv");
 const { Category, SubCategory } = require("../models/category");
 const { User } = require("../models/user");
+const { sequelize } = require("../config/db");
+const { notifyAdOwner } = require("../services/notificationService");
 const { deleteCloudinaryFile } = require("../config/cloudinary");
 const { normalizePhone } = require("../utils/normalizePhone");
 
@@ -53,6 +55,15 @@ exports.createAnnonce = async (req, res) => {
       views: 0,
       isPromoted: false,
     });
+
+    if (newAd.moderationStatus === "pending") {
+      await notifyAdOwner({
+        userId: req.user.userId,
+        advId: newAd.id,
+        title: newAd.title,
+        type: "ad_pending",
+      });
+    }
 
     return res.status(201).json({
       message: "Оголошення успішно створено",
@@ -134,6 +145,8 @@ exports.updateAnnonce = async (req, res) => {
       return res.status(403).json({ message: "Не дозволено" });
     }
 
+    const updateData = {};
+
     if (req.user.role !== "admin" && req.user.role !== "moderator") {
       // Un brouillon reste brouillon jusqu'à l'envoi explicite.
       if (adv.moderationStatus !== "draft") {
@@ -157,7 +170,6 @@ exports.updateAnnonce = async (req, res) => {
       amenities,
     } = req.body;
 
-    const updateData = {};
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
     if (price !== undefined && price !== "")
@@ -280,9 +292,18 @@ exports.submitForModeration = async (req, res) => {
       });
     }
 
-    await adv.update({
-      moderationStatus: "pending",
-      moderationReason: null,
+    await sequelize.transaction(async (t) => {
+      await adv.update(
+        { moderationStatus: "pending", moderationReason: null },
+        { transaction: t },
+      );
+      await notifyAdOwner({
+        userId: adv.userId,
+        advId: adv.id,
+        title: adv.title,
+        type: "ad_pending",
+        transaction: t,
+      });
     });
 
     res.status(200).json({

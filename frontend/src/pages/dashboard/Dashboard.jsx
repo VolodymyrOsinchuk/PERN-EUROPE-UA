@@ -5,14 +5,26 @@ import { toast } from "react-toastify";
 
 export const loader = async () => {
   try {
-    const { data } = await customFetch.get("/users/stats");
-    return data;
+    const [{ data: stats }, { data: notifications }] = await Promise.all([
+      customFetch.get("/users/stats"),
+      customFetch.get("/notifications"),
+    ]);
+    return {
+      ...stats,
+      recentActivity: Array.isArray(notifications) ? notifications : [],
+    };
   } catch (error) {
     toast.error(
       error?.response?.data?.message ||
-        "Помилка завантаження статистики панелі",
+        "Помилка завантаження даних панелі",
     );
-    return { users: 0, ads: 0, categories: 0, trends: {} };
+    return {
+      users: 0,
+      ads: 0,
+      categories: 0,
+      trends: {},
+      recentActivity: [],
+    };
   }
 };
 
@@ -124,6 +136,7 @@ const StatCard = ({ label, value, icon, color, bg, trend, trendUp }) => (
 
 const Dashboard = () => {
   const data = useLoaderData();
+  const recentActivity = data?.recentActivity || [];
 
   return (
     <Box>
@@ -191,73 +204,76 @@ const Dashboard = () => {
               Останні дії
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            {[
-              {
-                icon: "person_add",
-                text: "Новий користувач зареєстровано",
-                time: "2хв тому",
-                color: "#2563EB",
-                bg: "#EFF6FF",
-              },
-              {
-                icon: "post_add",
-                text: "Нове оголошення опубліковано",
-                time: "15хв тому",
-                color: "#10B981",
-                bg: "#ECFDF5",
-              },
-              {
-                icon: "delete_outline",
-                text: "Оголошення видалено",
-                time: "1год тому",
-                color: "#EF4444",
-                bg: "#FEF2F2",
-              },
-            ].map((item, i) => {
-              return (
-                <Box
-                  key={i}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1.5,
-                    mb: 2,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: "10px",
-                      bgcolor: item.bg,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span
-                      className="material-icons"
-                      style={{ color: item.color, fontSize: 17 }}
+            {recentActivity.length === 0 ? (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ p: 2, textAlign: "center" }}
+              >
+                Немає нещодавніх дій
+              </Typography>
+            ) : (
+              <Box
+                sx={{
+                  maxHeight: 340,
+                  overflowY: "auto",
+                  pr: 0.5,
+                }}
+              >
+                {recentActivity.slice(0, 10).map((n) => {
+                  const last =
+                    n.id === recentActivity.slice(0, 10)[9]?.id;
+                  return (
+                    <Box
+                      key={n.id}
+                      sx={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 1,
+                        mb: 2,
+                        pb: 1.5,
+                        borderBottom: last
+                          ? "none"
+                          : "1px solid rgba(15,23,42,0.06)",
+                      }}
                     >
-                      {item.icon}
-                    </span>
-                  </Box>
-                  <Box>
-                    <Typography
-                      variant="body2"
-                      fontWeight={500}
-                      sx={{ lineHeight: 1.3 }}
-                    >
-                      {item.text}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {item.time}
-                    </Typography>
-                  </Box>
-                </Box>
-              );
-            })}
+                      <Box
+                        sx={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: "8px",
+                          bgcolor: n.isRead ? "#E2E8F0" : "#EFF6FF",
+                          color: n.isRead ? "#64748B" : "#2563EB",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <span
+                          className="material-icons"
+                          style={{ fontSize: 16 }}
+                        >
+                          notifications
+                        </span>
+                      </Box>
+                      <Box>
+                        <Typography
+                          variant="body2"
+                          fontWeight={n.isRead ? 400 : 600}
+                          sx={{ lineHeight: 1.3, mb: 0.25 }}
+                        >
+                          {n.message}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {new Date(n.createdAt).toLocaleString("uk-UA")}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  );
+                })}
+              </Box>
+            )}
           </Paper>
         </Grid>
       </Grid>
