@@ -43,11 +43,28 @@ const ForumCategory = sequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
+    parentId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: { model: "forum_categories", key: "id" },
+    },
   },
   {
     tableName: "forum_categories",
     timestamps: true,
   },
 );
+
+ForumCategory.hasMany(ForumCategory, {
+  as: "subcategories",
+  foreignKey: "parentId",
+  onDelete: "CASCADE",
+});
+
+ForumCategory.belongsTo(ForumCategory, {
+  as: "parentCategory",
+  foreignKey: "parentId",
+  onDelete: "SET NULL",
+});
 
 module.exports = { ForumCategory };

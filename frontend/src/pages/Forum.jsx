@@ -1,781 +1,4 @@
-// import { Fragment, useState } from "react";
-// import { HeroSection } from "../components";
-// import {
-//   Box,
-//   Button,
-//   Card,
-//   CardContent,
-//   Chip,
-//   Container,
-//   Dialog,
-//   DialogActions,
-//   DialogContent,
-//   DialogTitle,
-//   Divider,
-//   FormControl,
-//   InputAdornment,
-//   InputLabel,
-//   List,
-//   ListItem,
-//   ListItemIcon,
-//   ListItemText,
-//   MenuItem,
-//   Paper,
-//   Select,
-//   TextField,
-//   Typography,
-//   Grid,
-//   Avatar,
-// } from "@mui/material";
-// import SearchIcon from "@mui/icons-material/Search";
-// import AddIcon from "@mui/icons-material/Add";
-// import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-// import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-// import { Form, useLoaderData, useNavigation, Link } from "react-router-dom";
-// import customFetch from "../utils/customFetch";
-// import { toast } from "react-toastify";
-// import { useAuthContext } from "../context/AuthContext";
-
-// const fontBody = "'Plus Jakarta Sans', sans-serif";
-// const fontDisplay = "'Playfair Display', serif";
-
-// const CAT_ICONS_COLOR = {
-//   Працевлаштування: { icon: "work", color: "#0057B8", bg: "#eff6ff" },
-//   "Документи та легалізація": {
-//     icon: "description",
-//     color: "#6d28d9",
-//     bg: "#f5f3ff",
-//   },
-//   Житло: { icon: "home", color: "#065f46", bg: "#ecfdf5" },
-//   Освіта: { icon: "school", color: "#9a3412", bg: "#fff7ed" },
-//   "Здоров'я": { icon: "local_hospital", color: "#be123c", bg: "#fff1f2" },
-//   Спільнота: { icon: "groups", color: "#7e22ce", bg: "#fdf4ff" },
-// };
-
-// const CATEGORIES_LIST = [
-//   {
-//     title: "Працевлаштування",
-//     description: "Пошук роботи, резюме, вакансії та поради",
-//     topics: 156,
-//     posts: 1205,
-//   },
-//   {
-//     title: "Документи та легалізація",
-//     description: "Візи, дозволи на проживання, громадянство",
-//     topics: 234,
-//     posts: 1876,
-//   },
-//   {
-//     title: "Житло",
-//     description: "Оренда, купівля нерухомості, пошук співмешканців",
-//     topics: 189,
-//     posts: 945,
-//   },
-//   {
-//     title: "Освіта",
-//     description: "Навчання, курси, визнання дипломів",
-//     topics: 145,
-//     posts: 678,
-//   },
-//   {
-//     title: "Здоров'я",
-//     description: "Медичне обслуговування, страхування",
-//     topics: 98,
-//     posts: 432,
-//   },
-//   {
-//     title: "Спільнота",
-//     description: "Зустрічі, заходи, знайомства",
-//     topics: 267,
-//     posts: 1543,
-//   },
-// ];
-
-// const FORUM_STATS = [
-//   { value: "1 089", label: "Теми", icon: "forum" },
-//   { value: "6 679", label: "Повідомлень", icon: "chat_bubble" },
-//   { value: "2 400+", label: "Учасників", icon: "people" },
-//   { value: "24/7", label: "Підтримка", icon: "support_agent" },
-// ];
-
-// export async function loader() {
-//   try {
-//     const { data } = await customFetch.get("/forum");
-//     return data;
-//   } catch (error) {
-//     toast.error(
-//       error?.response?.data?.message || "Не вдалося завантажити теми форуму",
-//     );
-//     return [];
-//   }
-// }
-
-// export async function action({ request }) {
-//   const formData = await request.formData();
-//   const title = formData.get("title");
-//   const content = formData.get("content");
-//   const category = formData.get("category");
-//   try {
-//     const { data } = await customFetch.post("/forum", {
-//       title,
-//       content,
-//       category,
-//     });
-//     toast.success("Тему створено!");
-//     return { success: true, data };
-//   } catch (error) {
-//     toast.error(error?.response?.data?.message || "Помилка створення теми");
-//     return {
-//       success: false,
-//       message: error?.response?.data?.message || "Помилка",
-//     };
-//   }
-// }
-
-// export default function Forum() {
-//   const topics = useLoaderData() || [];
-//   const navigation = useNavigation();
-//   const { user } = useAuthContext();
-//   const isSubmitting = navigation.state === "submitting";
-
-//   const [createOpen, setCreateOpen] = useState(false);
-//   const [searchQuery, setSearchQuery] = useState("");
-
-//   // Ajoute cet état
-//   const [selectedCategory, setSelectedCategory] = useState("");
-
-//   // Filtre combiné catégorie + recherche
-//   const filteredTopics = topics.filter((t) => {
-//     const matchSearch =
-//       !searchQuery ||
-//       t.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-//       t.category?.toLowerCase().includes(searchQuery.toLowerCase());
-//     const matchCat = !selectedCategory || t.category === selectedCategory;
-//     return matchSearch && matchCat;
-//   });
-
-//   const handleOpenCreate = () => {
-//     if (!user) {
-//       toast.warning("Увійдіть в акаунт, щоб створити тему");
-//       return;
-//     }
-//     setCreateOpen(true);
-//   };
-
-//   const filteredTopics = topics.filter(
-//     (t) =>
-//       !searchQuery ||
-//       t.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-//       t.category?.toLowerCase().includes(searchQuery.toLowerCase()),
-//   );
-
-//   return (
-//     <>
-//       <HeroSection
-//         title="Форум спільноти"
-//         typedStrings={["Простір для спілкування"]}
-//         subtitle="Обговорення, обмін досвідом та підтримка від людей, які пройшли той самий шлях"
-//         buttonText="Створити тему"
-//         buttonLink="/forum"
-//         size="sm"
-//       />
-
-//       {/* Stats strip */}
-//       <Box sx={{ bgcolor: "#fff", borderBottom: "1px solid #f1f5f9", py: 3 }}>
-//         <Container maxWidth="lg">
-//           <Grid container spacing={0} justifyContent="center">
-//             {FORUM_STATS.map((s, i) => (
-//               <Grid
-//                 key={s.label}
-//                 size={{ xs: 6, sm: 3 }}
-//                 sx={{
-//                   textAlign: "center",
-//                   py: 1,
-//                   borderRight:
-//                     i < FORUM_STATS.length - 1
-//                       ? { sm: "1px solid #f1f5f9" }
-//                       : "none",
-//                 }}
-//               >
-//                 <span
-//                   className="material-icons"
-//                   style={{
-//                     fontSize: 20,
-//                     color: "#0057B8",
-//                     display: "block",
-//                     marginBottom: 4,
-//                   }}
-//                 >
-//                   {s.icon}
-//                 </span>
-//                 <Typography
-//                   sx={{
-//                     fontFamily: fontDisplay,
-//                     fontWeight: 700,
-//                     fontSize: "1.4rem",
-//                     color: "#0f172a",
-//                     letterSpacing: "-0.02em",
-//                   }}
-//                 >
-//                   {s.value}
-//                 </Typography>
-//                 <Typography
-//                   sx={{
-//                     fontFamily: fontBody,
-//                     fontSize: "0.75rem",
-//                     color: "#64748b",
-//                     fontWeight: 500,
-//                   }}
-//                 >
-//                   {s.label}
-//                 </Typography>
-//               </Grid>
-//             ))}
-//           </Grid>
-//         </Container>
-//       </Box>
-
-//       <Box sx={{ py: { xs: 6, md: 8 }, bgcolor: "#f8fafc" }}>
-//         <Container maxWidth="lg">
-//           {/* Header + search */}
-//           <Box
-//             sx={{
-//               bgcolor: "#fff",
-//               border: "1px solid #e2e8f0",
-//               borderRadius: "20px",
-//               p: { xs: 2.5, md: 3 },
-//               mb: 5,
-//               boxShadow: "0 2px 16px rgba(0,87,184,.05)",
-//               display: "flex",
-//               gap: 2,
-//               alignItems: "center",
-//               flexWrap: "wrap",
-//             }}
-//           >
-//             <TextField
-//               placeholder="Пошук по форуму..."
-//               size="small"
-//               value={searchQuery}
-//               onChange={(e) => setSearchQuery(e.target.value)}
-//               sx={{
-//                 flex: "1 1 280px",
-//                 "& .MuiOutlinedInput-root": {
-//                   borderRadius: "12px",
-//                   fontFamily: fontBody,
-//                   bgcolor: "#f8fafc",
-//                   "&:hover fieldset": { borderColor: "#0057B8" },
-//                   "&.Mui-focused fieldset": { borderColor: "#0057B8" },
-//                 },
-//               }}
-//               InputProps={{
-//                 startAdornment: (
-//                   <InputAdornment position="start">
-//                     <SearchIcon sx={{ fontSize: 18, color: "#94a3b8" }} />
-//                   </InputAdornment>
-//                 ),
-//               }}
-//             />
-//             {/* Bouton "Нова тема" — ouvre le Dialog si connecté */}
-//             <Button
-//               variant="contained"
-//               startIcon={
-//                 user ? <AddIcon /> : <LockOutlinedIcon sx={{ fontSize: 16 }} />
-//               }
-//               onClick={handleOpenCreate}
-//               sx={{
-//                 fontFamily: fontBody,
-//                 fontWeight: 700,
-//                 textTransform: "none",
-//                 bgcolor: "#0057B8",
-//                 borderRadius: "12px",
-//                 px: 2.5,
-//                 boxShadow: "0 4px 12px rgba(0,87,184,.3)",
-//                 "&:hover": { bgcolor: "#003d82" },
-//                 flexShrink: 0,
-//               }}
-//             >
-//               Нова тема
-//             </Button>
-//           </Box>
-
-//           <Grid container spacing={4}>
-//             {/* Categories */}
-//             <Grid size={{ xs: 12, md: 7 }}>
-//               <Box sx={{ mb: 3 }}>
-//                 <Typography
-//                   sx={{
-//                     fontFamily: fontBody,
-//                     fontSize: "0.7rem",
-//                     fontWeight: 700,
-//                     letterSpacing: "0.12em",
-//                     textTransform: "uppercase",
-//                     color: "#0057B8",
-//                     mb: 0.5,
-//                   }}
-//                 >
-//                   Розділи
-//                 </Typography>
-//                 <Typography
-//                   sx={{
-//                     fontFamily: fontDisplay,
-//                     fontWeight: 700,
-//                     fontSize: "1.6rem",
-//                     color: "#0f172a",
-//                     letterSpacing: "-0.02em",
-//                   }}
-//                 >
-//                   Категорії форуму
-//                 </Typography>
-//                 <Box
-//                   sx={{
-//                     width: 40,
-//                     height: 3,
-//                     background: "linear-gradient(90deg, #0057B8, #FFD700)",
-//                     borderRadius: "99px",
-//                     mt: 1,
-//                   }}
-//                 />
-//               </Box>
-
-//               <Paper
-//                 elevation={0}
-//                 sx={{
-//                   borderRadius: "18px",
-//                   border: "1px solid #e2e8f0",
-//                   overflow: "hidden",
-//                 }}
-//               >
-//                 {CATEGORIES_LIST.map((cat, idx) => {
-//                   const cfg = CAT_ICONS_COLOR[cat.title] || {
-//                     icon: "folder",
-//                     color: "#64748b",
-//                     bg: "#f1f5f9",
-//                   };
-//                   return (
-//                     <Fragment key={cat.title}>
-//                       <Box
-//                         sx={{
-//                           display: "flex",
-//                           alignItems: "center",
-//                           gap: 2,
-//                           px: 3,
-//                           py: 2.5,
-//                           cursor: "pointer",
-//                           transition: "background 0.2s",
-//                           "&:hover": { bgcolor: "#f8fafc" },
-//                           "&:hover .cat-arrow": {
-//                             opacity: 1,
-//                             transform: "translateX(0)",
-//                           },
-//                         }}
-//                       >
-//                         <Box
-//                           sx={{
-//                             width: 44,
-//                             height: 44,
-//                             borderRadius: "12px",
-//                             bgcolor: cfg.bg,
-//                             display: "flex",
-//                             alignItems: "center",
-//                             justifyContent: "center",
-//                             flexShrink: 0,
-//                           }}
-//                         >
-//                           <span
-//                             className="material-icons"
-//                             style={{ fontSize: 20, color: cfg.color }}
-//                           >
-//                             {cfg.icon}
-//                           </span>
-//                         </Box>
-//                         <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-//                           <Typography
-//                             sx={{
-//                               fontFamily: fontBody,
-//                               fontWeight: 700,
-//                               fontSize: "0.95rem",
-//                               color: "#0f172a",
-//                               mb: 0.25,
-//                             }}
-//                           >
-//                             {cat.title}
-//                           </Typography>
-//                           <Typography
-//                             sx={{
-//                               fontFamily: fontBody,
-//                               fontSize: "0.8rem",
-//                               color: "#64748b",
-//                               lineHeight: 1.4,
-//                             }}
-//                           >
-//                             {cat.description}
-//                           </Typography>
-//                         </Box>
-//                         <Box sx={{ textAlign: "right", flexShrink: 0 }}>
-//                           <Typography
-//                             sx={{
-//                               fontFamily: fontBody,
-//                               fontWeight: 700,
-//                               fontSize: "0.9rem",
-//                               color: "#0f172a",
-//                             }}
-//                           >
-//                             {cat.topics.toLocaleString()}
-//                           </Typography>
-//                           <Typography
-//                             sx={{
-//                               fontFamily: fontBody,
-//                               fontSize: "0.72rem",
-//                               color: "#94a3b8",
-//                             }}
-//                           >
-//                             тем
-//                           </Typography>
-//                         </Box>
-//                         <ArrowForwardIcon
-//                           className="cat-arrow"
-//                           sx={{
-//                             fontSize: 18,
-//                             color: "#0057B8",
-//                             opacity: 0,
-//                             transform: "translateX(-4px)",
-//                             transition: "all 0.2s",
-//                             flexShrink: 0,
-//                           }}
-//                         />
-//                       </Box>
-//                       {idx < CATEGORIES_LIST.length - 1 && (
-//                         <Divider sx={{ borderColor: "#f1f5f9" }} />
-//                       )}
-//                     </Fragment>
-//                   );
-//                 })}
-//               </Paper>
-//             </Grid>
-
-//             {/* Recent topics */}
-//             <Grid size={{ xs: 12, md: 5 }}>
-//               <Box sx={{ mb: 3 }}>
-//                 <Typography
-//                   sx={{
-//                     fontFamily: fontBody,
-//                     fontSize: "0.7rem",
-//                     fontWeight: 700,
-//                     letterSpacing: "0.12em",
-//                     textTransform: "uppercase",
-//                     color: "#0057B8",
-//                     mb: 0.5,
-//                   }}
-//                 >
-//                   Активне
-//                 </Typography>
-//                 <Typography
-//                   sx={{
-//                     fontFamily: fontDisplay,
-//                     fontWeight: 700,
-//                     fontSize: "1.6rem",
-//                     color: "#0f172a",
-//                     letterSpacing: "-0.02em",
-//                   }}
-//                 >
-//                   Останні обговорення
-//                 </Typography>
-//                 <Box
-//                   sx={{
-//                     width: 40,
-//                     height: 3,
-//                     background: "linear-gradient(90deg, #0057B8, #FFD700)",
-//                     borderRadius: "99px",
-//                     mt: 1,
-//                   }}
-//                 />
-//               </Box>
-
-//               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-//                 {filteredTopics.length === 0 ? (
-//                   <Paper
-//                     elevation={0}
-//                     sx={{
-//                       borderRadius: "16px",
-//                       border: "1px solid #e2e8f0",
-//                       p: 4,
-//                       textAlign: "center",
-//                     }}
-//                   >
-//                     <Typography
-//                       sx={{
-//                         fontFamily: fontBody,
-//                         fontSize: "0.875rem",
-//                         color: "#94a3b8",
-//                       }}
-//                     >
-//                       {searchQuery
-//                         ? "Нічого не знайдено"
-//                         : "Поки немає тем. Будьте першим!"}
-//                     </Typography>
-//                   </Paper>
-//                 ) : (
-//                   filteredTopics.map((topic) => {
-//                     const cfg = CAT_ICONS_COLOR[topic.category] || {
-//                       color: "#64748b",
-//                       bg: "#f1f5f9",
-//                     };
-//                     const authorInitial = topic.author
-//                       ? topic.author[0].toUpperCase()
-//                       : "?";
-//                     return (
-//                       <Card
-//                         key={topic.id}
-//                         component={Link}
-//                         to={`/forum/${topic.id}`}
-//                         sx={{
-//                           borderRadius: "16px",
-//                           border: "1px solid #e2e8f0",
-//                           boxShadow: "0 1px 4px rgba(0,0,0,.04)",
-//                           transition: "transform 0.2s, box-shadow 0.2s",
-//                           cursor: "pointer",
-//                           textDecoration: "none",
-//                           "&:hover": {
-//                             transform: "translateY(-2px)",
-//                             boxShadow: "0 8px 24px rgba(0,87,184,.1)",
-//                           },
-//                         }}
-//                       >
-//                         <CardContent sx={{ p: 2.5 }}>
-//                           <Box sx={{ display: "flex", gap: 1.5, mb: 1.5 }}>
-//                             <Avatar
-//                               sx={{
-//                                 width: 32,
-//                                 height: 32,
-//                                 bgcolor: cfg.bg,
-//                                 color: cfg.color,
-//                                 fontSize: "0.8rem",
-//                                 fontWeight: 700,
-//                                 flexShrink: 0,
-//                               }}
-//                             >
-//                               {authorInitial}
-//                             </Avatar>
-//                             <Box sx={{ minWidth: 0 }}>
-//                               <Typography
-//                                 sx={{
-//                                   fontFamily: fontBody,
-//                                   fontWeight: 700,
-//                                   fontSize: "0.9rem",
-//                                   color: "#0f172a",
-//                                   lineHeight: 1.35,
-//                                   mb: 0.5,
-//                                   display: "-webkit-box",
-//                                   WebkitLineClamp: 2,
-//                                   WebkitBoxOrient: "vertical",
-//                                   overflow: "hidden",
-//                                 }}
-//                               >
-//                                 {topic.title}
-//                               </Typography>
-//                               <Typography
-//                                 sx={{
-//                                   fontFamily: fontBody,
-//                                   fontSize: "0.75rem",
-//                                   color: "#94a3b8",
-//                                 }}
-//                               >
-//                                 {topic.author} ·{" "}
-//                                 {new Date(
-//                                   topic.lastUpdate || topic.createdAt,
-//                                 ).toLocaleDateString("uk-UA")}
-//                               </Typography>
-//                             </Box>
-//                           </Box>
-//                           <Box
-//                             sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}
-//                           >
-//                             {topic.category && (
-//                               <Chip
-//                                 label={topic.category}
-//                                 size="small"
-//                                 sx={{
-//                                   bgcolor: cfg.bg,
-//                                   color: cfg.color,
-//                                   fontFamily: fontBody,
-//                                   fontWeight: 700,
-//                                   fontSize: "0.65rem",
-//                                 }}
-//                               />
-//                             )}
-//                             <Chip
-//                               label={`${topic.replies ?? 0} відповідей`}
-//                               size="small"
-//                               sx={{
-//                                 bgcolor: "#f1f5f9",
-//                                 color: "#64748b",
-//                                 fontFamily: fontBody,
-//                                 fontWeight: 600,
-//                                 fontSize: "0.65rem",
-//                               }}
-//                             />
-//                             <Chip
-//                               label={`${topic.views ?? 0} переглядів`}
-//                               size="small"
-//                               sx={{
-//                                 bgcolor: "#f1f5f9",
-//                                 color: "#64748b",
-//                                 fontFamily: fontBody,
-//                                 fontWeight: 600,
-//                                 fontSize: "0.65rem",
-//                               }}
-//                             />
-//                           </Box>
-//                         </CardContent>
-//                       </Card>
-//                     );
-//                   })
-//                 )}
-//               </Box>
-
-//               <Button
-//                 fullWidth
-//                 variant="outlined"
-//                 sx={{
-//                   mt: 2.5,
-//                   fontFamily: fontBody,
-//                   fontWeight: 700,
-//                   textTransform: "none",
-//                   borderRadius: "12px",
-//                   borderColor: "#e2e8f0",
-//                   color: "#334155",
-//                   py: 1.2,
-//                   "&:hover": {
-//                     borderColor: "#0057B8",
-//                     color: "#0057B8",
-//                     bgcolor: "rgba(0,87,184,.04)",
-//                   },
-//                 }}
-//               >
-//                 Переглянути всі теми
-//               </Button>
-//             </Grid>
-//           </Grid>
-//         </Container>
-//       </Box>
-
-//       {/* ── Dialog de création de thème ── */}
-//       <Dialog
-//         open={createOpen}
-//         onClose={() => setCreateOpen(false)}
-//         maxWidth="sm"
-//         fullWidth
-//         PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}
-//       >
-//         <Form method="post" onSubmit={() => setCreateOpen(false)}>
-//           <DialogTitle
-//             sx={{
-//               fontFamily: fontDisplay,
-//               fontWeight: 700,
-//               fontSize: "1.3rem",
-//               pb: 1,
-//             }}
-//           >
-//             Нова тема
-//           </DialogTitle>
-//           <DialogContent
-//             sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}
-//           >
-//             <TextField
-//               autoFocus
-//               name="title"
-//               label="Заголовок теми"
-//               fullWidth
-//               required
-//               inputProps={{ minLength: 5, maxLength: 255 }}
-//               sx={{
-//                 "& .MuiOutlinedInput-root": {
-//                   borderRadius: "12px",
-//                   fontFamily: fontBody,
-//                   bgcolor: "#f8fafc",
-//                   "&:hover fieldset": { borderColor: "#0057B8" },
-//                   "&.Mui-focused fieldset": { borderColor: "#0057B8" },
-//                 },
-//                 "& .MuiInputLabel-root.Mui-focused": { color: "#0057B8" },
-//               }}
-//             />
-//             <FormControl fullWidth>
-//               <InputLabel sx={{ fontFamily: fontBody }}>Категорія</InputLabel>
-//               <Select
-//                 name="category"
-//                 label="Категорія"
-//                 defaultValue=""
-//                 sx={{
-//                   borderRadius: "12px",
-//                   fontFamily: fontBody,
-//                   bgcolor: "#f8fafc",
-//                 }}
-//               >
-//                 {Object.keys(CAT_ICONS_COLOR).map((cat) => (
-//                   <MenuItem key={cat} value={cat} sx={{ fontFamily: fontBody }}>
-//                     {cat}
-//                   </MenuItem>
-//                 ))}
-//               </Select>
-//             </FormControl>
-//             <TextField
-//               name="content"
-//               label="Текст теми"
-//               fullWidth
-//               required
-//               multiline
-//               rows={5}
-//               inputProps={{ minLength: 10 }}
-//               placeholder="Опишіть вашу тему або питання..."
-//               sx={{
-//                 "& .MuiOutlinedInput-root": {
-//                   borderRadius: "12px",
-//                   fontFamily: fontBody,
-//                   bgcolor: "#f8fafc",
-//                   "&:hover fieldset": { borderColor: "#0057B8" },
-//                   "&.Mui-focused fieldset": { borderColor: "#0057B8" },
-//                 },
-//                 "& .MuiInputLabel-root.Mui-focused": { color: "#0057B8" },
-//               }}
-//             />
-//           </DialogContent>
-//           <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
-//             <Button
-//               onClick={() => setCreateOpen(false)}
-//               sx={{
-//                 fontFamily: fontBody,
-//                 fontWeight: 600,
-//                 textTransform: "none",
-//                 color: "#64748b",
-//                 borderRadius: "10px",
-//                 border: "1px solid #e2e8f0",
-//               }}
-//             >
-//               Скасувати
-//             </Button>
-//             <Button
-//               type="submit"
-//               variant="contained"
-//               disabled={isSubmitting}
-//               sx={{
-//                 fontFamily: fontBody,
-//                 fontWeight: 700,
-//                 textTransform: "none",
-//                 bgcolor: "#0057B8",
-//                 borderRadius: "10px",
-//                 px: 3,
-//                 "&:hover": { bgcolor: "#003d82" },
-//               }}
-//             >
-//               {isSubmitting ? "Публікація..." : "Опублікувати тему"}
-//             </Button>
-//           </DialogActions>
-//         </Form>
-//       </Dialog>
-//     </>
-//   );
-// }
-import { Fragment, useState } from "react";
+import { Fragment, useState, useMemo } from "react";
 import { HeroSection } from "../components";
 import {
   Box,
@@ -800,7 +23,10 @@ import {
   Grid,
   Avatar,
   Skeleton,
-  Alert,
+  Tooltip,
+  IconButton,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
@@ -811,15 +37,26 @@ import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import PushPinIcon from "@mui/icons-material/PushPin";
+import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
+import LightbulbOutlinedIcon from "@mui/icons-material/LightbulbOutlined";
+import SortIcon from "@mui/icons-material/Sort";
+import GridViewIcon from "@mui/icons-material/GridView";
+import ViewListIcon from "@mui/icons-material/ViewList";
+import ClearIcon from "@mui/icons-material/Clear";
 import { Form, useLoaderData, useNavigation, Link } from "react-router-dom";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
 import { useAuthContext } from "../context/AuthContext";
+import CitySelectField from "../components/CitySelectField";
+import { EUROPEAN_COUNTRIES } from "../data/europeanLocations";
 
 const fontBody = "'Plus Jakarta Sans', sans-serif";
 const fontDisplay = "'Playfair Display', serif";
 const BLUE = "#0057B8";
 const GOLD = "#FFD700";
+
+const EUROPE_COUNTRIES = EUROPEAN_COUNTRIES.map((c) => c.name);
 
 // ── Loader ────────────────────────────────────────────────
 export async function loader() {
@@ -847,14 +84,23 @@ export async function action({ request }) {
   const formData = await request.formData();
   const title = formData.get("title");
   const content = formData.get("content");
-  const category = formData.get("category");
+  const forumCategoryId = formData.get("forumCategoryId");
+  const forumSubcategoryId = formData.get("forumSubcategoryId") || null;
+  const country = formData.get("country") || null;
+  const city = formData.get("city") || null;
+
   try {
     const { data } = await customFetch.post("/forum", {
       title,
       content,
-      category,
+      forumCategoryId: forumCategoryId ? Number(forumCategoryId) : null,
+      forumSubcategoryId: forumSubcategoryId
+        ? Number(forumSubcategoryId)
+        : null,
+      country,
+      city,
     });
-    toast.success("Тему створено!");
+    toast.success("Тему успішно створено!");
     return { success: true, data };
   } catch (error) {
     toast.error(error?.response?.data?.message || "Помилка створення теми");
@@ -866,7 +112,7 @@ export async function action({ request }) {
 }
 
 // ── Stat Card ─────────────────────────────────────────────
-function StatCard({ icon, value, label, color = BLUE }) {
+function StatCard({ icon, value, label }) {
   return (
     <Box
       sx={{
@@ -912,7 +158,7 @@ function StatCard({ icon, value, label, color = BLUE }) {
         sx={{
           fontFamily: fontBody,
           fontSize: "0.75rem",
-          color: "rgba(255,255,255,.65)",
+          color: "rgba(255,255,255,.75)",
           fontWeight: 500,
         }}
       >
@@ -932,26 +178,26 @@ function CategoryRow({ cat, isSelected, onClick, isLast }) {
           display: "flex",
           alignItems: "center",
           gap: 2,
-          px: 3,
-          py: 2.5,
+          px: 2.5,
+          py: 2,
           cursor: "pointer",
           transition: "all 0.18s ease",
-          borderRadius: "10px",
+          borderRadius: "12px",
           mx: 1,
           borderLeft: isSelected
-            ? `3px solid ${BLUE}`
-            : "3px solid transparent",
+            ? `4px solid ${cat.color || BLUE}`
+            : "4px solid transparent",
           bgcolor: isSelected ? "rgba(0,87,184,.06)" : "transparent",
-          "&:hover": { bgcolor: isSelected ? "rgba(0,87,184,.08)" : "#f8fafc" },
+          "&:hover": { bgcolor: isSelected ? "rgba(0,87,184,.09)" : "#f8fafc" },
           "&:hover .cat-arrow": { opacity: 1, transform: "translateX(0)" },
         }}
       >
         <Box
           sx={{
-            width: 44,
-            height: 44,
+            width: 42,
+            height: 42,
             borderRadius: "12px",
-            bgcolor: isSelected ? BLUE : cat.bgColor || "#eff6ff",
+            bgcolor: isSelected ? cat.color || BLUE : cat.bgColor || "#eff6ff",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -974,7 +220,7 @@ function CategoryRow({ cat, isSelected, onClick, isLast }) {
             sx={{
               fontFamily: fontBody,
               fontWeight: 700,
-              fontSize: "0.925rem",
+              fontSize: "0.92rem",
               color: isSelected ? BLUE : "#0f172a",
               mb: 0.2,
             }}
@@ -985,9 +231,9 @@ function CategoryRow({ cat, isSelected, onClick, isLast }) {
             <Typography
               sx={{
                 fontFamily: fontBody,
-                fontSize: "0.78rem",
+                fontSize: "0.76rem",
                 color: "#64748b",
-                lineHeight: 1.4,
+                lineHeight: 1.35,
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
@@ -1002,14 +248,14 @@ function CategoryRow({ cat, isSelected, onClick, isLast }) {
             sx={{
               fontFamily: fontBody,
               fontWeight: 700,
-              fontSize: "0.95rem",
+              fontSize: "0.9rem",
               color: isSelected ? BLUE : "#0f172a",
             }}
           >
             {(cat.topicsCount || 0).toLocaleString()}
           </Typography>
           <Typography
-            sx={{ fontFamily: fontBody, fontSize: "0.7rem", color: "#94a3b8" }}
+            sx={{ fontFamily: fontBody, fontSize: "0.68rem", color: "#94a3b8" }}
           >
             тем
           </Typography>
@@ -1018,7 +264,7 @@ function CategoryRow({ cat, isSelected, onClick, isLast }) {
           className="cat-arrow"
           sx={{
             fontSize: 16,
-            color: BLUE,
+            color: cat.color || BLUE,
             opacity: isSelected ? 1 : 0,
             transform: isSelected ? "translateX(0)" : "translateX(-4px)",
             transition: "all 0.18s",
@@ -1028,6 +274,107 @@ function CategoryRow({ cat, isSelected, onClick, isLast }) {
       </Box>
       {!isLast && <Divider sx={{ borderColor: "#f1f5f9", mx: 2 }} />}
     </>
+  );
+}
+
+// ── Category Card (Grid View) ──────────────────────────────
+function CategoryCard({ cat, isSelected, onClick }) {
+  return (
+    <Card
+      onClick={onClick}
+      sx={{
+        borderRadius: "16px",
+        border: `1.5px solid ${isSelected ? cat.color || BLUE : "#e2e8f0"}`,
+        boxShadow: isSelected
+          ? "0 4px 16px rgba(0,87,184,.15)"
+          : "0 1px 3px rgba(0,0,0,.04)",
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        bgcolor: isSelected ? "rgba(0,87,184,.03)" : "#fff",
+        "&:hover": {
+          transform: "translateY(-3px)",
+          boxShadow: "0 8px 24px rgba(0,87,184,.12)",
+          borderColor: cat.color || BLUE,
+        },
+      }}
+    >
+      <Box sx={{ height: 4, bgcolor: cat.color || BLUE }} />
+      <CardContent
+        sx={{
+          p: 2,
+          flexGrow: 1,
+          display: "flex",
+          flexDirection: "column",
+          gap: 1.5,
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box
+            sx={{
+              width: 38,
+              height: 38,
+              borderRadius: "10px",
+              bgcolor: cat.bgColor || "#eff6ff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <span
+              className="material-icons"
+              style={{ fontSize: 20, color: cat.color || BLUE }}
+            >
+              {cat.icon || "forum"}
+            </span>
+          </Box>
+          <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+            <Typography
+              sx={{
+                fontFamily: fontBody,
+                fontWeight: 700,
+                fontSize: "0.88rem",
+                color: "#0f172a",
+                lineHeight: 1.25,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {cat.title}
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: fontBody,
+                fontSize: "0.7rem",
+                color: "#64748b",
+              }}
+            >
+              {cat.topicsCount || 0} тем · {cat.postsCount || 0} відп.
+            </Typography>
+          </Box>
+        </Box>
+        {cat.description && (
+          <Typography
+            sx={{
+              fontFamily: fontBody,
+              fontSize: "0.74rem",
+              color: "#64748b",
+              lineHeight: 1.35,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            {cat.description}
+          </Typography>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -1048,33 +395,67 @@ function TopicCard({ topic, categories, index }) {
       to={`/forum/${topic.id}`}
       sx={{
         borderRadius: "16px",
-        border: "1px solid #e2e8f0",
-        boxShadow: "0 1px 4px rgba(0,0,0,.04)",
+        border: topic.isPinned ? `1.5px solid ${GOLD}` : "1px solid #e2e8f0",
+        boxShadow: topic.isPinned
+          ? "0 4px 16px rgba(255,215,0,.2)"
+          : "0 1px 4px rgba(0,0,0,.04)",
         transition: "transform 0.2s, box-shadow 0.2s",
         cursor: "pointer",
         textDecoration: "none",
         bgcolor: "#fff",
-        animation: "fadeUp 0.4s ease both",
-        animationDelay: `${index * 0.06}s`,
-        "@keyframes fadeUp": {
-          from: { opacity: 0, transform: "translateY(12px)" },
-          to: { opacity: 1, transform: "translateY(0)" },
-        },
+        animation: "fadeUp 0.3s ease both",
+        animationDelay: `${index * 0.04}s`,
+        position: "relative",
         "&:hover": {
           transform: "translateY(-2px)",
-          boxShadow: "0 8px 24px rgba(0,87,184,.1)",
+          boxShadow: "0 8px 24px rgba(0,87,184,.12)",
         },
       }}
     >
       <CardContent sx={{ p: 2.5 }}>
+        {/* Top badges: Pinned / Closed */}
+        {(topic.isPinned || topic.isClosed) && (
+          <Box sx={{ display: "flex", gap: 1, mb: 1.5, flexWrap: "wrap" }}>
+            {topic.isPinned && (
+              <Chip
+                icon={<PushPinIcon sx={{ fontSize: "13px !important" }} />}
+                label="Закріплена тема"
+                size="small"
+                sx={{
+                  bgcolor: "#fef9c3",
+                  color: "#854d0e",
+                  fontFamily: fontBody,
+                  fontWeight: 700,
+                  fontSize: "0.68rem",
+                  border: "1px solid #fde047",
+                }}
+              />
+            )}
+            {topic.isClosed && (
+              <Chip
+                icon={<LockOutlinedIcon sx={{ fontSize: "13px !important" }} />}
+                label="Обговорення закрито"
+                size="small"
+                sx={{
+                  bgcolor: "#f1f5f9",
+                  color: "#475569",
+                  fontFamily: fontBody,
+                  fontWeight: 700,
+                  fontSize: "0.68rem",
+                }}
+              />
+            )}
+          </Box>
+        )}
+
         <Box sx={{ display: "flex", gap: 1.5, mb: 1.5 }}>
           <Avatar
             sx={{
-              width: 34,
-              height: 34,
+              width: 36,
+              height: 36,
               bgcolor: bg,
               color: color,
-              fontSize: "0.8rem",
+              fontSize: "0.85rem",
               fontWeight: 700,
               flexShrink: 0,
             }}
@@ -1086,7 +467,7 @@ function TopicCard({ topic, categories, index }) {
               sx={{
                 fontFamily: fontBody,
                 fontWeight: 700,
-                fontSize: "0.9rem",
+                fontSize: "0.95rem",
                 color: "#0f172a",
                 lineHeight: 1.35,
                 mb: 0.4,
@@ -1106,17 +487,16 @@ function TopicCard({ topic, categories, index }) {
               }}
             >
               {topic.author} ·{" "}
-              {new Date(topic.lastUpdate || topic.createdAt).toLocaleDateString(
-                "uk-UA",
-              )}
+              {new Date(topic.createdAt).toLocaleDateString("uk-UA")}
             </Typography>
           </Box>
         </Box>
 
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-          {topic.category && (
+        {/* Location & Tags */}
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
+          {cat && (
             <Chip
-              label={topic.category}
+              label={cat.title}
               size="small"
               icon={
                 <span
@@ -1131,36 +511,64 @@ function TopicCard({ topic, categories, index }) {
                 color,
                 fontFamily: fontBody,
                 fontWeight: 700,
+                fontSize: "0.68rem",
+              }}
+            />
+          )}
+
+          {topic.forumSubcategory && (
+            <Chip
+              label={topic.forumSubcategory.title}
+              size="small"
+              sx={{
+                bgcolor: "#f1f5f9",
+                color: "#475569",
+                fontFamily: fontBody,
+                fontWeight: 600,
                 fontSize: "0.65rem",
               }}
             />
           )}
+
+          {(topic.country || topic.city) && (
+            <Chip
+              icon={<PlaceOutlinedIcon sx={{ fontSize: "12px !important", color: "#0284c7" }} />}
+              label={[topic.country, topic.city].filter(Boolean).join(", ")}
+              size="small"
+              sx={{
+                bgcolor: "#e0f2fe",
+                color: "#0369a1",
+                fontFamily: fontBody,
+                fontWeight: 600,
+                fontSize: "0.65rem",
+              }}
+            />
+          )}
+
+          <Box sx={{ flexGrow: 1 }} />
+
           <Chip
-            icon={
-              <ChatBubbleOutlineIcon sx={{ fontSize: "11px !important" }} />
-            }
+            icon={<ChatBubbleOutlineIcon sx={{ fontSize: "11px !important" }} />}
             label={`${topic.replies ?? 0}`}
             size="small"
             sx={{
-              bgcolor: "#f1f5f9",
+              bgcolor: "#f8fafc",
               color: "#64748b",
               fontFamily: fontBody,
               fontWeight: 600,
-              fontSize: "0.65rem",
+              fontSize: "0.68rem",
             }}
           />
           <Chip
-            icon={
-              <VisibilityOutlinedIcon sx={{ fontSize: "11px !important" }} />
-            }
+            icon={<VisibilityOutlinedIcon sx={{ fontSize: "11px !important" }} />}
             label={`${topic.views ?? 0}`}
             size="small"
             sx={{
-              bgcolor: "#f1f5f9",
+              bgcolor: "#f8fafc",
               color: "#64748b",
               fontFamily: fontBody,
               fontWeight: 600,
-              fontSize: "0.65rem",
+              fontSize: "0.68rem",
             }}
           />
         </Box>
@@ -1169,7 +577,7 @@ function TopicCard({ topic, categories, index }) {
   );
 }
 
-// ── Main Component ────────────────────────────────────────
+// ── Main Forum Component ──────────────────────────────────
 export default function Forum() {
   const { topics, categories, stats } = useLoaderData();
   const navigation = useNavigation();
@@ -1177,25 +585,159 @@ export default function Forum() {
   const isSubmitting = navigation.state === "submitting";
 
   const [createOpen, setCreateOpen] = useState(false);
+  const [suggestOpen, setSuggestOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState("");
+  const [countryFilter, setCountryFilter] = useState("");
+  const [cityFilter, setCityFilter] = useState("");
+  const [sortBy, setSortBy] = useState("latest"); // 'latest', 'popular', 'replies'
+  const [categoryViewMode, setCategoryViewMode] = useState("list"); // 'list' | 'grid'
+
+  // Form states for new topic dialog
+  const [modalCatId, setModalCatId] = useState("");
+  const [modalSubCatId, setModalSubCatId] = useState("");
+  const [modalCountry, setModalCountry] = useState("");
+  const [modalCity, setModalCity] = useState("");
+
+  // Category suggestion form state
+  const [suggestTitle, setSuggestTitle] = useState("");
+  const [suggestDesc, setSuggestDesc] = useState("");
+  const [suggestReason, setSuggestReason] = useState("");
+  const [isSuggesting, setIsSuggesting] = useState(false);
+
+  const selectedCategoryObj = useMemo(() => {
+    return categories.find((c) => String(c.id) === String(selectedCategoryId));
+  }, [categories, selectedCategoryId]);
+
+  const modalCategoryObj = useMemo(() => {
+    return categories.find((c) => String(c.id) === String(modalCatId));
+  }, [categories, modalCatId]);
 
   const handleOpenCreate = () => {
     if (!user) {
       toast.warning("Увійдіть в акаунт, щоб створити тему");
       return;
     }
+    setModalCatId(selectedCategoryId || (categories[0]?.id ? String(categories[0].id) : ""));
+    setModalSubCatId("");
+    setModalCountry(countryFilter || "");
+    setModalCity("");
     setCreateOpen(true);
   };
 
-  const filteredTopics = topics.filter((t) => {
-    const matchSearch =
-      !searchQuery ||
-      t.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.category?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchCat = !selectedCategory || t.category === selectedCategory;
-    return matchSearch && matchCat;
-  });
+  const handleOpenSuggest = () => {
+    if (!user) {
+      toast.warning("Увійдіть в акаунт, щоб запропонувати нову категорію");
+      return;
+    }
+    setSuggestTitle("");
+    setSuggestDesc("");
+    setSuggestReason("");
+    setSuggestOpen(true);
+  };
+
+  const handleSendSuggestion = async () => {
+    if (!suggestTitle.trim()) {
+      toast.error("Введіть назву категорії");
+      return;
+    }
+    setIsSuggesting(true);
+    try {
+      await customFetch.post("/forum/category-suggestions", {
+        title: suggestTitle.trim(),
+        description: suggestDesc.trim(),
+        reason: suggestReason.trim(),
+      });
+      toast.success("Вашу пропозицію надіслано на розгляд адміністратора!");
+      setSuggestOpen(false);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Помилка відправлення");
+    } finally {
+      setIsSuggesting(false);
+    }
+  };
+
+  // Filter and sort topics locally
+  const filteredTopics = useMemo(() => {
+    let result = [...topics];
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (t) =>
+          t.title?.toLowerCase().includes(q) ||
+          t.content?.toLowerCase().includes(q) ||
+          t.category?.toLowerCase().includes(q)
+      );
+    }
+
+    if (selectedCategoryId) {
+      result = result.filter(
+        (t) =>
+          String(t.forumCategoryId) === String(selectedCategoryId) ||
+          (selectedCategoryObj && t.category === selectedCategoryObj.title)
+      );
+    }
+
+    if (selectedSubcategoryId) {
+      result = result.filter(
+        (t) => String(t.forumSubcategoryId) === String(selectedSubcategoryId)
+      );
+    }
+
+    if (countryFilter) {
+      result = result.filter(
+        (t) => t.country?.toLowerCase() === countryFilter.toLowerCase()
+      );
+    }
+
+    if (cityFilter.trim()) {
+      const qCity = cityFilter.toLowerCase();
+      result = result.filter((t) => t.city?.toLowerCase().includes(qCity));
+    }
+
+    // Sort: pinned topics always float to the top
+    result.sort((a, b) => {
+      if (a.isPinned !== b.isPinned) {
+        return a.isPinned ? -1 : 1;
+      }
+      if (sortBy === "popular") {
+        return (b.views || 0) - (a.views || 0);
+      }
+      if (sortBy === "replies") {
+        return (b.replies || 0) - (a.replies || 0);
+      }
+      // latest
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+
+    return result;
+  }, [
+    topics,
+    searchQuery,
+    selectedCategoryId,
+    selectedSubcategoryId,
+    countryFilter,
+    cityFilter,
+    sortBy,
+    selectedCategoryObj,
+  ]);
+
+  const clearAllFilters = () => {
+    setSearchQuery("");
+    setSelectedCategoryId("");
+    setSelectedSubcategoryId("");
+    setCountryFilter("");
+    setCityFilter("");
+  };
+
+  const hasActiveFilters =
+    Boolean(searchQuery) ||
+    Boolean(selectedCategoryId) ||
+    Boolean(selectedSubcategoryId) ||
+    Boolean(countryFilter) ||
+    Boolean(cityFilter);
 
   // Stats display config
   const statsConfig = [
@@ -1224,13 +766,13 @@ export default function Forum() {
   return (
     <>
       <HeroSection
-        title="Форум спільноти"
-        typedStrings={["Простір для спілкування"]}
-        subtitle="Обговорення, обмін досвідом та підтримка від людей, які пройшли той самий шлях"
+        title="Форум «Українці в Європі»"
+        typedStrings={["Єдиний простір взаємодопомоги та досвіду", "30 тематичних розділів для всіх країн Європи"]}
+        subtitle="Спілкуйтеся, ставте запитання, знаходьте житло, роботу та діліться корисними порадами"
         size="sm"
       />
 
-      {/* ── Stats strip ── */}
+      {/* ── Stats Strip ── */}
       <Box
         sx={{
           background: "linear-gradient(135deg, #0057B8 0%, #003d82 100%)",
@@ -1261,202 +803,409 @@ export default function Forum() {
         </Container>
       </Box>
 
-      <Box sx={{ py: { xs: 5, md: 8 }, bgcolor: "#f8fafc" }}>
+      <Box sx={{ py: { xs: 4, md: 6 }, bgcolor: "#f8fafc" }}>
         <Container maxWidth="lg">
-          {/* ── Toolbar ── */}
-          <Box
+          {/* ── Filter & Search Toolbar ── */}
+          <Paper
+            elevation={0}
             sx={{
               bgcolor: "#fff",
               border: "1px solid #e2e8f0",
               borderRadius: "20px",
               p: { xs: 2, md: 2.5 },
-              mb: 5,
-              boxShadow: "0 2px 16px rgba(0,87,184,.05)",
-              display: "flex",
-              gap: 2,
-              alignItems: "center",
-              flexWrap: "wrap",
+              mb: 4,
+              boxShadow: "0 2px 12px rgba(0,87,184,.05)",
             }}
           >
-            <TextField
-              placeholder="Пошук по форуму..."
-              size="small"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+            {/* Top row: Search, Country, City, Actions */}
+            <Box
               sx={{
-                flex: "1 1 220px",
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "12px",
-                  fontFamily: fontBody,
-                  bgcolor: "#f8fafc",
-                  "&:hover fieldset": { borderColor: BLUE },
-                  "&.Mui-focused fieldset": { borderColor: BLUE },
-                },
+                display: "flex",
+                gap: 1.5,
+                alignItems: "center",
+                flexWrap: "wrap",
+                mb: 2,
               }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon sx={{ fontSize: 18, color: "#94a3b8" }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            {/* Category filter dropdown (mobile-friendly) */}
-            {categories.length > 0 && (
-              <FormControl
+            >
+              <TextField
+                placeholder="Пошук за темою чи змістом..."
                 size="small"
-                sx={{ minWidth: 180, flex: "0 0 auto" }}
-              >
-                <InputLabel sx={{ fontFamily: fontBody }}>
-                  {selectedCategory ? "Категорія" : "Всі категорії"}
-                </InputLabel>
-                <Select
-                  value={selectedCategory}
-                  label={selectedCategory ? "Категорія" : "Всі категорії"}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  startAdornment={
-                    <InputAdornment position="start">
-                      <FilterListIcon sx={{ fontSize: 16, color: "#94a3b8" }} />
-                    </InputAdornment>
-                  }
-                  sx={{
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                sx={{
+                  flex: "1 1 200px",
+                  "& .MuiOutlinedInput-root": {
                     borderRadius: "12px",
                     fontFamily: fontBody,
-                    bgcolor: selectedCategory
-                      ? "rgba(0,87,184,.05)"
-                      : "#f8fafc",
-                    "& fieldset": {
-                      borderColor: selectedCategory ? BLUE : "#e2e8f0",
-                    },
+                    bgcolor: "#f8fafc",
+                  },
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ fontSize: 18, color: "#94a3b8" }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+
+              {/* Geographic Country filter */}
+              <FormControl size="small" sx={{ minWidth: 160, flex: "0 0 auto" }}>
+                <InputLabel sx={{ fontFamily: fontBody }}>Країна</InputLabel>
+                <Select
+                  value={countryFilter}
+                  label="Країна"
+                  onChange={(e) => {
+                    setCountryFilter(e.target.value);
+                    setCityFilter("");
                   }}
+                  sx={{ borderRadius: "12px", fontFamily: fontBody, bgcolor: "#f8fafc" }}
                 >
-                  <MenuItem
-                    value=""
-                    sx={{ fontFamily: fontBody, fontSize: "0.875rem" }}
-                  >
-                    Всі категорії
-                  </MenuItem>
-                  {categories.map((cat) => (
-                    <MenuItem
-                      key={cat.id}
-                      value={cat.title}
-                      sx={{
-                        fontFamily: fontBody,
-                        fontSize: "0.875rem",
-                        gap: 1.5,
-                      }}
-                    >
-                      <span
-                        className="material-icons"
-                        style={{ fontSize: 16, color: cat.color || BLUE }}
-                      >
-                        {cat.icon || "forum"}
-                      </span>
-                      {cat.title}
+                  <MenuItem value="">Всі країни Європи</MenuItem>
+                  {EUROPE_COUNTRIES.map((c) => (
+                    <MenuItem key={c} value={c} sx={{ fontFamily: fontBody }}>
+                      {c}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
-            )}
 
-            <Button
-              variant="contained"
-              startIcon={
-                user ? <AddIcon /> : <LockOutlinedIcon sx={{ fontSize: 16 }} />
-              }
-              onClick={handleOpenCreate}
-              sx={{
-                fontFamily: fontBody,
-                fontWeight: 700,
-                textTransform: "none",
-                bgcolor: BLUE,
-                borderRadius: "12px",
-                px: 2.5,
-                flexShrink: 0,
-                boxShadow: "0 4px 12px rgba(0,87,184,.3)",
-                "&:hover": { bgcolor: "#003d82" },
-              }}
-            >
-              Нова тема
-            </Button>
-          </Box>
-
-          {/* ── Active filter badge ── */}
-          {selectedCategory && (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
-              <Typography
-                sx={{
-                  fontFamily: fontBody,
-                  fontSize: "0.85rem",
-                  color: "#64748b",
-                }}
-              >
-                Фільтр:
-              </Typography>
-              <Chip
-                label={selectedCategory}
-                onDelete={() => setSelectedCategory("")}
-                size="small"
-                sx={{
-                  fontFamily: fontBody,
-                  fontWeight: 700,
-                  fontSize: "0.78rem",
-                  bgcolor: "rgba(0,87,184,.08)",
-                  color: BLUE,
-                  border: `1px solid ${BLUE}`,
-                }}
-              />
-              <Typography
-                sx={{
-                  fontFamily: fontBody,
-                  fontSize: "0.8rem",
-                  color: "#94a3b8",
-                }}
-              >
-                — {filteredTopics.length} тем
-              </Typography>
-            </Box>
-          )}
-
-          <Grid container spacing={4}>
-            {/* ── LEFT: Categories ── */}
-            <Grid size={{ xs: 12, md: 7 }}>
-              <Box sx={{ mb: 3 }}>
-                <Typography
-                  sx={{
-                    fontFamily: fontBody,
-                    fontSize: "0.68rem",
-                    fontWeight: 700,
-                    letterSpacing: "0.12em",
-                    textTransform: "uppercase",
-                    color: BLUE,
-                    mb: 0.5,
-                  }}
-                >
-                  Розділи
-                </Typography>
-                <Typography
-                  sx={{
-                    fontFamily: fontDisplay,
-                    fontWeight: 700,
-                    fontSize: "1.6rem",
-                    color: "#0f172a",
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  Категорії форуму
-                </Typography>
-                <Box
-                  sx={{
-                    width: 40,
-                    height: 3,
-                    background: `linear-gradient(90deg, ${BLUE}, ${GOLD})`,
-                    borderRadius: "99px",
-                    mt: 1,
-                  }}
+              {/* Dynamic City filter with fallback text input */}
+              <Box sx={{ minWidth: 160, width: { xs: "100%", sm: 170 } }}>
+                <CitySelectField
+                  country={countryFilter}
+                  value={cityFilter}
+                  onChange={(c) => setCityFilter(c || "")}
+                  name="cityFilter"
+                  label="Місто"
+                  placeholder="Місто..."
+                  size="small"
+                  isFilter
                 />
               </Box>
+
+              {/* Sort by */}
+              <FormControl size="small" sx={{ minWidth: 160, flex: "0 0 auto" }}>
+                <InputLabel sx={{ fontFamily: fontBody }}>Сортування</InputLabel>
+                <Select
+                  value={sortBy}
+                  label="Сортування"
+                  onChange={(e) => setSortBy(e.target.value)}
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <SortIcon sx={{ fontSize: 16, color: "#94a3b8" }} />
+                    </InputAdornment>
+                  }
+                  sx={{ borderRadius: "12px", fontFamily: fontBody, bgcolor: "#f8fafc" }}
+                >
+                  <MenuItem value="latest" sx={{ fontFamily: fontBody }}>
+                    Найновіші
+                  </MenuItem>
+                  <MenuItem value="popular" sx={{ fontFamily: fontBody }}>
+                    Найпопулярніші
+                  </MenuItem>
+                  <MenuItem value="replies" sx={{ fontFamily: fontBody }}>
+                    Найбільше відповідей
+                  </MenuItem>
+                </Select>
+              </FormControl>
+
+              {/* Action buttons */}
+              <Box sx={{ display: "flex", gap: 1, ml: "auto", flexWrap: "wrap" }}>
+                <Tooltip title="Запропонувати створити нову категорію адміністратору">
+                  <Button
+                    variant="outlined"
+                    startIcon={<LightbulbOutlinedIcon />}
+                    onClick={handleOpenSuggest}
+                    sx={{
+                      fontFamily: fontBody,
+                      fontWeight: 600,
+                      textTransform: "none",
+                      borderRadius: "12px",
+                      borderColor: "#cbd5e1",
+                      color: "#475569",
+                      "&:hover": { borderColor: BLUE, color: BLUE },
+                    }}
+                  >
+                    Запропонувати категорію
+                  </Button>
+                </Tooltip>
+
+                <Button
+                  variant="contained"
+                  startIcon={user ? <AddIcon /> : <LockOutlinedIcon sx={{ fontSize: 16 }} />}
+                  onClick={handleOpenCreate}
+                  sx={{
+                    fontFamily: fontBody,
+                    fontWeight: 700,
+                    textTransform: "none",
+                    bgcolor: BLUE,
+                    borderRadius: "12px",
+                    px: 2.5,
+                    boxShadow: "0 4px 12px rgba(0,87,184,.3)",
+                    "&:hover": { bgcolor: "#003d82" },
+                  }}
+                >
+                  Нова тема
+                </Button>
+              </Box>
+            </Box>
+
+            {/* Active filters bar */}
+            {hasActiveFilters && (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  pt: 1.5,
+                  borderTop: "1px dashed #e2e8f0",
+                  flexWrap: "wrap",
+                }}
+              >
+                <Typography sx={{ fontFamily: fontBody, fontSize: "0.8rem", color: "#64748b" }}>
+                  Активні фільтри:
+                </Typography>
+
+                {selectedCategoryObj && (
+                  <Chip
+                    label={`Категорія: ${selectedCategoryObj.title}`}
+                    size="small"
+                    onDelete={() => {
+                      setSelectedCategoryId("");
+                      setSelectedSubcategoryId("");
+                    }}
+                    sx={{
+                      fontFamily: fontBody,
+                      fontWeight: 600,
+                      fontSize: "0.75rem",
+                      bgcolor: "rgba(0,87,184,.08)",
+                      color: BLUE,
+                    }}
+                  />
+                )}
+
+                {selectedSubcategoryId && selectedCategoryObj?.subcategories && (
+                  <Chip
+                    label={`Підкатегорія: ${
+                      selectedCategoryObj.subcategories.find(
+                        (s) => String(s.id) === String(selectedSubcategoryId)
+                      )?.title || selectedSubcategoryId
+                    }`}
+                    size="small"
+                    onDelete={() => setSelectedSubcategoryId("")}
+                    sx={{
+                      fontFamily: fontBody,
+                      fontWeight: 600,
+                      fontSize: "0.75rem",
+                      bgcolor: "#f1f5f9",
+                      color: "#334155",
+                    }}
+                  />
+                )}
+
+                {countryFilter && (
+                  <Chip
+                    label={`Країна: ${countryFilter}`}
+                    size="small"
+                    onDelete={() => setCountryFilter("")}
+                    sx={{
+                      fontFamily: fontBody,
+                      fontWeight: 600,
+                      fontSize: "0.75rem",
+                      bgcolor: "#e0f2fe",
+                      color: "#0369a1",
+                    }}
+                  />
+                )}
+
+                {cityFilter && (
+                  <Chip
+                    label={`Місто: ${cityFilter}`}
+                    size="small"
+                    onDelete={() => setCityFilter("")}
+                    sx={{
+                      fontFamily: fontBody,
+                      fontWeight: 600,
+                      fontSize: "0.75rem",
+                      bgcolor: "#f1f5f9",
+                      color: "#334155",
+                    }}
+                  />
+                )}
+
+                {searchQuery && (
+                  <Chip
+                    label={`Пошук: "${searchQuery}"`}
+                    size="small"
+                    onDelete={() => setSearchQuery("")}
+                    sx={{
+                      fontFamily: fontBody,
+                      fontWeight: 600,
+                      fontSize: "0.75rem",
+                      bgcolor: "#f1f5f9",
+                      color: "#334155",
+                    }}
+                  />
+                )}
+
+                <Button
+                  size="small"
+                  onClick={clearAllFilters}
+                  startIcon={<ClearIcon sx={{ fontSize: 14 }} />}
+                  sx={{
+                    fontFamily: fontBody,
+                    fontSize: "0.75rem",
+                    textTransform: "none",
+                    color: "#94a3b8",
+                    ml: "auto",
+                  }}
+                >
+                  Скинути всі фільтри
+                </Button>
+              </Box>
+            )}
+          </Paper>
+
+          {/* ── Main Content Grid ── */}
+          <Grid container spacing={3.5}>
+            {/* ── LEFT: 30 Categories Directory ── */}
+            <Grid size={{ xs: 12, md: 6.5 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  mb: 2.5,
+                }}
+              >
+                <Box>
+                  <Typography
+                    sx={{
+                      fontFamily: fontBody,
+                      fontSize: "0.68rem",
+                      fontWeight: 700,
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                      color: BLUE,
+                      mb: 0.3,
+                    }}
+                  >
+                    30 розділів
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: fontDisplay,
+                      fontWeight: 700,
+                      fontSize: "1.45rem",
+                      color: "#0f172a",
+                      letterSpacing: "-0.02em",
+                    }}
+                  >
+                    Категорії форуму
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <Tooltip title="Відобразити списком">
+                    <IconButton
+                      size="small"
+                      onClick={() => setCategoryViewMode("list")}
+                      sx={{
+                        color: categoryViewMode === "list" ? BLUE : "#94a3b8",
+                        bgcolor:
+                          categoryViewMode === "list"
+                            ? "rgba(0,87,184,.08)"
+                            : "transparent",
+                      }}
+                    >
+                      <ViewListIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Відобразити картками">
+                    <IconButton
+                      size="small"
+                      onClick={() => setCategoryViewMode("grid")}
+                      sx={{
+                        color: categoryViewMode === "grid" ? BLUE : "#94a3b8",
+                        bgcolor:
+                          categoryViewMode === "grid"
+                            ? "rgba(0,87,184,.08)"
+                            : "transparent",
+                      }}
+                    >
+                      <GridViewIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Box>
+
+              {/* Subcategories pill strip if a category is selected */}
+              {selectedCategoryObj &&
+                selectedCategoryObj.subcategories &&
+                selectedCategoryObj.subcategories.length > 0 && (
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2,
+                      mb: 2.5,
+                      borderRadius: "16px",
+                      bgcolor: "rgba(0,87,184,.04)",
+                      border: "1px solid rgba(0,87,184,.15)",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: fontBody,
+                        fontSize: "0.75rem",
+                        fontWeight: 700,
+                        color: BLUE,
+                        mb: 1,
+                      }}
+                    >
+                      Підкатегорії «{selectedCategoryObj.title}»:
+                    </Typography>
+                    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                      <Chip
+                        label="Всі теми розділу"
+                        size="small"
+                        clickable
+                        onClick={() => setSelectedSubcategoryId("")}
+                        sx={{
+                          fontFamily: fontBody,
+                          fontWeight: !selectedSubcategoryId ? 700 : 500,
+                          bgcolor: !selectedSubcategoryId ? BLUE : "#fff",
+                          color: !selectedSubcategoryId ? "#fff" : "#475569",
+                          border: "1px solid #cbd5e1",
+                        }}
+                      />
+                      {selectedCategoryObj.subcategories.map((sub) => {
+                        const isSubSelected =
+                          String(selectedSubcategoryId) === String(sub.id);
+                        return (
+                          <Chip
+                            key={sub.id}
+                            label={sub.title}
+                            size="small"
+                            clickable
+                            onClick={() =>
+                              setSelectedSubcategoryId(
+                                isSubSelected ? "" : String(sub.id)
+                              )
+                            }
+                            sx={{
+                              fontFamily: fontBody,
+                              fontWeight: isSubSelected ? 700 : 500,
+                              bgcolor: isSubSelected ? BLUE : "#fff",
+                              color: isSubSelected ? "#fff" : "#475569",
+                              border: "1px solid #cbd5e1",
+                            }}
+                          />
+                        );
+                      })}
+                    </Box>
+                  </Paper>
+                )}
 
               {categories.length === 0 ? (
                 <Paper
@@ -1468,42 +1217,17 @@ export default function Forum() {
                     textAlign: "center",
                   }}
                 >
-                  <span
-                    className="material-icons"
-                    style={{ fontSize: 36, color: "#cbd5e1" }}
-                  >
-                    category
-                  </span>
                   <Typography
                     sx={{
                       fontFamily: fontBody,
                       fontSize: "0.9rem",
                       color: "#94a3b8",
-                      mt: 1.5,
-                      mb: 2,
                     }}
                   >
                     Категорій ще немає
                   </Typography>
-                  {user?.role === "admin" && (
-                    <Button
-                      component={Link}
-                      to="/dashboard/forum"
-                      variant="contained"
-                      size="small"
-                      sx={{
-                        fontFamily: fontBody,
-                        fontWeight: 700,
-                        textTransform: "none",
-                        bgcolor: BLUE,
-                        borderRadius: "10px",
-                      }}
-                    >
-                      Додати категорії в адмін-панелі
-                    </Button>
-                  )}
                 </Paper>
-              ) : (
+              ) : categoryViewMode === "list" ? (
                 <Paper
                   elevation={0}
                   sx={{
@@ -1511,22 +1235,54 @@ export default function Forum() {
                     border: "1px solid #e2e8f0",
                     overflow: "hidden",
                     bgcolor: "#fff",
+                    maxHeight: 740,
+                    overflowY: "auto",
                   }}
                 >
                   {categories.map((cat, idx) => (
                     <CategoryRow
                       key={cat.id}
                       cat={cat}
-                      isSelected={selectedCategory === cat.title}
-                      onClick={() =>
-                        setSelectedCategory(
-                          selectedCategory === cat.title ? "" : cat.title,
-                        )
-                      }
+                      isSelected={String(selectedCategoryId) === String(cat.id)}
+                      onClick={() => {
+                        if (String(selectedCategoryId) === String(cat.id)) {
+                          setSelectedCategoryId("");
+                          setSelectedSubcategoryId("");
+                        } else {
+                          setSelectedCategoryId(String(cat.id));
+                          setSelectedSubcategoryId("");
+                        }
+                      }}
                       isLast={idx === categories.length - 1}
                     />
                   ))}
                 </Paper>
+              ) : (
+                <Grid
+                  container
+                  spacing={1.5}
+                  sx={{ maxHeight: 740, overflowY: "auto", pr: 0.5 }}
+                >
+                  {categories.map((cat) => (
+                    <Grid key={cat.id} size={{ xs: 12, sm: 6 }}>
+                      <CategoryCard
+                        cat={cat}
+                        isSelected={
+                          String(selectedCategoryId) === String(cat.id)
+                        }
+                        onClick={() => {
+                          if (String(selectedCategoryId) === String(cat.id)) {
+                            setSelectedCategoryId("");
+                            setSelectedSubcategoryId("");
+                          } else {
+                            setSelectedCategoryId(String(cat.id));
+                            setSelectedSubcategoryId("");
+                          }
+                        }}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
               )}
 
               {user?.role === "admin" && (
@@ -1536,7 +1292,7 @@ export default function Forum() {
                     to="/dashboard/forum"
                     size="small"
                     startIcon={
-                      <span className="material-icons" style={{ fontSize: 15 }}>
+                      <span className="material-icons" style={{ fontSize: 16 }}>
                         settings
                       </span>
                     }
@@ -1544,20 +1300,20 @@ export default function Forum() {
                       fontFamily: fontBody,
                       fontWeight: 600,
                       textTransform: "none",
-                      fontSize: "0.8rem",
+                      fontSize: "0.82rem",
                       color: "#64748b",
                       "&:hover": { color: BLUE },
                     }}
                   >
-                    Керувати категоріями
+                    Адміністрування категорій форуму
                   </Button>
                 </Box>
               )}
             </Grid>
 
-            {/* ── RIGHT: Recent Topics ── */}
-            <Grid size={{ xs: 12, md: 5 }}>
-              <Box sx={{ mb: 3 }}>
+            {/* ── RIGHT: Topics List ── */}
+            <Grid size={{ xs: 12, md: 5.5 }}>
+              <Box sx={{ mb: 2.5 }}>
                 <Typography
                   sx={{
                     fontFamily: fontBody,
@@ -1566,31 +1322,24 @@ export default function Forum() {
                     letterSpacing: "0.12em",
                     textTransform: "uppercase",
                     color: BLUE,
-                    mb: 0.5,
+                    mb: 0.3,
                   }}
                 >
-                  Активне
+                  Обговорення
                 </Typography>
                 <Typography
                   sx={{
                     fontFamily: fontDisplay,
                     fontWeight: 700,
-                    fontSize: "1.6rem",
+                    fontSize: "1.45rem",
                     color: "#0f172a",
                     letterSpacing: "-0.02em",
                   }}
                 >
-                  {selectedCategory ? selectedCategory : "Останні обговорення"}
+                  {selectedCategoryObj
+                    ? selectedCategoryObj.title
+                    : "Останні теми та відповіді"}
                 </Typography>
-                <Box
-                  sx={{
-                    width: 40,
-                    height: 3,
-                    background: `linear-gradient(90deg, ${BLUE}, ${GOLD})`,
-                    borderRadius: "99px",
-                    mt: 1,
-                  }}
-                />
               </Box>
 
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -1599,22 +1348,46 @@ export default function Forum() {
                     elevation={0}
                     sx={{
                       borderRadius: "16px",
-                      border: "1px solid #e2e8f0",
-                      p: 4,
+                      border: "1px dashed #cbd5e1",
+                      p: 4.5,
                       textAlign: "center",
+                      bgcolor: "#fff",
                     }}
                   >
+                    <span
+                      className="material-icons"
+                      style={{ fontSize: 36, color: "#cbd5e1" }}
+                    >
+                      forum
+                    </span>
                     <Typography
                       sx={{
                         fontFamily: fontBody,
-                        fontSize: "0.875rem",
-                        color: "#94a3b8",
+                        fontSize: "0.95rem",
+                        fontWeight: 600,
+                        color: "#64748b",
+                        mt: 1,
+                        mb: 0.5,
                       }}
                     >
-                      {searchQuery || selectedCategory
-                        ? "Нічого не знайдено"
-                        : "Поки немає тем. Будьте першим!"}
+                      {hasActiveFilters
+                        ? "Теми за вказаними фільтрами не знайдено"
+                        : "Поки що немає тем. Будьте першим, хто почне обговорення!"}
                     </Typography>
+                    {hasActiveFilters && (
+                      <Button
+                        size="small"
+                        onClick={clearAllFilters}
+                        sx={{
+                          fontFamily: fontBody,
+                          textTransform: "none",
+                          color: BLUE,
+                          mt: 1,
+                        }}
+                      >
+                        Скинути фільтри
+                      </Button>
+                    )}
                   </Paper>
                 ) : (
                   filteredTopics.map((topic, i) => (
@@ -1627,36 +1400,12 @@ export default function Forum() {
                   ))
                 )}
               </Box>
-
-              {filteredTopics.length > 0 && (
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  sx={{
-                    mt: 2.5,
-                    fontFamily: fontBody,
-                    fontWeight: 700,
-                    textTransform: "none",
-                    borderRadius: "12px",
-                    borderColor: "#e2e8f0",
-                    color: "#334155",
-                    py: 1.2,
-                    "&:hover": {
-                      borderColor: BLUE,
-                      color: BLUE,
-                      bgcolor: "rgba(0,87,184,.04)",
-                    },
-                  }}
-                >
-                  Переглянути всі теми ({topics.length})
-                </Button>
-              )}
             </Grid>
           </Grid>
         </Container>
       </Box>
 
-      {/* ── Dialog Nouvelle Thème ── */}
+      {/* ── Dialog: Нова тема ── */}
       <Dialog
         open={createOpen}
         onClose={() => setCreateOpen(false)}
@@ -1673,7 +1422,7 @@ export default function Forum() {
               pb: 1,
             }}
           >
-            Нова тема
+            Створити нову тему на форумі
           </DialogTitle>
           <DialogContent
             sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}
@@ -1681,88 +1430,138 @@ export default function Forum() {
             <TextField
               autoFocus
               name="title"
-              label="Заголовок теми"
+              label="Заголовок теми *"
               fullWidth
               required
               inputProps={{ minLength: 5, maxLength: 255 }}
+              placeholder="Коротко сформулюйте ваше питання або тему"
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: "12px",
                   fontFamily: fontBody,
                   bgcolor: "#f8fafc",
-                  "&:hover fieldset": { borderColor: BLUE },
-                  "&.Mui-focused fieldset": { borderColor: BLUE },
                 },
-                "& .MuiInputLabel-root.Mui-focused": { color: BLUE },
-                "& .MuiInputLabel-root": { fontFamily: fontBody },
               }}
             />
 
-            {categories.length > 0 ? (
-              <FormControl fullWidth>
-                <InputLabel sx={{ fontFamily: fontBody }}>Категорія</InputLabel>
-                <Select
-                  name="category"
-                  label="Категорія"
-                  defaultValue=""
-                  sx={{
-                    borderRadius: "12px",
-                    fontFamily: fontBody,
-                    bgcolor: "#f8fafc",
-                  }}
-                >
-                  {categories.map((cat) => (
-                    <MenuItem
-                      key={cat.id}
-                      value={cat.title}
-                      sx={{ fontFamily: fontBody, gap: 1.5 }}
+            {/* Category Select */}
+            <FormControl fullWidth required>
+              <InputLabel sx={{ fontFamily: fontBody }}>Розділ форуму *</InputLabel>
+              <Select
+                name="forumCategoryId"
+                label="Розділ форуму *"
+                value={modalCatId}
+                onChange={(e) => {
+                  setModalCatId(e.target.value);
+                  setModalSubCatId("");
+                }}
+                sx={{ borderRadius: "12px", fontFamily: fontBody, bgcolor: "#f8fafc" }}
+              >
+                {categories.map((cat) => (
+                  <MenuItem
+                    key={cat.id}
+                    value={String(cat.id)}
+                    sx={{ fontFamily: fontBody, gap: 1.5 }}
+                  >
+                    <span
+                      className="material-icons"
+                      style={{ fontSize: 18, color: cat.color || BLUE }}
                     >
-                      <span
-                        className="material-icons"
-                        style={{ fontSize: 16, color: cat.color || BLUE }}
+                      {cat.icon || "forum"}
+                    </span>
+                    {cat.title}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {/* Subcategory Select (if current modal category has subcategories) */}
+            {modalCategoryObj?.subcategories &&
+              modalCategoryObj.subcategories.length > 0 && (
+                <FormControl fullWidth>
+                  <InputLabel sx={{ fontFamily: fontBody }}>
+                    Підкатегорія (опційно)
+                  </InputLabel>
+                  <Select
+                    name="forumSubcategoryId"
+                    label="Підкатегорія (опційно)"
+                    value={modalSubCatId}
+                    onChange={(e) => setModalSubCatId(e.target.value)}
+                    sx={{
+                      borderRadius: "12px",
+                      fontFamily: fontBody,
+                      bgcolor: "#f8fafc",
+                    }}
+                  >
+                    <MenuItem value="">Без підкатегорії</MenuItem>
+                    {modalCategoryObj.subcategories.map((sub) => (
+                      <MenuItem
+                        key={sub.id}
+                        value={String(sub.id)}
+                        sx={{ fontFamily: fontBody }}
                       >
-                        {cat.icon || "forum"}
-                      </span>
-                      {cat.title}
+                        {sub.title}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+
+            {/* Geographic fields: Country & Dynamic City with fallback text input */}
+            <Box
+              sx={{
+                display: "flex",
+                gap: 1.5,
+                flexDirection: { xs: "column", sm: "row" },
+              }}
+            >
+              <FormControl fullWidth>
+                <InputLabel sx={{ fontFamily: fontBody }}>Країна (опційно)</InputLabel>
+                <Select
+                  name="country"
+                  label="Країна (опційно)"
+                  value={modalCountry}
+                  onChange={(e) => {
+                    setModalCountry(e.target.value);
+                    setModalCity("");
+                  }}
+                  sx={{ borderRadius: "12px", fontFamily: fontBody, bgcolor: "#f8fafc" }}
+                >
+                  <MenuItem value="">Не вказано / Вся Європа</MenuItem>
+                  {EUROPE_COUNTRIES.map((c) => (
+                    <MenuItem key={c} value={c} sx={{ fontFamily: fontBody }}>
+                      {c}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
-            ) : (
-              <TextField
-                name="category"
-                label="Категорія (текст)"
+
+              <CitySelectField
+                country={modalCountry}
+                value={modalCity}
+                onChange={(c) => setModalCity(c)}
+                name="city"
+                label="Місто / Регіон (опційно)"
+                placeholder="напр. Варшава, Берлін або введіть..."
                 fullWidth
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "12px",
-                    fontFamily: fontBody,
-                    bgcolor: "#f8fafc",
-                  },
-                  "& .MuiInputLabel-root": { fontFamily: fontBody },
-                }}
               />
-            )}
+            </Box>
 
             <TextField
               name="content"
-              label="Текст теми"
+              label="Текст повідомлення *"
               fullWidth
               required
               multiline
               rows={5}
               inputProps={{ minLength: 10 }}
-              placeholder="Опишіть вашу тему або питання..."
+              placeholder="Детально опишіть ситуацію, додайте деталі чи запитання..."
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: "12px",
                   fontFamily: fontBody,
                   bgcolor: "#f8fafc",
-                  "&:hover fieldset": { borderColor: BLUE },
-                  "&.Mui-focused fieldset": { borderColor: BLUE },
                 },
-                "& .MuiInputLabel-root.Mui-focused": { color: BLUE },
-                "& .MuiInputLabel-root": { fontFamily: fontBody },
               }}
             />
           </DialogContent>
@@ -1798,6 +1597,117 @@ export default function Forum() {
             </Button>
           </DialogActions>
         </Form>
+      </Dialog>
+
+      {/* ── Dialog: Запропонувати нову категорію ── */}
+      <Dialog
+        open={suggestOpen}
+        onClose={() => setSuggestOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}
+      >
+        <DialogTitle
+          sx={{
+            fontFamily: fontDisplay,
+            fontWeight: 700,
+            fontSize: "1.25rem",
+            pb: 1,
+          }}
+        >
+          Запропонувати нову категорію форуму
+        </DialogTitle>
+        <DialogContent
+          sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}
+        >
+          <Typography
+            sx={{ fontFamily: fontBody, fontSize: "0.85rem", color: "#64748b" }}
+          >
+            Ваша пропозиція надійде адміністратору на модерацію. Якщо вона буде
+            схвалена, нова категорія з'явиться на форумі.
+          </Typography>
+
+          <TextField
+            label="Назва запропонованої категорії *"
+            fullWidth
+            required
+            value={suggestTitle}
+            onChange={(e) => setSuggestTitle(e.target.value)}
+            placeholder="напр. Волонтерські ініціативи"
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "12px",
+                fontFamily: fontBody,
+                bgcolor: "#f8fafc",
+              },
+            }}
+          />
+
+          <TextField
+            label="Короткий опис"
+            fullWidth
+            multiline
+            rows={2}
+            value={suggestDesc}
+            onChange={(e) => setSuggestDesc(e.target.value)}
+            placeholder="Про що буде ця категорія..."
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "12px",
+                fontFamily: fontBody,
+                bgcolor: "#f8fafc",
+              },
+            }}
+          />
+
+          <TextField
+            label="Чому ця категорія важлива для спільноти?"
+            fullWidth
+            multiline
+            rows={3}
+            value={suggestReason}
+            onChange={(e) => setSuggestReason(e.target.value)}
+            placeholder="Обґрунтування для адміністратора..."
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "12px",
+                fontFamily: fontBody,
+                bgcolor: "#f8fafc",
+              },
+            }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <Button
+            onClick={() => setSuggestOpen(false)}
+            sx={{
+              fontFamily: fontBody,
+              fontWeight: 600,
+              textTransform: "none",
+              color: "#64748b",
+              borderRadius: "10px",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            Скасувати
+          </Button>
+          <Button
+            onClick={handleSendSuggestion}
+            variant="contained"
+            disabled={isSuggesting}
+            sx={{
+              fontFamily: fontBody,
+              fontWeight: 700,
+              textTransform: "none",
+              bgcolor: BLUE,
+              borderRadius: "10px",
+              px: 3,
+              "&:hover": { bgcolor: "#003d82" },
+            }}
+          >
+            {isSuggesting ? "Надсилання..." : "Надіслати пропозицію"}
+          </Button>
+        </DialogActions>
       </Dialog>
     </>
   );

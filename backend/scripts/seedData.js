@@ -504,38 +504,49 @@ async function seedReferenceData() {
   // -------------------------------------------------------------------------
 
   console.log("");
-  console.log("Création des catégories du forum...");
+  console.log("Création des 30 catégories du forum...");
 
-  const forumCatData = [
-    {
-      title: "Житло",
-      description: "Питання щодо житла",
-    },
-    {
-      title: "Робота",
-      description: "Питання щодо роботи та працевлаштування",
-    },
-    {
-      title: "Адміністративні формальності",
-      description: "Питання щодо адміністративних процедур",
-    },
-  ];
-
+  const { FORUM_30_CATEGORIES } = require("./seedForumCategories");
   const forumCategoryMap = {};
 
-  for (const fc of forumCatData) {
+  for (const catData of FORUM_30_CATEGORIES) {
+    const { subcategories, ...mainCatData } = catData;
     const row = await findOrCreateOne(
       ForumCategory,
       {
-        title: fc.title,
+        title: mainCatData.title,
       },
       {
-        ...fc,
+        ...mainCatData,
         isActive: true,
+        parentId: null,
       },
     );
 
-    forumCategoryMap[fc.title] = row.id;
+    forumCategoryMap[mainCatData.title] = row.id;
+
+    if (subcategories && subcategories.length > 0) {
+      for (let i = 0; i < subcategories.length; i++) {
+        const subTitle = subcategories[i];
+        await findOrCreateOne(
+          ForumCategory,
+          {
+            title: subTitle,
+            parentId: row.id,
+          },
+          {
+            title: subTitle,
+            description: `Підкатегорія «${subTitle}» у розділі «${mainCatData.title}»`,
+            icon: mainCatData.icon,
+            color: mainCatData.color,
+            bgColor: mainCatData.bgColor,
+            sortOrder: i + 1,
+            isActive: true,
+            parentId: row.id,
+          },
+        );
+      }
+    }
   }
 
   console.log("✅ Données de référence créées.");

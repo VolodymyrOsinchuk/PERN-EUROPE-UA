@@ -27,6 +27,19 @@ const ForumTopic = sequelize.define(
       allowNull: true,
       references: { model: "forum_categories", key: "id" },
     },
+    forumSubcategoryId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: { model: "forum_categories", key: "id" },
+    },
+    country: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    city: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
     author: {
       type: DataTypes.STRING(100),
       allowNull: true,
@@ -43,6 +56,18 @@ const ForumTopic = sequelize.define(
     views: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
+    },
+    isPinned: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    isClosed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    attachments: {
+      type: DataTypes.TEXT,
+      allowNull: true,
     },
     lastUpdate: {
       type: DataTypes.DATE,
@@ -67,6 +92,12 @@ ForumTopic.belongsTo(User, {
 ForumTopic.belongsTo(ForumCategory, {
   foreignKey: "forumCategoryId",
   as: "forumCategory",
+  onDelete: "SET NULL",
+});
+
+ForumTopic.belongsTo(ForumCategory, {
+  foreignKey: "forumSubcategoryId",
+  as: "forumSubcategory",
   onDelete: "SET NULL",
 });
 

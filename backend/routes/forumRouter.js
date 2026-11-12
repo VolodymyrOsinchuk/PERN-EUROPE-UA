@@ -9,6 +9,40 @@ const {
 // ─── Stats publiques ──────────────────────────────────────
 router.get("/stats", forumController.getForumStats);
 
+// ─── Category Suggestions (Must be declared before /:id) ──
+router.post(
+  "/category-suggestions",
+  authMiddleware,
+  forumController.suggestCategory,
+);
+router.get(
+  "/category-suggestions",
+  authMiddleware,
+  roleMiddleware(["admin", "moderator"]),
+  forumController.getAllCategorySuggestions,
+);
+router.patch(
+  "/category-suggestions/:id",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  forumController.updateCategorySuggestion,
+);
+
+// ─── Forum Reports / Complaints ───────────────────────────
+router.post("/reports", authMiddleware, forumController.createForumReport);
+router.get(
+  "/reports",
+  authMiddleware,
+  roleMiddleware(["admin", "moderator"]),
+  forumController.getAllForumReports,
+);
+router.patch(
+  "/reports/:id",
+  authMiddleware,
+  roleMiddleware(["admin", "moderator"]),
+  forumController.updateForumReport,
+);
+
 // ─── Forum Categories (public) ────────────────────────────
 router.get("/categories", forumController.getAllForumCategories);
 
@@ -22,7 +56,7 @@ router.get(
 router.post(
   "/categories",
   authMiddleware,
-  roleMiddleware(["admin", "moderator"]),
+  roleMiddleware(["admin"]),
   forumController.createForumCategory,
 );
 router.put(
@@ -40,17 +74,43 @@ router.patch(
 router.delete(
   "/categories/:id",
   authMiddleware,
-  roleMiddleware(["admin", "moderator"]),
+  roleMiddleware(["admin"]),
   forumController.deleteForumCategory,
 );
 
+// ─── Replies standalone actions ───────────────────────────
+router.put("/replies/:id", authMiddleware, forumController.updateReply);
+router.delete("/replies/:id", authMiddleware, forumController.deleteReply);
+
 // ─── Topics ───────────────────────────────────────────────
 router.get("/", forumController.getAllTopics);
-router.get("/:id", forumController.getTopicById);
-router.get("/:id/replies", forumController.getReplies);
-router.post("/:id/replies", authMiddleware, forumController.createReply);
 router.post("/", authMiddleware, forumController.createTopic);
+router.get("/:id", forumController.getTopicById);
 router.put("/:id", authMiddleware, forumController.updateTopic);
 router.delete("/:id", authMiddleware, forumController.deleteTopic);
+
+// Topic moderation actions
+router.patch(
+  "/:id/pin",
+  authMiddleware,
+  roleMiddleware(["admin", "moderator"]),
+  forumController.togglePinTopic,
+);
+router.patch(
+  "/:id/close",
+  authMiddleware,
+  roleMiddleware(["admin", "moderator"]),
+  forumController.toggleCloseTopic,
+);
+router.patch(
+  "/:id/move",
+  authMiddleware,
+  roleMiddleware(["admin", "moderator"]),
+  forumController.moveTopic,
+);
+
+// Topic replies
+router.get("/:id/replies", forumController.getReplies);
+router.post("/:id/replies", authMiddleware, forumController.createReply);
 
 module.exports = router;

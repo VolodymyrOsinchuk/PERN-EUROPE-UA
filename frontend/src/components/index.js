@@ -18,3 +18,4 @@ export { default as Banner } from "./Banner.jsx";
 export { default as SubcategoryItem } from "./SubcategoryItem.jsx";
 export { default as DataTable } from "./DataTable.jsx";
 export { default as PageHeader } from "./PageHeader.jsx";
+export { default as CitySelectField } from "./CitySelectField.jsx";

@@ -52,7 +52,12 @@ function AdCard({ ad }) {
   const locationLabel =
     ad.location && typeof ad.location === "object"
       ? `${ad.location.city || ""}, ${ad.location.state || ""}`
-      : ad.location || "";
+      : ad.location ||
+        (ad.city
+          ? ad.country
+            ? `${ad.city}, ${ad.country}`
+            : ad.city
+          : ad.country || "");
 
   return (
     <Card

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Box,
   Button,
@@ -17,8 +17,9 @@ import {
   Fab,
   Tooltip,
   InputAdornment,
+  IconButton,
 } from "@mui/material";
-import { GridView, HeroSection, ListView } from "../../components";
+import { GridView, HeroSection, ListView, CitySelectField } from "../../components";
 import { useLoaderData, Link } from "react-router-dom";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
@@ -27,14 +28,34 @@ import GridViewIcon from "@mui/icons-material/GridView";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import TuneIcon from "@mui/icons-material/Tune";
+import ClearIcon from "@mui/icons-material/Clear";
+import PublicIcon from "@mui/icons-material/Public";
+import {
+  EUROPEAN_COUNTRIES,
+  normalizeCountry,
+} from "../../data/europeanLocations";
 
+/* ── Loader: завантажує оголошення та динамічні категорії з /dashboard/categories ── */
 export const loader = async () => {
   try {
-    const { data } = await customFetch.get("/adv");
-    return data;
+    const [adsRes, categoriesRes] = await Promise.allSettled([
+      customFetch.get("/adv"),
+      customFetch.get("/categories"),
+    ]);
+
+    const ads = adsRes.status === "fulfilled" ? adsRes.value.data : [];
+    const categories =
+      categoriesRes.status === "fulfilled" ? categoriesRes.value.data : [];
+
+    return {
+      ads: Array.isArray(ads) ? ads : [],
+      categories: Array.isArray(categories)
+        ? categories
+        : categories?.data || [],
+    };
   } catch (error) {
-    toast.error(error?.response?.data?.message);
-    return [];
+    toast.error(error?.response?.data?.message || "Помилка завантаження даних");
+    return { ads: [], categories: [] };
   }
 };
 
@@ -44,69 +65,390 @@ const F_DISPLAY = "'Playfair Display', serif";
 const BLUE = "#0057B8";
 const GOLD = "#FFD700";
 
-/* ── Category config ── */
-const CATEGORIES = [
-  { value: "", label: "Всі категорії" },
-  { value: "work", label: "Робота", icon: "work" },
-  { value: "housing", label: "Житло", icon: "home" },
-  { value: "services", label: "Послуги", icon: "build" },
-  { value: "education", label: "Освіта", icon: "school" },
-  { value: "other", label: "Інше", icon: "more_horiz" },
+/* ── Функція призначення іконки та кольору для динамічної категорії ── */
+export function getCategoryMeta(name) {
+  const n = (name || "").toLowerCase();
+  if (
+    n.includes("робот") ||
+    n.includes("ваканс") ||
+    n.includes("прац") ||
+    n.includes("work") ||
+    n.includes("job")
+  ) {
+    return { icon: "work", bg: "#ecfdf5", text: "#065f46", border: "#a7f3d0" };
+  }
+  if (
+    n.includes("нерухом") ||
+    n.includes("житл") ||
+    n.includes("квартир") ||
+    n.includes("оренд") ||
+    n.includes("кімнат") ||
+    n.includes("house") ||
+    n.includes("flat")
+  ) {
+    return { icon: "home", bg: "#fff7ed", text: "#9a3412", border: "#fed7aa" };
+  }
+  if (
+    n.includes("послуг") ||
+    n.includes("сервіс") ||
+    n.includes("майстер") ||
+    n.includes("ремонт") ||
+    n.includes("service")
+  ) {
+    return { icon: "build", bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe" };
+  }
+  if (
+    n.includes("освіт") ||
+    n.includes("навчан") ||
+    n.includes("курс") ||
+    n.includes("мов") ||
+    n.includes("школ") ||
+    n.includes("educat")
+  ) {
+    return { icon: "school", bg: "#f5f3ff", text: "#6d28d9", border: "#ddd6fe" };
+  }
+  if (
+    n.includes("транспорт") ||
+    n.includes("авто") ||
+    n.includes("поїздк") ||
+    n.includes("перевезен") ||
+    n.includes("машин")
+  ) {
+    return { icon: "directions_car", bg: "#ecfeff", text: "#0e7490", border: "#a5f3fc" };
+  }
+  if (
+    n.includes("спільнот") ||
+    n.includes("допомог") ||
+    n.includes("волонтер") ||
+    n.includes("гуманітар") ||
+    n.includes("благодійн")
+  ) {
+    return { icon: "diversity_3", bg: "#fdf2f8", text: "#be185d", border: "#fbcfe8" };
+  }
+  if (
+    n.includes("електрон") ||
+    n.includes("технік") ||
+    n.includes("гаджет") ||
+    n.includes("комп") ||
+    n.includes("телефон")
+  ) {
+    return { icon: "devices", bg: "#eef2ff", text: "#4338ca", border: "#c7d2fe" };
+  }
+  if (
+    n.includes("одяг") ||
+    n.includes("взутт") ||
+    n.includes("реч") ||
+    n.includes("мод")
+  ) {
+    return { icon: "checkroom", bg: "#fffbeb", text: "#b45309", border: "#fde68a" };
+  }
+  if (
+    n.includes("дитяч") ||
+    n.includes("діт") ||
+    n.includes("іграшк")
+  ) {
+    return { icon: "child_care", bg: "#fff1f2", text: "#be123c", border: "#fecdd3" };
+  }
+  return { icon: "category", bg: "#f8fafc", text: "#475569", border: "#e2e8f0" };
+}
+
+/* ── Популярні країни для швидких фільтрів ── */
+const POPULAR_COUNTRIES = [
+  { name: "Польща", flag: "🇵🇱" },
+  { name: "Німеччина", flag: "🇩🇪" },
+  { name: "Чехія", flag: "🇨🇿" },
+  { name: "Франція", flag: "🇫🇷" },
+  { name: "Іспанія", flag: "🇪🇸" },
+  { name: "Італія", flag: "🇮🇹" },
+  { name: "Україна", flag: "🇺🇦" },
+  { name: "Австрія", flag: "🇦🇹" },
+  { name: "Нідерланди", flag: "🇳🇱" },
+  { name: "Велика Британія", flag: "🇬🇧" },
 ];
 
-const CAT_COLORS = {
-  work: { bg: "#ecfdf5", text: "#065f46", dot: "#10b981" },
-  housing: { bg: "#fff7ed", text: "#9a3412", dot: "#f97316" },
-  services: { bg: "#eff6ff", text: "#1d4ed8", dot: "#3b82f6" },
-  education: { bg: "#f5f3ff", text: "#6d28d9", dot: "#8b5cf6" },
-  other: { bg: "#f8fafc", text: "#475569", dot: "#94a3b8" },
+/* ── Словник синонімів назв міст (українська / оригінал / англійська) ── */
+const CITY_SYNONYMS = {
+  варшава: ["warszawa", "warsaw", "варшава"],
+  warszawa: ["warszawa", "warsaw", "варшава"],
+  warsaw: ["warszawa", "warsaw", "варшава"],
+  краків: ["kraków", "krakow", "краків"],
+  "kraków": ["kraków", "krakow", "краків"],
+  krakow: ["kraków", "krakow", "краків"],
+  вроцлав: ["wrocław", "wroclaw", "вроцлав"],
+  "wrocław": ["wrocław", "wroclaw", "вроцлав"],
+  wroclaw: ["wrocław", "wroclaw", "вроцлав"],
+  познань: ["poznań", "poznan", "познань"],
+  "poznań": ["poznań", "poznan", "познань"],
+  гдиня: ["gdynia", "гдиня"],
+  гданськ: ["gdańsk", "gdansk", "гданськ"],
+  "gdańsk": ["gdańsk", "gdansk", "гданськ"],
+  щецин: ["szczecin", "щецин"],
+  люблін: ["lublin", "люблін"],
+  катовиці: ["katowice", "катовиці"],
+  лодзь: ["łódź", "lodz", "лодзь"],
+  берлін: ["berlin", "берлін"],
+  berlin: ["berlin", "берлін"],
+  мюнхен: ["münchen", "munich", "munchen", "мюнхен"],
+  "münchen": ["münchen", "munich", "munchen", "мюнхен"],
+  munich: ["münchen", "munich", "munchen", "мюнхен"],
+  "франкфурт-на-майні": ["frankfurt", "франкфурт", "frankfurt am main"],
+  frankfurt: ["frankfurt", "франкфурт", "frankfurt am main"],
+  гамбург: ["hamburg", "гамбург"],
+  кельн: ["köln", "cologne", "koln", "кельн"],
+  "köln": ["köln", "cologne", "koln", "кельн"],
+  прага: ["praha", "prague", "прага"],
+  praha: ["praha", "prague", "прага"],
+  prague: ["praha", "prague", "прага"],
+  брно: ["brno", "брно"],
+  париж: ["paris", "париж"],
+  paris: ["paris", "париж"],
+  ніцца: ["nice", "ніцца"],
+  nice: ["nice", "ніцца"],
+  ліон: ["lyon", "ліон"],
+  мадрид: ["madrid", "мадрид"],
+  барселона: ["barcelona", "барселона"],
+  валенсія: ["valencia", "валенсія"],
+  рим: ["roma", "rome", "рим"],
+  roma: ["roma", "rome", "рим"],
+  мілан: ["milano", "milan", "мілан"],
+  відень: ["wien", "vienna", "відень"],
+  wien: ["wien", "vienna", "відень"],
+  vienna: ["wien", "vienna", "відень"],
+  амстердам: ["amsterdam", "амстердам"],
+  роттердам: ["rotterdam", "роттердам"],
+  лондон: ["london", "лондон"],
+  манчестер: ["manchester", "манчестер"],
+  братислава: ["bratislava", "братислава"],
+  будапешт: ["budapest", "будапешт"],
+  бухарест: ["bucurești", "bucharest", "бухарест"],
+  варна: ["varna", "варна"],
+  софія: ["sofia", "софія"],
+  київ: ["kyiv", "kiev", "київ"],
+  львів: ["lviv", "lwow", "львів"],
+  одеса: ["odesa", "odessa", "одеса"],
 };
 
-const QUICK_STATS = [
-  { icon: "campaign", label: "Активних оголошень", value: "3 400+" },
-  { icon: "location_on", label: "Міст та регіонів", value: "120+" },
-  { icon: "category", label: "Категорій", value: "6" },
-  { icon: "people", label: "Авторів", value: "1 200+" },
-];
+function getCityVariants(cityName) {
+  if (!cityName) return [];
+  const lower = cityName.trim().toLowerCase();
+  if (CITY_SYNONYMS[lower]) return CITY_SYNONYMS[lower];
+  return [lower];
+}
 
 export default function Ads() {
-  const data = useLoaderData();
-  const [category, setCategory] = useState("");
+  const loaderData = useLoaderData();
+
+  // Отримуємо масив оголошень (підтримує зворотну сумісність)
+  const data = useMemo(() => {
+    if (Array.isArray(loaderData)) return loaderData;
+    return loaderData?.ads || [];
+  }, [loaderData]);
+
+  // Динамічні категорії з /dashboard/categories (/categories)
+  const [categories, setCategories] = useState(() => {
+    if (Array.isArray(loaderData?.categories)) return loaderData.categories;
+    if (Array.isArray(loaderData?.categories?.data)) return loaderData.categories.data;
+    return [];
+  });
+
+  // Запасне завантаження категорій, якщо в loader вони не передалися
+  useEffect(() => {
+    if (categories.length === 0) {
+      customFetch
+        .get("/categories")
+        .then(({ data: catData }) => {
+          if (Array.isArray(catData)) setCategories(catData);
+          else if (Array.isArray(catData?.data)) setCategories(catData.data);
+        })
+        .catch(() => {});
+    }
+  }, [categories.length]);
+
+  const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
+  const [category, setCategory] = useState("");
+  const [subcategory, setSubcategory] = useState("");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState("grid");
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
 
   const handleViewChange = (_, v) => {
     if (v) setViewMode(v);
   };
 
-  /* Client-side filtering — public board shows only "Active" ads */
-  const filtered = (data || []).filter((ad) => {
-    if (!ad) return false;
-    // Hide deactivated ("Inactive") and sold ("Sold") ads
-    if (ad.status && ad.status !== "Active") return false;
-    const matchCat = !category || ad.category?.slug === category;
-    const adCity =
-      ad.location && typeof ad.location === "object"
-        ? ad.location.city?.toLowerCase()
-        : ad.location?.toLowerCase();
+  /* Обробник зміни країни: скидаємо місто */
+  const handleCountryChange = (newCountry) => {
+    setCountry(newCountry);
+    setCity("");
+  };
 
-    const matchCity = !city || adCity?.includes(city.toLowerCase());
-    const matchSearch =
-      !search ||
-      ad.title?.toLowerCase().includes(search.toLowerCase()) ||
-      ad.description?.toLowerCase().includes(search.toLowerCase());
-    return matchCat && matchCity && matchSearch;
-  });
+  /* Обробник зміни категорії: скидаємо підкатегорію */
+  const handleCategoryChange = (newCat) => {
+    setCategory(newCat);
+    setSubcategory("");
+  };
 
-  const hasFilters = !!(category || city || search);
+  // Поточний обраний об'єкт категорії та його підкатегорії
+  const selectedCategoryObj = useMemo(() => {
+    if (!category) return null;
+    return categories.find(
+      (c) => String(c.id) === String(category) || c.name === category
+    );
+  }, [categories, category]);
+
+  const currentSubcategories = useMemo(() => {
+    if (!selectedCategoryObj) return [];
+    return (
+      selectedCategoryObj.SubCategories ||
+      selectedCategoryObj.subcategories ||
+      []
+    );
+  }, [selectedCategoryObj]);
+
+  /* Client-side filtering — показуємо тільки Active оголошення */
+  const filtered = useMemo(() => {
+    return (data || []).filter((ad) => {
+      if (!ad) return false;
+      // Приховуємо деактивовані ("Inactive") та продані ("Sold") оголошення
+      if (ad.status && ad.status !== "Active") return false;
+
+      // 1. ДИНАМІЧНИЙ ФІЛЬТР ЗА КАТЕГОРІЄЮ
+      const matchCat = !category || (() => {
+        const filterCatStr = String(category).trim().toLowerCase();
+        // Перевіряємо за categoryId
+        if (ad.categoryId && String(ad.categoryId) === filterCatStr) return true;
+        // Перевіряємо за ad.category.id
+        if (ad.category?.id && String(ad.category.id) === filterCatStr) return true;
+        // Перевіряємо за назвою категорії
+        const adCatName = (ad.category?.name || "").trim().toLowerCase();
+        if (
+          adCatName &&
+          (adCatName === filterCatStr ||
+            adCatName.includes(filterCatStr) ||
+            filterCatStr.includes(adCatName))
+        ) {
+          return true;
+        }
+        return false;
+      })();
+
+      // 1.1. ДИНАМІЧНИЙ ФІЛЬТР ЗА ПІДКАТЕГОРІЄЮ (якщо обрано)
+      const matchSubCat = !subcategory || (() => {
+        const filterSubStr = String(subcategory).trim().toLowerCase();
+        if (ad.subcategoryId && String(ad.subcategoryId) === filterSubStr) return true;
+        if (ad.subcategory?.id && String(ad.subcategory.id) === filterSubStr) return true;
+        const adSubName = (ad.subcategory?.name || "").trim().toLowerCase();
+        if (adSubName && (adSubName === filterSubStr || adSubName.includes(filterSubStr))) {
+          return true;
+        }
+        return false;
+      })();
+
+      // 2. ФІЛЬТР СПОЧАТКУ ЗА КРАЇНОЮ
+      const matchCountry = !country || (() => {
+        const normFilterCountry = normalizeCountry(country).toLowerCase();
+        const adCountry = ad.country ? normalizeCountry(ad.country).toLowerCase() : "";
+        if (
+          adCountry &&
+          (adCountry === normFilterCountry ||
+            adCountry.includes(normFilterCountry) ||
+            normFilterCountry.includes(adCountry))
+        ) {
+          return true;
+        }
+        const adLoc = typeof ad.location === "string" ? ad.location.toLowerCase() : "";
+        const adState = typeof ad.state === "string" ? ad.state.toLowerCase() : "";
+        return (
+          adLoc.includes(normFilterCountry) || adState.includes(normFilterCountry)
+        );
+      })();
+
+      // 3. ФІЛЬТР ПОТІМ ЗА МІСТОМ (враховує українську та латинську назву)
+      const matchCity = !city || (() => {
+        const filterCity = city.trim().toLowerCase();
+        const adCity = (ad.city || "").trim().toLowerCase();
+        const adLoc = typeof ad.location === "string" ? ad.location.toLowerCase() : "";
+
+        if (
+          adCity &&
+          (adCity === filterCity ||
+            adCity.includes(filterCity) ||
+            filterCity.includes(adCity))
+        ) {
+          return true;
+        }
+        if (adLoc && adLoc.includes(filterCity)) {
+          return true;
+        }
+        const variants = getCityVariants(filterCity);
+        return variants.some((v) => adCity.includes(v) || adLoc.includes(v));
+      })();
+
+      // 4. Пошук за назвою або описом
+      const matchSearch =
+        !search ||
+        ad.title?.toLowerCase().includes(search.toLowerCase()) ||
+        ad.description?.toLowerCase().includes(search.toLowerCase());
+
+      return matchCat && matchSubCat && matchCountry && matchCity && matchSearch;
+    });
+  }, [data, category, subcategory, country, city, search]);
+
+  const hasFilters = Boolean(country || city || category || subcategory || search);
 
   const clearFilters = () => {
-    setCategory("");
+    setCountry("");
     setCity("");
+    setCategory("");
+    setSubcategory("");
     setSearch("");
   };
+
+  // Динамічна статистика
+  const totalActiveAds = useMemo(() => {
+    return (data || []).filter((a) => !a.status || a.status === "Active").length;
+  }, [data]);
+
+  const uniqueCitiesCount = useMemo(() => {
+    return new Set(
+      (data || [])
+        .map((a) => a.city || a.location)
+        .filter(Boolean)
+        .map((c) => String(c).trim().toLowerCase())
+    ).size;
+  }, [data]);
+
+  const uniqueCountriesCount = useMemo(() => {
+    return new Set(
+      (data || [])
+        .map((a) => a.country)
+        .filter(Boolean)
+        .map((c) => normalizeCountry(c).toLowerCase())
+    ).size;
+  }, [data]);
+
+  const dynamicStats = [
+    {
+      icon: "campaign",
+      label: "Активних оголошень",
+      value: totalActiveAds ? `${totalActiveAds}` : "3 400+",
+    },
+    {
+      icon: "public",
+      label: "Країн Європи",
+      value: uniqueCountriesCount ? `${uniqueCountriesCount}` : "28+",
+    },
+    {
+      icon: "location_on",
+      label: "Міст та регіонів",
+      value: uniqueCitiesCount ? `${uniqueCitiesCount}+` : "120+",
+    },
+    {
+      icon: "category",
+      label: "Категорій",
+      value: `${categories.length}`,
+    },
+  ];
 
   return (
     <>
@@ -124,7 +466,7 @@ export default function Ads() {
       <Box sx={{ bgcolor: "#fff", borderBottom: "1px solid #f1f5f9", py: 3 }}>
         <Container maxWidth="lg">
           <Grid container>
-            {QUICK_STATS.map((s, i) => (
+            {dynamicStats.map((s, i) => (
               <Grid
                 key={s.label}
                 size={{ xs: 6, sm: 3 }}
@@ -132,7 +474,7 @@ export default function Ads() {
                   textAlign: "center",
                   py: 1,
                   borderRight:
-                    i < QUICK_STATS.length - 1
+                    i < dynamicStats.length - 1
                       ? { sm: "1px solid #f1f5f9" }
                       : "none",
                 }}
@@ -209,7 +551,12 @@ export default function Ads() {
                   mt: 0.4,
                 }}
               >
-                {filtered.length} оголошень
+                {filtered.length}{" "}
+                {filtered.length === 1
+                  ? "оголошення"
+                  : filtered.length >= 2 && filtered.length <= 4
+                    ? "оголошення"
+                    : "оголошень"}
                 {hasFilters && (
                   <Box
                     component="span"
@@ -261,7 +608,7 @@ export default function Ads() {
               >
                 Фільтри{" "}
                 {hasFilters &&
-                  `(${[category, city, search].filter(Boolean).length})`}
+                  `(${[country, city, category, subcategory, search].filter(Boolean).length})`}
               </Button>
 
               {/* View toggle */}
@@ -319,9 +666,10 @@ export default function Ads() {
                 },
               }}
             >
-              <Grid container spacing={2}>
-                {/* Search */}
-                <Grid size={{ xs: 12, md: 5 }}>
+              {/* Поля форми фільтрів */}
+              <Grid container spacing={2} alignItems="center">
+                {/* 1. Пошук */}
+                <Grid size={{ xs: 12, md: 3.5 }}>
                   <TextField
                     fullWidth
                     size="small"
@@ -334,6 +682,17 @@ export default function Ads() {
                           <SearchIcon sx={{ fontSize: 18, color: "#94a3b8" }} />
                         </InputAdornment>
                       ),
+                      endAdornment: search ? (
+                        <InputAdornment position="end">
+                          <IconButton
+                            size="small"
+                            onClick={() => setSearch("")}
+                            sx={{ p: 0.5, color: "#94a3b8" }}
+                          >
+                            <ClearIcon fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ) : null,
                       sx: {
                         borderRadius: "12px",
                         fontFamily: F_BODY,
@@ -346,8 +705,107 @@ export default function Ads() {
                   />
                 </Grid>
 
-                {/* Category */}
-                <Grid size={{ xs: 12, sm: 6, md: 3.5 }}>
+                {/* 2. СПОЧАТКУ ЗА КРАЇНОЮ */}
+                <Grid size={{ xs: 12, sm: 6, md: 2.8 }}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel sx={{ fontFamily: F_BODY }}>Країна</InputLabel>
+                    <Select
+                      value={country}
+                      label="Країна"
+                      onChange={(e) => handleCountryChange(e.target.value)}
+                      sx={{
+                        borderRadius: "12px",
+                        fontFamily: F_BODY,
+                        bgcolor: "#f8fafc",
+                        "& fieldset": { borderColor: "#e2e8f0" },
+                        "&:hover fieldset": { borderColor: BLUE },
+                        "&.Mui-focused fieldset": { borderColor: BLUE },
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 340,
+                            borderRadius: "14px",
+                            boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
+                          },
+                        },
+                      }}
+                    >
+                      <MenuItem
+                        value=""
+                        sx={{
+                          fontFamily: F_BODY,
+                          fontSize: "0.875rem",
+                          fontWeight: 600,
+                          py: 1,
+                        }}
+                      >
+                        🌍 Всі країни
+                      </MenuItem>
+                      {EUROPEAN_COUNTRIES.map((c) => (
+                        <MenuItem
+                          key={c.code}
+                          value={c.name}
+                          sx={{
+                            fontFamily: F_BODY,
+                            fontSize: "0.875rem",
+                            gap: 1.2,
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          <span style={{ fontSize: "1.15rem" }}>{c.flag}</span>
+                          <span style={{ fontWeight: 500 }}>{c.name}</span>
+                          {c.nameEn && c.nameEn !== c.name && (
+                            <Typography
+                              component="span"
+                              sx={{
+                                fontFamily: F_BODY,
+                                fontSize: "0.72rem",
+                                color: "#94a3b8",
+                                ml: "auto",
+                              }}
+                            >
+                              {c.nameEn}
+                            </Typography>
+                          )}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                {/* 3. ПОТІМ ЗА МІСТОМ (динамічно пов'язане з обраною країною) */}
+                <Grid size={{ xs: 12, sm: 6, md: 3.2 }}>
+                  <CitySelectField
+                    country={country}
+                    value={city}
+                    onChange={(newCity) => setCity(newCity)}
+                    name="city"
+                    label={
+                      country ? `Місто (${country})` : "Місто (всі країни)"
+                    }
+                    placeholder={
+                      country
+                        ? `Всі міста в ${country}...`
+                        : "Оберіть місто або країну..."
+                    }
+                    size="small"
+                    isFilter={true}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "12px",
+                        bgcolor: "#f8fafc",
+                        "& fieldset": { borderColor: "#e2e8f0" },
+                        "&:hover fieldset": { borderColor: BLUE },
+                        "&.Mui-focused fieldset": { borderColor: BLUE },
+                      },
+                    }}
+                  />
+                </Grid>
+
+                {/* 4. ДИНАМІЧНА КАТЕГОРІЯ (з /dashboard/categories) */}
+                <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
                   <FormControl fullWidth size="small">
                     <InputLabel sx={{ fontFamily: F_BODY }}>
                       Категорія
@@ -355,120 +813,419 @@ export default function Ads() {
                     <Select
                       value={category}
                       label="Категорія"
-                      onChange={(e) => setCategory(e.target.value)}
+                      onChange={(e) => handleCategoryChange(e.target.value)}
                       sx={{
                         borderRadius: "12px",
                         fontFamily: F_BODY,
                         bgcolor: "#f8fafc",
                         "& fieldset": { borderColor: "#e2e8f0" },
                         "&:hover fieldset": { borderColor: BLUE },
+                        "&.Mui-focused fieldset": { borderColor: BLUE },
                       }}
-                    >
-                      {CATEGORIES.map((c) => (
-                        <MenuItem
-                          key={c.value}
-                          value={c.value}
-                          sx={{
-                            fontFamily: F_BODY,
-                            fontSize: "0.875rem",
-                            gap: 1.5,
-                          }}
-                        >
-                          {c.icon && (
-                            <span
-                              className="material-icons"
-                              style={{ fontSize: 16, color: "#94a3b8" }}
-                            >
-                              {c.icon}
-                            </span>
-                          )}
-                          {c.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-
-                {/* City */}
-                <Grid size={{ xs: 12, sm: 6, md: 3.5 }}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel sx={{ fontFamily: F_BODY }}>Місто</InputLabel>
-                    <Select
-                      value={city}
-                      label="Місто"
-                      onChange={(e) => setCity(e.target.value)}
-                      sx={{
-                        borderRadius: "12px",
-                        fontFamily: F_BODY,
-                        bgcolor: "#f8fafc",
-                        "& fieldset": { borderColor: "#e2e8f0" },
-                        "&:hover fieldset": { borderColor: BLUE },
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 340,
+                            borderRadius: "14px",
+                            boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
+                          },
+                        },
                       }}
                     >
                       <MenuItem
                         value=""
-                        sx={{ fontFamily: F_BODY, fontSize: "0.875rem" }}
+                        sx={{
+                          fontFamily: F_BODY,
+                          fontSize: "0.875rem",
+                          fontWeight: 600,
+                        }}
                       >
-                        Всі міста
+                        Всі категорії
                       </MenuItem>
-                      {[
-                        "Berlin",
-                        "Paris",
-                        "Warsaw",
-                        "Prague",
-                        "Vienna",
-                        "Amsterdam",
-                      ].map((c) => (
-                        <MenuItem
-                          key={c}
-                          value={c.toLowerCase()}
-                          sx={{ fontFamily: F_BODY, fontSize: "0.875rem" }}
-                        >
-                          {c}
-                        </MenuItem>
-                      ))}
+                      {categories.map((c) => {
+                        const meta = getCategoryMeta(c.name);
+                        return (
+                          <MenuItem
+                            key={c.id}
+                            value={String(c.id)}
+                            sx={{
+                              fontFamily: F_BODY,
+                              fontSize: "0.875rem",
+                              gap: 1.5,
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            <span
+                              className="material-icons"
+                              style={{ fontSize: 18, color: meta.text }}
+                            >
+                              {meta.icon}
+                            </span>
+                            {c.name}
+                          </MenuItem>
+                        );
+                      })}
                     </Select>
                   </FormControl>
                 </Grid>
               </Grid>
 
-              {/* Category quick chips */}
-              <Box sx={{ mt: 2.5, display: "flex", gap: 1, flexWrap: "wrap" }}>
-                {CATEGORIES.map((c) => {
-                  const clr = CAT_COLORS[c.value] || {};
-                  const isActive = category === c.value;
+              {/* Швидкі кнопки вибору країни */}
+              <Box
+                sx={{
+                  mt: 2.5,
+                  display: "flex",
+                  gap: 0.8,
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontFamily: F_BODY,
+                    fontSize: "0.74rem",
+                    color: "#64748b",
+                    fontWeight: 600,
+                    mr: 0.5,
+                  }}
+                >
+                  Країна:
+                </Typography>
+                <Chip
+                  label="🌍 Всі країни"
+                  size="small"
+                  onClick={() => handleCountryChange("")}
+                  sx={{
+                    fontFamily: F_BODY,
+                    fontWeight: 600,
+                    fontSize: "0.76rem",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    bgcolor: !country ? BLUE : "#f1f5f9",
+                    color: !country ? "#fff" : "#475569",
+                    "&:hover": { bgcolor: !country ? "#003d82" : "#e2e8f0" },
+                  }}
+                />
+                {POPULAR_COUNTRIES.map((c) => {
+                  const isSel = country.toLowerCase() === c.name.toLowerCase();
                   return (
                     <Chip
-                      key={c.value}
-                      label={c.label}
-                      onClick={() => setCategory(c.value)}
+                      key={c.name}
+                      label={`${c.flag} ${c.name}`}
                       size="small"
+                      onClick={() => handleCountryChange(isSel ? "" : c.name)}
                       sx={{
                         fontFamily: F_BODY,
                         fontWeight: 600,
-                        fontSize: "0.78rem",
+                        fontSize: "0.76rem",
                         borderRadius: "8px",
                         cursor: "pointer",
-                        bgcolor: isActive ? BLUE : c.value ? clr.bg : "#f1f5f9",
-                        color: isActive
-                          ? "#fff"
-                          : c.value
-                            ? clr.text
-                            : "#64748b",
-                        border: isActive ? "none" : "1px solid #e2e8f0",
-                        transition: "all 0.2s",
+                        bgcolor: isSel ? BLUE : "#fff",
+                        color: isSel ? "#fff" : "#334155",
+                        border: `1px solid ${isSel ? BLUE : "#e2e8f0"}`,
+                        transition: "all 0.15s ease",
                         "&:hover": {
-                          bgcolor: isActive
-                            ? "#003d82"
-                            : c.value
-                              ? clr.bg
-                              : "#e8f0fc",
+                          bgcolor: isSel ? "#003d82" : "rgba(0,87,184,.06)",
+                          borderColor: BLUE,
                         },
                       }}
                     />
                   );
                 })}
               </Box>
+
+              {/* Швидкі чіпи динамічних категорій (з /dashboard/categories) */}
+              <Box
+                sx={{
+                  mt: 1.5,
+                  display: "flex",
+                  gap: 0.8,
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontFamily: F_BODY,
+                    fontSize: "0.74rem",
+                    color: "#64748b",
+                    fontWeight: 600,
+                    mr: 0.5,
+                  }}
+                >
+                  Категорія:
+                </Typography>
+                <Chip
+                  label="Всі категорії"
+                  size="small"
+                  onClick={() => handleCategoryChange("")}
+                  sx={{
+                    fontFamily: F_BODY,
+                    fontWeight: 600,
+                    fontSize: "0.76rem",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    bgcolor: !category ? BLUE : "#f1f5f9",
+                    color: !category ? "#fff" : "#475569",
+                    "&:hover": { bgcolor: !category ? "#003d82" : "#e2e8f0" },
+                  }}
+                />
+                {categories.map((c) => {
+                  const meta = getCategoryMeta(c.name);
+                  const isCatActive =
+                    String(category) === String(c.id) || category === c.name;
+                  return (
+                    <Chip
+                      key={c.id}
+                      icon={
+                        <span
+                          className="material-icons"
+                          style={{
+                            fontSize: 15,
+                            color: isCatActive ? "#fff" : meta.text,
+                            marginLeft: 4,
+                          }}
+                        >
+                          {meta.icon}
+                        </span>
+                      }
+                      label={c.name}
+                      onClick={() =>
+                        handleCategoryChange(isCatActive ? "" : String(c.id))
+                      }
+                      size="small"
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontWeight: 600,
+                        fontSize: "0.76rem",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        bgcolor: isCatActive ? BLUE : meta.bg,
+                        color: isCatActive ? "#fff" : meta.text,
+                        border: `1px solid ${
+                          isCatActive ? BLUE : meta.border || "#e2e8f0"
+                        }`,
+                        transition: "all 0.15s ease",
+                        "&:hover": {
+                          bgcolor: isCatActive ? "#003d82" : meta.bg,
+                          borderColor: BLUE,
+                        },
+                      }}
+                    />
+                  );
+                })}
+              </Box>
+
+              {/* Рядок підкатегорій (якщо обрано категорію, що має підкатегорії) */}
+              {currentSubcategories.length > 0 && (
+                <Box
+                  sx={{
+                    mt: 1.5,
+                    pt: 1.2,
+                    display: "flex",
+                    gap: 0.8,
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    borderTop: "1px dotted #f1f5f9",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: F_BODY,
+                      fontSize: "0.72rem",
+                      color: "#64748b",
+                      fontWeight: 600,
+                      mr: 0.5,
+                    }}
+                  >
+                    Підкатегорія:
+                  </Typography>
+                  <Chip
+                    label="Всі підкатегорії"
+                    size="small"
+                    onClick={() => setSubcategory("")}
+                    sx={{
+                      fontFamily: F_BODY,
+                      fontWeight: 600,
+                      fontSize: "0.72rem",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      bgcolor: !subcategory ? BLUE : "#f8fafc",
+                      color: !subcategory ? "#fff" : "#475569",
+                      "&:hover": { bgcolor: !subcategory ? "#003d82" : "#e2e8f0" },
+                    }}
+                  />
+                  {currentSubcategories.map((sub) => {
+                    const isSubSel =
+                      String(subcategory) === String(sub.id) ||
+                      subcategory === sub.name;
+                    return (
+                      <Chip
+                        key={sub.id}
+                        label={sub.name}
+                        size="small"
+                        onClick={() =>
+                          setSubcategory(isSubSel ? "" : String(sub.id))
+                        }
+                        sx={{
+                          fontFamily: F_BODY,
+                          fontWeight: 500,
+                          fontSize: "0.72rem",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          bgcolor: isSubSel ? BLUE : "#fff",
+                          color: isSubSel ? "#fff" : "#334155",
+                          border: `1px solid ${
+                            isSubSel ? BLUE : "#e2e8f0"
+                          }`,
+                          transition: "all 0.15s ease",
+                          "&:hover": {
+                            bgcolor: isSubSel ? "#003d82" : "rgba(0,87,184,.06)",
+                            borderColor: BLUE,
+                          },
+                        }}
+                      />
+                    );
+                  })}
+                </Box>
+              )}
+
+              {/* Рядок активних фільтрів з кнопками видалення */}
+              {hasFilters && (
+                <Box
+                  sx={{
+                    mt: 2.2,
+                    pt: 1.8,
+                    borderTop: "1px dashed #e2e8f0",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: F_BODY,
+                      fontSize: "0.74rem",
+                      color: "#64748b",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Активні фільтри:
+                  </Typography>
+
+                  {country && (
+                    <Chip
+                      size="small"
+                      label={`Країна: ${country}`}
+                      onDelete={() => handleCountryChange("")}
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontSize: "0.75rem",
+                        bgcolor: "rgba(0,87,184,.08)",
+                        color: BLUE,
+                        fontWeight: 600,
+                      }}
+                    />
+                  )}
+
+                  {city && (
+                    <Chip
+                      size="small"
+                      label={`Місто: ${city}`}
+                      onDelete={() => setCity("")}
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontSize: "0.75rem",
+                        bgcolor: "rgba(0,87,184,.08)",
+                        color: BLUE,
+                        fontWeight: 600,
+                      }}
+                    />
+                  )}
+
+                  {category && (
+                    <Chip
+                      size="small"
+                      label={`Категорія: ${
+                        selectedCategoryObj?.name ||
+                        categories.find(
+                          (c) =>
+                            String(c.id) === String(category) ||
+                            c.name === category
+                        )?.name ||
+                        category
+                      }`}
+                      onDelete={() => handleCategoryChange("")}
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontSize: "0.75rem",
+                        bgcolor: "rgba(0,87,184,.08)",
+                        color: BLUE,
+                        fontWeight: 600,
+                      }}
+                    />
+                  )}
+
+                  {subcategory && (
+                    <Chip
+                      size="small"
+                      label={`Підкатегорія: ${
+                        currentSubcategories.find(
+                          (s) =>
+                            String(s.id) === String(subcategory) ||
+                            s.name === subcategory
+                        )?.name || subcategory
+                      }`}
+                      onDelete={() => setSubcategory("")}
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontSize: "0.75rem",
+                        bgcolor: "rgba(0,87,184,.08)",
+                        color: BLUE,
+                        fontWeight: 600,
+                      }}
+                    />
+                  )}
+
+                  {search && (
+                    <Chip
+                      size="small"
+                      label={`Пошук: "${search}"`}
+                      onDelete={() => setSearch("")}
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontSize: "0.75rem",
+                        bgcolor: "rgba(0,87,184,.08)",
+                        color: BLUE,
+                        fontWeight: 600,
+                      }}
+                    />
+                  )}
+
+                  <Button
+                    size="small"
+                    onClick={clearFilters}
+                    sx={{
+                      fontFamily: F_BODY,
+                      fontSize: "0.72rem",
+                      textTransform: "none",
+                      color: "#dc2626",
+                      p: 0,
+                      ml: 1,
+                      minWidth: "auto",
+                      fontWeight: 600,
+                      "&:hover": {
+                        bgcolor: "transparent",
+                        textDecoration: "underline",
+                      },
+                    }}
+                  >
+                    Скинути всі
+                  </Button>
+                </Box>
+              )}
             </Paper>
           )}
 
@@ -552,7 +1309,6 @@ export default function Ads() {
                 },
               }}
             >
-              {/* ✅ FIX: était <Grid View ads={filtered}> — composant non reconnu */}
               {viewMode === "grid" ? (
                 <GridView ads={filtered} />
               ) : (

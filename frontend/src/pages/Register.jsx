@@ -11,7 +11,7 @@
 // } from "@mui/material";
 // import "../assets/css/register.css";
 // import customFetch from "../utils/customFetch";
-// import { FormRow, FormRowSelect } from "../components";
+// import { FormRow, FormRowSelect, CitySelectField } from "../components";
 // import { toast } from "react-toastify";
 // import { GetCountries, GetRegions } from "react-country-state-city";
 // import { HeroSection } from "../components";
@@ -170,7 +170,7 @@ import {
   Chip,
 } from "@mui/material";
 import customFetch from "../utils/customFetch";
-import { FormRow, FormRowSelect } from "../components";
+import { FormRow, FormRowSelect, CitySelectField } from "../components";
 import { toast } from "react-toastify";
 import { GetCountries } from "react-country-state-city";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
@@ -538,7 +538,13 @@ export default function Register() {
                 </Select>
               </FormControl>
 
-              <TextField name="city" label="Місто" fullWidth sx={inputSx} />
+              <CitySelectField
+                country={selectedCountry}
+                name="city"
+                label="Місто"
+                placeholder="Оберіть місто або введіть..."
+                sx={inputSx}
+              />
 
               {/* Terms */}
               <FormControlLabel

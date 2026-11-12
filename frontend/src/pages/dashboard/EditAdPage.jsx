@@ -1513,6 +1513,7 @@ export default function EditAdPage() {
   const [selectedCountry, setSelectedCountry] = useState(ad.country || "");
   const [selectedState, setSelectedState] = useState(ad.state || "");
   const [selectedCity, setSelectedCity] = useState(ad.city || "");
+  const [manualCityMode, setManualCityMode] = useState(false);
   const [phoneCode, setPhoneCode] = useState("");
   const [locationLoading, setLocationLoading] = useState(false);
 
@@ -2109,32 +2110,78 @@ export default function EditAdPage() {
 
                 {selectedState && (
                   <Grid size={{ xs: 12, sm: 4 }}>
-                    <FormControl
-                      fullWidth
-                      required
-                      disabled={locationLoading || cities.length === 0}
-                    >
-                      <InputLabel sx={{ fontFamily: F_BODY }}>Місто</InputLabel>
-                      <Select
-                        name="city"
-                        label="Місто"
-                        // value set only after cities loaded to avoid MUI
-                        // out-of-range warning on first render (options empty)
-                        value={cities.length > 0 ? selectedCity : ""}
-                        onChange={(e) => setSelectedCity(e.target.value)}
-                        sx={selectSx}
-                      >
-                        {cities.map((c) => (
-                          <MenuItem
-                            key={c.id}
-                            value={c.name}
-                            sx={{ fontFamily: F_BODY, fontSize: "0.875rem" }}
+                    {manualCityMode || (!locationLoading && states.length > 0 && cities.length === 0) ? (
+                      <Box>
+                        <TextField
+                          name="city"
+                          label="Місто (вручну)"
+                          required
+                          fullWidth
+                          value={selectedCity}
+                          onChange={(e) => setSelectedCity(e.target.value)}
+                          placeholder="Введіть назву міста..."
+                          sx={inputSx}
+                        />
+                        {cities.length > 0 && (
+                          <Button
+                            size="small"
+                            onClick={() => setManualCityMode(false)}
+                            sx={{
+                              fontFamily: F_BODY,
+                              fontSize: "0.72rem",
+                              textTransform: "none",
+                              color: BLUE,
+                              mt: 0.5,
+                              p: 0,
+                            }}
                           >
-                            {c.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                            Обрати зі списку
+                          </Button>
+                        )}
+                      </Box>
+                    ) : (
+                      <Box>
+                        <FormControl
+                          fullWidth
+                          required
+                          disabled={locationLoading || cities.length === 0}
+                        >
+                          <InputLabel sx={{ fontFamily: F_BODY }}>Місто</InputLabel>
+                          <Select
+                            name="city"
+                            label="Місто"
+                            value={cities.length > 0 ? selectedCity : ""}
+                            onChange={(e) => setSelectedCity(e.target.value)}
+                            sx={selectSx}
+                          >
+                            {cities.map((c) => (
+                              <MenuItem
+                                key={c.id}
+                                value={c.name}
+                                sx={{ fontFamily: F_BODY, fontSize: "0.875rem" }}
+                              >
+                                {c.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                        <Button
+                          size="small"
+                          onClick={() => setManualCityMode(true)}
+                          sx={{
+                            fontFamily: F_BODY,
+                            fontSize: "0.72rem",
+                            textTransform: "none",
+                            color: "#64748b",
+                            mt: 0.5,
+                            p: 0,
+                            "&:hover": { color: BLUE, textDecoration: "underline" },
+                          }}
+                        >
+                          Немає вашого міста? Ввести вручну
+                        </Button>
+                      </Box>
+                    )}
                   </Grid>
                 )}
 
