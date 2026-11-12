@@ -390,6 +390,24 @@ export default function Navbar() {
                       </span>
                       Профіль
                     </MenuItem>
+                    <MenuItem
+                      component={Link}
+                      to="/profile/my-ads"
+                      onClick={() => setUserAnchor(null)}
+                      sx={{
+                        gap: 1.5,
+                        fontFamily: "'Plus Jakarta Sans',sans-serif",
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      <span
+                        className="material-icons"
+                        style={{ fontSize: 18, color: "#64748b" }}
+                      >
+                        list_alt
+                      </span>
+                      Мої оголошення
+                    </MenuItem>
                     {user.role === "admin" && (
                       <MenuItem
                         component={Link}
@@ -626,6 +644,20 @@ export default function Navbar() {
                 }}
               >
                 Профіль
+              </Button>
+              <Button
+                component={Link}
+                to="/profile/my-ads"
+                onClick={() => setMobileOpen(false)}
+                variant="outlined"
+                fullWidth
+                sx={{
+                  textTransform: "none",
+                  fontFamily: "'Plus Jakarta Sans',sans-serif",
+                  borderRadius: "10px",
+                }}
+              >
+                Мої оголошення
               </Button>
               <Button
                 component={Link}

@@ -15,6 +15,7 @@ const links = [
   { text: "Огляд", path: "/dashboard", icon: "dashboard" },
   { text: "Користувачі", path: "/dashboard/users", icon: "people_alt" },
   { text: "Оголошення", path: "/dashboard/ads", icon: "campaign" },
+  { text: "Модерація ", path: "/dashboard/moderation", icon: "verified_user" },
   { text: "Категорії", path: "/dashboard/categories", icon: "category" },
   { text: "Публікації", path: "/dashboard/posts", icon: "article" },
   { text: "Події", path: "/dashboard/events", icon: "event" },

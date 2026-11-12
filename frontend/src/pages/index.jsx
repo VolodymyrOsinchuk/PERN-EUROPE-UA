@@ -97,6 +97,7 @@ export { default as CreateAdPage } from "./profile/CreateAdPage";
 export { default as EventsProfile } from "./profile/Events";
 export { default as CreateEvent } from "./profile/CreateEvent";
 export { default as EditEvent } from "./profile/EditEvent";
+export { default as MyAds } from "./profile/MyAds";
 
 // Publications profil
 export { default as PublicationsProfile } from "./profile/Publications";
@@ -110,6 +111,7 @@ export { default as EditAdPage } from "./dashboard/EditAdPage";
 export { default as EditUser } from "./dashboard/EditUser";
 export { default as Settings } from "./dashboard/SettingsNew";
 export { default as Posts } from "./dashboard/Posts";
+export { default as ModerationManager } from "./dashboard/ModerationManager";
 
 // Dashboard EditEvent (page dédiée)
 export { default as DashboardEditEvent } from "./dashboard/EditEvent";

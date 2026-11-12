@@ -1083,6 +1083,7 @@ export default function Profile() {
             <Tab label={`Мої оголошення (${ads.length})`} />
             <Tab label={`Публікації (${publications.length})`} />
             <Tab label={`Події (${events.length})`} />
+            {/* <Tab label="Мої оголошення" /> */}
             <Tab label="Налаштування" />
           </Tabs>
         </Container>

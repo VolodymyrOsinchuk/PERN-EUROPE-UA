@@ -67,6 +67,7 @@ import EditAdPage, {
   loader as editAdLoader,
   action as editAdAction,
 } from "./pages/dashboard/EditAdPage";
+import MyAds from "./pages/profile/MyAds";
 
 // Events profil
 import EventsProfile, {
@@ -142,6 +143,8 @@ import NewsManager, {
   loader as newsManagerLoader,
   action as newsManagerAction,
 } from "./pages/NewsManager";
+
+import ModerationManager from "./pages/dashboard/ModerationManager";
 
 // Stats, Settings, Admin
 import Stats, { loader as statsLoader } from "./pages/Stats";
@@ -282,6 +285,10 @@ const router = createBrowserRouter(
               action: createAdAction,
             },
             {
+              path: "my-ads",
+              element: <MyAds />,
+            },
+            {
               path: "edit-ad/:id",
               element: <EditAdPage />,
               loader: editAdLoader,
@@ -354,6 +361,10 @@ const router = createBrowserRouter(
               element: <AdsManager />,
               loader: adsManagerLoader,
               action: adsManagerAction,
+            },
+            {
+              path: "moderation",
+              element: <ModerationManager />,
             },
             {
               path: "create-ad",

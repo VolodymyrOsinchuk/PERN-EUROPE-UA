@@ -637,6 +637,28 @@ export default function AdDetailPage() {
       : ad.location || "";
   const recipient = ad.author || (ad.user ? ad.user.firstName : "автора");
 
+  const handleShare = async () => {
+    const url = window.location.href;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: ad.title, url });
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          toast.error("Не вдалося поділитися оголошенням");
+        }
+      }
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Посилання скопійовано!");
+    } catch {
+      toast.error("Не вдалося скопіювати посилання");
+    }
+  };
+
   return (
     <>
       {/* ── Top bar ── */}
@@ -730,6 +752,7 @@ export default function AdDetailPage() {
               <Tooltip title="Поділитися">
                 <IconButton
                   size="small"
+                  onClick={handleShare}
                   sx={{
                     border: "1.5px solid #e2e8f0",
                     borderRadius: "10px",

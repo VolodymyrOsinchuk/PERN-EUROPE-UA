@@ -1,4 +1,4 @@
-const { Adv } = require("../models/adv");
+const { Adv, PUBLIC_WHERE } = require("../models/adv");
 const { Category, SubCategory } = require("../models/category");
 const { User } = require("../models/user");
 const { deleteCloudinaryFile } = require("../config/cloudinary");
@@ -42,6 +42,11 @@ exports.createAnnonce = async (req, res) => {
       amenities: amenities || [],
       photos: photoPaths,
       status: "Active",
+      moderationStatus: req.body.draft === "true" ? "draft" : "pending",
+      moderationReason: null,
+      moderatedBy: null,
+      moderatedAt: null,
+      publishedAt: null,
       userId: req.user.userId,
       datePosted: new Date(),
       expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -70,6 +75,7 @@ exports.createAnnonce = async (req, res) => {
 exports.getAllAnnonces = async (req, res) => {
   try {
     const annonces = await Adv.findAll({
+      where: PUBLIC_WHERE,
       include: [
         { model: Category, as: "category", attributes: ["id", "name"] },
         { model: User, as: "user", attributes: ["id", "email"] },
@@ -87,13 +93,7 @@ exports.getAnnonceById = async (req, res) => {
   try {
     const annonce = await Adv.findByPk(req.params.id, {
       include: [
-        {
-          model: User,
-          as: "user",
-          attributes: ["id", "firstName", "lastName", "email", "phoneNumber"],
-        },
-        { model: Category, as: "category", attributes: ["id", "name"] },
-        { model: SubCategory, as: "subcategory", attributes: ["id", "name"] },
+        /* les mêmes include qu'aujourd'hui */
       ],
     });
 
@@ -101,7 +101,24 @@ exports.getAnnonceById = async (req, res) => {
       return res.status(404).json({ message: "Оголошення не знайдено" });
     }
 
-    await annonce.increment("views");
+    const isPublic =
+      annonce.moderationStatus === "approved" &&
+      annonce.isArchived === false &&
+      annonce.status === "Active";
+
+    // Le public ne voit que les annonces approuvées ; le propriétaire et
+    // les modérateurs peuvent voir la leur, quel que soit son statut.
+    const viewerId = req.user?.userId; // route publique : req.user peut être absent
+    const isOwner = viewerId && annonce.userId === viewerId;
+    const isPrivileged = ["admin", "moderator"].includes(req.user?.role);
+
+    if (!isPublic && !isOwner && !isPrivileged) {
+      return res.status(404).json({ message: "Оголошення не знайдено" });
+    }
+
+    if (isPublic) {
+      await annonce.increment("views");
+    }
     res.status(200).json(annonce);
   } catch (error) {
     console.error("Помилка getAnnonceById:", error);
@@ -112,6 +129,18 @@ exports.getAnnonceById = async (req, res) => {
 exports.updateAnnonce = async (req, res) => {
   try {
     const adv = req.adv; // injecté par checkOwnership
+
+    if (adv.userId !== req.user.userId) {
+      return res.status(403).json({ message: "Не дозволено" });
+    }
+
+    if (req.user.role !== "admin" && req.user.role !== "moderator") {
+      // Un brouillon reste brouillon jusqu'à l'envoi explicite.
+      if (adv.moderationStatus !== "draft") {
+        updateData.moderationStatus = "pending";
+        updateData.moderationReason = null;
+      }
+    }
 
     const {
       title,
@@ -124,7 +153,7 @@ exports.updateAnnonce = async (req, res) => {
       location,
       email,
       phone,
-      status,
+
       amenities,
     } = req.body;
 
@@ -140,7 +169,7 @@ exports.updateAnnonce = async (req, res) => {
     if (location !== undefined) updateData.location = location;
     if (email !== undefined) updateData.email = email;
     if (phone !== undefined) updateData.phone = normalizePhone(phone);
-    if (status !== undefined) updateData.status = status;
+
     if (amenities !== undefined) updateData.amenities = amenities;
 
     // Nouvelles photos uploadées via Cloudinary
@@ -166,6 +195,14 @@ exports.updateAnnonce = async (req, res) => {
           error: "existingPhotos doit être un tableau JSON valide",
         });
       }
+    }
+
+    // Toute modification par le propriétaire repasse en modération.
+    // (Étape 5 : les modifications d'une annonce déjà publiée seront
+    // stockées dans pendingChanges. Pour l'instant, on repasse en pending.)
+    if (req.user.role !== "admin" && req.user.role !== "moderator") {
+      updateData.moderationStatus = "pending";
+      updateData.moderationReason = null;
     }
 
     await adv.update(updateData);
@@ -195,26 +232,6 @@ exports.updateAnnonce = async (req, res) => {
   }
 };
 
-// exports.deleteAnnonce = async (req, res) => {
-//   try {
-//     const adv = await Adv.findByPk(req.params.id);
-//     if (!adv) {
-//       return res.status(404).json({ message: "Оголошення не знайдено" });
-//     }
-
-//     // Supprimer les photos Cloudinary avant de détruire la ligne DB
-//     if (adv.photos?.length) {
-//       await Promise.all(adv.photos.map((url) => deleteCloudinaryFile(url)));
-//     }
-
-//     await adv.destroy();
-//     res.status(204).send();
-//   } catch (error) {
-//     console.error("Помилка deleteAnnonce:", error);
-//     res.status(500).json({ error: error.message });
-//   }
-// };
-
 exports.deleteAnnonce = async (req, res) => {
   try {
     // req.adv est injecté par checkOwnership — garantit que adv.userId === req.user.userId
@@ -234,9 +251,11 @@ exports.deleteAnnonce = async (req, res) => {
 
 exports.getUserAnnonces = async (req, res) => {
   try {
-    const userId = req.user.userId;
     const annonces = await Adv.findAll({
-      where: { userId },
+      where: { userId: req.user.userId },
+      attributes: {
+        exclude: ["amenities"],
+      },
       include: [
         { model: Category, as: "category", attributes: ["id", "name"] },
       ],
@@ -246,5 +265,32 @@ exports.getUserAnnonces = async (req, res) => {
   } catch (error) {
     console.error("Помилка getUserAnnonces:", error);
     res.status(500).json({ error: error.message });
+  }
+};
+
+exports.submitForModeration = async (req, res) => {
+  try {
+    const adv = req.adv; // injecté par checkOwnership
+
+    if (
+      !["draft", "needs_changes", "rejected"].includes(adv.moderationStatus)
+    ) {
+      return res.status(409).json({
+        message: "Цей статус не дозволяє повторну відправку",
+      });
+    }
+
+    await adv.update({
+      moderationStatus: "pending",
+      moderationReason: null,
+    });
+
+    res.status(200).json({
+      message: "Оголошення надіслано на модерацію",
+      data: adv,
+    });
+  } catch (error) {
+    console.error("Помилка submitForModeration:", error);
+    res.status(500).json({ message: "Внутрішня помилка сервера" });
   }
 };

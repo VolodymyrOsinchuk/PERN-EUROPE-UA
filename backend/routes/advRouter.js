@@ -1,6 +1,9 @@
 // backend/routes/advRouter.js
 const express = require("express");
-const { authMiddleware } = require("../middleware/authMiddleware");
+const {
+  authMiddleware,
+  optionalAuth,
+} = require("../middleware/authMiddleware");
 const router = express.Router();
 const {
   createAnnonce,
@@ -9,9 +12,11 @@ const {
   deleteAnnonce,
   updateAnnonce,
   getUserAnnonces,
+  submitForModeration,
 } = require("../controllers/advController");
 const { upload, uploadToCloudinary } = require("../middleware/multer");
 const checkOwnership = require("../middleware/checkOwnership");
+const { getOwnAdLogs } = require("../controllers/moderationController");
 const validateUpdateFields = require("../middleware/validateUpdateFields");
 
 router
@@ -28,7 +33,7 @@ router.route("/user-ads").get(authMiddleware, getUserAnnonces);
 
 router
   .route("/:id")
-  .get(getAnnonceById)
+  .get(optionalAuth, getAnnonceById)
   .put(
     authMiddleware,
     checkOwnership,
@@ -38,5 +43,14 @@ router
     updateAnnonce,
   )
   .delete(authMiddleware, checkOwnership, deleteAnnonce);
+
+router.patch(
+  "/:id/submit",
+  authMiddleware,
+  checkOwnership,
+  submitForModeration,
+);
+
+router.get("/:id/logs", authMiddleware, checkOwnership, getOwnAdLogs);
 
 module.exports = router;

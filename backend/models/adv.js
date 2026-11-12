@@ -5,6 +5,12 @@ const { User } = require("./user");
 const { deleteCloudinaryFile } = require("../config/cloudinary");
 const { PHONE_PATTERN } = require("../utils/normalizePhone");
 
+const PUBLIC_WHERE = {
+  moderationStatus: "approved",
+  isArchived: false,
+  status: "Active",
+};
+
 const Adv = sequelize.define(
   "Adv",
   {
@@ -132,6 +138,43 @@ const Adv = sequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    moderationStatus: {
+      type: DataTypes.STRING(30),
+      allowNull: false,
+      defaultValue: "pending",
+      validate: {
+        isIn: {
+          args: [
+            [
+              "draft",
+              "pending",
+              "approved",
+              "rejected",
+              "needs_changes",
+              "hidden",
+              "archived",
+            ],
+          ],
+          msg: "Невірний статус модерації",
+        },
+      },
+    },
+    moderationReason: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    moderatedBy: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    moderatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    publishedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -164,4 +207,4 @@ Adv.belongsTo(SubCategory, { foreignKey: "subcategoryId", as: "subcategory" });
 Category.hasMany(Adv, { foreignKey: "categoryId", as: "advs" });
 SubCategory.hasMany(Adv, { foreignKey: "subcategoryId", as: "advs" });
 
-module.exports = { Adv };
+module.exports = { Adv, PUBLIC_WHERE };

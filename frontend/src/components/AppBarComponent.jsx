@@ -97,6 +97,8 @@ const AppBarComponent = ({ handleDrawerToggle }) => {
                 cursor: "pointer",
                 border: "2px solid #DBEAFE",
               }}
+              component={Link}
+              to="/profile"
             >
               А
             </Avatar>

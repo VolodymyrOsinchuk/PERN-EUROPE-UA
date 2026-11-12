@@ -73,7 +73,21 @@ const roleMiddleware = (roles) => {
   };
 };
 
+// Identifie l'utilisateur si un token valide est présent, sans bloquer sinon.
+const optionalAuth = async (req, res, next) => {
+  const { token } = req.cookies || {};
+  if (!token) return next();
+  try {
+    const { userId, email, role } = await verifyJWT(token);
+    req.user = { userId, email, role };
+  } catch {
+    // Token invalide ou expiré : on traite la requête comme anonyme.
+  }
+  next();
+};
+
 module.exports = {
   authMiddleware,
   roleMiddleware,
+  optionalAuth,
 };

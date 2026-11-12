@@ -2,8 +2,7 @@ const { Category, SubCategory } = require("../models/category");
 
 const validateUpdateFields = async (req, res, next) => {
   try {
-    const { title, description, price, categoryId, subcategoryId, status } =
-      req.body;
+    const { title, description, price, categoryId, subcategoryId } = req.body;
 
     if (title !== undefined && title.length < 3) {
       return res
@@ -22,9 +21,7 @@ const validateUpdateFields = async (req, res, next) => {
       price !== "" &&
       (isNaN(price) || parseFloat(price) < 0)
     ) {
-      return res
-        .status(400)
-        .json({ error: "Ціна має бути додатним числом" });
+      return res.status(400).json({ error: "Ціна має бути додатним числом" });
     }
 
     if (categoryId) {
@@ -44,21 +41,6 @@ const validateUpdateFields = async (req, res, next) => {
           error: "Невірна підкатегорія або вона не відповідає категорії",
         });
       }
-    }
-
-    const statusMap = {
-      Active: "Active",
-      Inactive: "Inactive",
-      Sold: "Sold",
-      Actif: "Active",
-      Inactif: "Inactive",
-      Vendu: "Sold",
-    };
-    if (status !== undefined) {
-      if (!statusMap[status]) {
-        return res.status(400).json({ error: "Невірний статус" });
-      }
-      req.body.status = statusMap[status];
     }
 
     next();

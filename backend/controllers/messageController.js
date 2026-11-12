@@ -21,9 +21,10 @@ exports.createMessage = async (req, res, next) => {
   try {
     const senderId = req.user.userId;
     const { adId, message } = req.body;
-
     const text = typeof message === "string" ? message.trim() : "";
-    if (!Number.isInteger(Number(adId)) || !text) {
+
+    const adIdNum = Number(adId);
+    if (!Number.isInteger(adIdNum) || adIdNum <= 0 || !text) {
       return res
         .status(400)
         .json({ message: "Вкажіть оголошення та текст повідомлення" });
@@ -142,7 +143,13 @@ exports.getConversations = async (req, res, next) => {
 exports.getMessages = async (req, res, next) => {
   try {
     const userId = req.user.userId;
-    const conversationId = parseInt(req.params.conversationId, 10);
+    const conversationId = Number(req.params.conversationId);
+
+    if (!Number.isInteger(conversationId) || conversationId <= 0) {
+      return res
+        .status(400)
+        .json({ error: "Некоректний ідентифікатор розмови" });
+    }
 
     const conv = await Conversation.findByPk(conversationId);
     if (!conv || !(await isParticipant(conv, userId))) {
