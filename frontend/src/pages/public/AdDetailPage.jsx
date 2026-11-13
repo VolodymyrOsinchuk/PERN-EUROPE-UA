@@ -23,6 +23,7 @@ import {
   Link as MuiLink,
 } from "@mui/material";
 import { ImageGallery } from "../../components";
+import PlaceholderImage from "../../components/PlaceholderImage";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
 import {
@@ -954,7 +955,7 @@ export default function AdDetailPage() {
               </Box>
 
               {/* Gallery */}
-              {ad.photos?.length > 0 && (
+              {ad.photos?.length > 0 ? (
                 <Box
                   sx={{
                     borderRadius: "20px",
@@ -966,6 +967,8 @@ export default function AdDetailPage() {
                 >
                   <ImageGallery photos={ad.photos} />
                 </Box>
+              ) : (
+                <PlaceholderImage width="100%" height={400} sx={{ mb: 3.5 }} />
               )}
 
               {/* Price badge */}

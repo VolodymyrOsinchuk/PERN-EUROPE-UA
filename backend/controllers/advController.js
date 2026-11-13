@@ -121,7 +121,12 @@ exports.getAllAnnonces = async (req, res) => {
 
 exports.getAnnonceById = async (req, res) => {
   try {
-    const annonce = await Adv.findByPk(req.params.id);
+    const annonce = await Adv.findByPk(req.params.id, {
+      include: [
+        { model: Category, as: "category", attributes: ["id", "name"] },
+        { model: User, as: "user", attributes: ["id", "firstName", "lastName"] },
+      ],
+    });
     if (!annonce) {
       return res.status(404).json({ message: "Оголошення не знайдено" });
     }

@@ -47,6 +47,7 @@ import { useAuthContext } from "../../context/AuthContext";
 import customFetch, { apiUrl } from "../../utils/customFetch";
 import { toast } from "react-toastify";
 import { useRef } from "react";
+import PlaceholderImage from "../../components/PlaceholderImage";
 
 /* ── Design tokens ── */
 const F_BODY = "'Plus Jakarta Sans', sans-serif";
@@ -415,7 +416,7 @@ function ProfileAdCard({ ad, onDelete }) {
       }}
     >
       <Box sx={{ display: "flex", gap: 0 }}>
-        {imageUrl && (
+        {imageUrl ? (
           <Box
             sx={{
               width: 100,
@@ -431,6 +432,8 @@ function ProfileAdCard({ ad, onDelete }) {
               sx={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           </Box>
+        ) : (
+          <PlaceholderImage width={100} height={100} />
         )}
 
         <CardContent

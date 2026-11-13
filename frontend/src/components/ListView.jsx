@@ -13,6 +13,7 @@ import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Link } from "react-router-dom";
+import PlaceholderImage from "./PlaceholderImage";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
@@ -109,7 +110,7 @@ function ListCard({ ad, isLast, index }) {
             zIndex: 2,
           }}
         >
-          {imageUrl && (
+          {imageUrl ? (
             <Box
               className="list-img"
               component="img"
@@ -125,6 +126,8 @@ function ListCard({ ad, isLast, index }) {
                 opacity: imgLoaded ? 1 : 0,
               }}
             />
+          ) : (
+            <PlaceholderImage width={140} height={108} />
           )}
 
           {/* Category dot */}

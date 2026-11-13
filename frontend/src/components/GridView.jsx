@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { Link } from "react-router-dom";
+import PlaceholderImage from "./PlaceholderImage";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
@@ -104,7 +105,7 @@ function AdCard({ ad }) {
           bgcolor: "#f1f5f9",
         }}
       >
-        {imageUrl && (
+        {imageUrl ? (
           <CardMedia
             component="img"
             className="ad-img"
@@ -120,6 +121,8 @@ function AdCard({ ad }) {
                 "opacity 0.3s ease, transform 0.45s cubic-bezier(0.16,1,0.3,1)",
             }}
           />
+        ) : (
+          <PlaceholderImage width="100%" height={200} />
         )}
 
         {/* Category badge */}

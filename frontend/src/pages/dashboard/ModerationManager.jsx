@@ -16,6 +16,7 @@ import {
   Typography,
 } from "@mui/material";
 import { PageHeader } from "../../components";
+import PlaceholderImage from "../../components/PlaceholderImage";
 import customFetch, { apiUrl } from "../../utils/customFetch";
 import { toast } from "react-toastify";
 
@@ -219,7 +220,7 @@ export default function ModerationManager() {
                   {ad.description}
                 </Typography>
 
-                {ad.photos?.length > 0 && (
+                {ad.photos?.length > 0 ? (
                   <Stack direction="row" gap={1} flexWrap="wrap" mb={2}>
                     {ad.photos.map((p, i) => (
                       <Box
@@ -237,6 +238,8 @@ export default function ModerationManager() {
                       />
                     ))}
                   </Stack>
+                ) : (
+                  <PlaceholderImage width={110} height={110} />
                 )}
 
                 {ad.moderationStatus === "pending" && (
