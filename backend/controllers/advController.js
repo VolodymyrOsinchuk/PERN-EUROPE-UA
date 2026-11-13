@@ -1,10 +1,14 @@
 const { Adv, PUBLIC_WHERE } = require("../models/adv");
 const { Category, SubCategory } = require("../models/category");
 const { User } = require("../models/user");
-const { sequelize } = require("../config/db");
-const { notifyAdOwner } = require("../services/notificationService");
 const { deleteCloudinaryFile } = require("../config/cloudinary");
 const { normalizePhone } = require("../utils/normalizePhone");
+const {
+  readContactSettings,
+  DEFAULT_CONTACT,
+} = require("../utils/contactSettings");
+const { toPublicAd, isAdPublic } = require("../utils/publicAd");
+const { notifyAdOwner } = require("../services/notificationService");
 
 exports.createAnnonce = async (req, res) => {
   try {
@@ -23,7 +27,6 @@ exports.createAnnonce = async (req, res) => {
       title,
     } = req.body;
 
-    // req.cloudinaryUrls est injecté par le middleware uploadToCloudinary()
     const photoPaths = req.cloudinaryUrls || [];
 
     const newAd = await Adv.create({
@@ -36,9 +39,6 @@ exports.createAnnonce = async (req, res) => {
       state,
       city,
       location: location || null,
-      // Normalisation serveur (même règle que le frontend) :
-      // espaces, tirets et parenthèses retirés avant la
-      // validation du modèle.
       phone: normalizePhone(phone),
       email,
       amenities: amenities || [],
@@ -54,6 +54,7 @@ exports.createAnnonce = async (req, res) => {
       expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       views: 0,
       isPromoted: false,
+      ...(readContactSettings(req.body) || DEFAULT_CONTACT),
     });
 
     if (newAd.moderationStatus === "pending") {
@@ -89,11 +90,12 @@ exports.getAllAnnonces = async (req, res) => {
       where: PUBLIC_WHERE,
       include: [
         { model: Category, as: "category", attributes: ["id", "name"] },
-        { model: User, as: "user", attributes: ["id", "email"] },
+        // Раніше тут був email продавця — прибрано.
+        { model: User, as: "user", attributes: ["id", "firstName"] },
       ],
       order: [["datePosted", "DESC"]],
     });
-    res.status(200).json(annonces);
+    res.status(200).json(annonces.map((a) => toPublicAd(a)));
   } catch (error) {
     console.error("Помилка getAllAnnonces:", error);
     res.status(500).json({ error: error.message });
@@ -102,35 +104,24 @@ exports.getAllAnnonces = async (req, res) => {
 
 exports.getAnnonceById = async (req, res) => {
   try {
-    const annonce = await Adv.findByPk(req.params.id, {
-      include: [
-        /* les mêmes include qu'aujourd'hui */
-      ],
-    });
-
+    const annonce = await Adv.findByPk(req.params.id);
     if (!annonce) {
       return res.status(404).json({ message: "Оголошення не знайдено" });
     }
 
-    const isPublic =
-      annonce.moderationStatus === "approved" &&
-      annonce.isArchived === false &&
-      annonce.status === "Active";
+    const viewer = { userId: req.user?.userId, role: req.user?.role };
+    const isOwner = viewer.userId != null && annonce.userId === viewer.userId;
+    const isStaff = ["admin", "moderator"].includes(viewer.role);
+    const isPublic = isAdPublic(annonce);
 
-    // Le public ne voit que les annonces approuvées ; le propriétaire et
-    // les modérateurs peuvent voir la leur, quel que soit son statut.
-    const viewerId = req.user?.userId; // route publique : req.user peut être absent
-    const isOwner = viewerId && annonce.userId === viewerId;
-    const isPrivileged = ["admin", "moderator"].includes(req.user?.role);
-
-    if (!isPublic && !isOwner && !isPrivileged) {
+    if (!isPublic && !isOwner && !isStaff) {
       return res.status(404).json({ message: "Оголошення не знайдено" });
     }
 
     if (isPublic) {
       await annonce.increment("views");
     }
-    res.status(200).json(annonce);
+    res.status(200).json(toPublicAd(annonce, viewer));
   } catch (error) {
     console.error("Помилка getAnnonceById:", error);
     res.status(500).json({ error: error.message });
@@ -139,20 +130,10 @@ exports.getAnnonceById = async (req, res) => {
 
 exports.updateAnnonce = async (req, res) => {
   try {
-    const adv = req.adv; // injecté par checkOwnership
+    const adv = req.adv;
 
     if (adv.userId !== req.user.userId) {
       return res.status(403).json({ message: "Не дозволено" });
-    }
-
-    const updateData = {};
-
-    if (req.user.role !== "admin" && req.user.role !== "moderator") {
-      // Un brouillon reste brouillon jusqu'à l'envoi explicite.
-      if (adv.moderationStatus !== "draft") {
-        updateData.moderationStatus = "pending";
-        updateData.moderationReason = null;
-      }
     }
 
     const {
@@ -166,10 +147,10 @@ exports.updateAnnonce = async (req, res) => {
       location,
       email,
       phone,
-
       amenities,
     } = req.body;
 
+    const updateData = {};
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
     if (price !== undefined && price !== "")
@@ -181,38 +162,37 @@ exports.updateAnnonce = async (req, res) => {
     if (location !== undefined) updateData.location = location;
     if (email !== undefined) updateData.email = email;
     if (phone !== undefined) updateData.phone = normalizePhone(phone);
-
     if (amenities !== undefined) updateData.amenities = amenities;
 
-    // Nouvelles photos uploadées via Cloudinary
+    // Налаштування зв'язку: лише якщо форма їх передала.
+    const contact = readContactSettings(req.body);
+    if (contact) Object.assign(updateData, contact);
+
     if (req.cloudinaryUrls && req.cloudinaryUrls.length > 0) {
       updateData.photos = [...(adv.photos || []), ...req.cloudinaryUrls];
     }
 
-    // Photos existantes à conserver (envoyées depuis le frontend en JSON)
     if (req.body.existingPhotos) {
       try {
         const kept = JSON.parse(req.body.existingPhotos);
-        // Supprimer de Cloudinary les photos retirées par l'utilisateur
         const removed = (adv.photos || []).filter((p) => !kept.includes(p));
         await Promise.all(removed.map((url) => deleteCloudinaryFile(url)));
-        // Fusionner les photos conservées avec les nouvelles
         updateData.photos = [...kept, ...(req.cloudinaryUrls || [])];
       } catch (parseError) {
         console.error(
           "updateAnnonce: existingPhotos mal formé —",
           parseError.message,
         );
-        return res.status(400).json({
-          error: "existingPhotos doit être un tableau JSON valide",
-        });
+        return res
+          .status(400)
+          .json({ error: "existingPhotos doit être un tableau JSON valide" });
       }
     }
 
-    // Toute modification par le propriétaire repasse en modération.
-    // (Étape 5 : les modifications d'une annonce déjà publiée seront
-    // stockées dans pendingChanges. Pour l'instant, on repasse en pending.)
-    if (req.user.role !== "admin" && req.user.role !== "moderator") {
+    // Модерація: звичайний користувач не може обійти її.
+    // Чернетка лишається чернеткою до явного надсилання.
+    const isStaff = ["admin", "moderator"].includes(req.user.role);
+    if (!isStaff && adv.moderationStatus !== "draft") {
       updateData.moderationStatus = "pending";
       updateData.moderationReason = null;
     }
@@ -226,10 +206,9 @@ exports.updateAnnonce = async (req, res) => {
       ],
     });
 
-    res.status(200).json({
-      message: "Оголошення успішно оновлено",
-      data: updatedAdv,
-    });
+    res
+      .status(200)
+      .json({ message: "Оголошення успішно оновлено", data: updatedAdv });
   } catch (error) {
     console.error("Помилка updateAnnonce:", error);
     if (error.name === "SequelizeValidationError") {

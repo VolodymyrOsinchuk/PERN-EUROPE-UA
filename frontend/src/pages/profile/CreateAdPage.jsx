@@ -40,6 +40,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import customFetch from "../../utils/customFetch";
+import ContactSettingsFields from "../../components/ContactSettingsFields";
 import { toast } from "react-toastify";
 import { toE164 } from "../../utils/phone";
 
@@ -688,7 +689,10 @@ export default function CreateAdPage() {
 
                 {selectedState && (
                   <Grid size={{ xs: 12, sm: 4 }}>
-                    {manualCityMode || (!locationLoading && states.length > 0 && cities.length === 0) ? (
+                    {manualCityMode ||
+                    (!locationLoading &&
+                      states.length > 0 &&
+                      cities.length === 0) ? (
                       <Box>
                         <TextField
                           name="city"
@@ -724,7 +728,9 @@ export default function CreateAdPage() {
                           required
                           disabled={locationLoading || cities.length === 0}
                         >
-                          <InputLabel sx={{ fontFamily: F_BODY }}>Місто</InputLabel>
+                          <InputLabel sx={{ fontFamily: F_BODY }}>
+                            Місто
+                          </InputLabel>
                           <Select
                             name="city"
                             label="Місто"
@@ -736,7 +742,10 @@ export default function CreateAdPage() {
                               <MenuItem
                                 key={c.id}
                                 value={c.name}
-                                sx={{ fontFamily: F_BODY, fontSize: "0.875rem" }}
+                                sx={{
+                                  fontFamily: F_BODY,
+                                  fontSize: "0.875rem",
+                                }}
                               >
                                 {c.name}
                               </MenuItem>
@@ -753,7 +762,10 @@ export default function CreateAdPage() {
                             color: "#64748b",
                             mt: 0.5,
                             p: 0,
-                            "&:hover": { color: BLUE, textDecoration: "underline" },
+                            "&:hover": {
+                              color: BLUE,
+                              textDecoration: "underline",
+                            },
                           }}
                         >
                           Немає вашого міста? Ввести вручну
@@ -811,6 +823,9 @@ export default function CreateAdPage() {
                       },
                     }}
                   />
+                </Grid>
+                <Grid size={12}>
+                  <ContactSettingsFields />
                 </Grid>
                 <Grid size={{ xs: 8, sm: 4 }}>
                   <TextField

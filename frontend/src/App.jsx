@@ -41,7 +41,7 @@ import AdDetailPage, {
 import Contacts, { action as contactAction } from "./pages/public/Contacts";
 
 // Messages — messagerie entre utilisateurs
-import Messages, { loader as messagesLoader } from "./pages/Messages";
+// import Messages, { loader as messagesLoader } from "./pages/Messages";
 
 // Forum — Dialog de création câblé + guard auth
 import Forum, {
@@ -68,6 +68,10 @@ import EditAdPage, {
   action as editAdAction,
 } from "./pages/dashboard/EditAdPage";
 import MyAds from "./pages/profile/MyAds";
+import Messages, { loader as messagesLoader } from "./pages/Messages";
+import MessageReportsManager, {
+  loader as messageReportsLoader,
+} from "./pages/dashboard/MessageReportsManager";
 
 // Events profil
 import EventsProfile, {
@@ -242,7 +246,7 @@ const router = createBrowserRouter(
 
             // Messages — messagerie intégrée
             {
-              path: "messages",
+              path: "messages/:conversationId?",
               element: <Messages />,
               loader: messagesLoader,
             },
@@ -448,6 +452,11 @@ const router = createBrowserRouter(
             {
               path: "settings/ad-expiration",
               element: <AdExpirationSettings />,
+            },
+            {
+              path: "message-reports",
+              element: <MessageReportsManager />,
+              loader: messageReportsLoader,
             },
             // Admin
             {

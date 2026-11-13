@@ -175,6 +175,26 @@ const Adv = sequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    contactByEmail: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
+    contactByChat: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
+    showEmail: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    showPhone: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -194,7 +214,13 @@ const Adv = sequelize.define(
         }
       },
     },
-
+    validate: {
+      atLeastOneChannel() {
+        if (this.contactByEmail === false && this.contactByChat === false) {
+          throw new Error("Оберіть принаймні один спосіб зв'язку");
+        }
+      },
+    },
     timestamps: true,
     tableName: "advs",
   },

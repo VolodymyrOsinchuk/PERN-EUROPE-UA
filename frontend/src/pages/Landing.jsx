@@ -6,8 +6,10 @@ import {
   Grid,
   Chip,
   Paper,
+  CircularProgress,
 } from "@mui/material";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
@@ -16,13 +18,14 @@ import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
 import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
+import customFetch from "../utils/customFetch";
 
-// ── Stats ─────────────────────────────────────────────────
-const STATS = [
-  { value: "12 000+", label: "Українців у Європі", icon: "🇺🇦" },
-  { value: "8 країн", label: "Охоплення", icon: "🌍" },
-  { value: "3 400+", label: "Оголошень", icon: "📋" },
-  { value: "600+", label: "Подій щороку", icon: "🎉" },
+// ── Stats (chargés depuis l'API publique) ───────────────────
+const STATS_DEF = [
+  { key: "users", label: "Українців у Європі", icon: "🇺🇦", fallback: "—" },
+  { key: "countries", label: "Охоплення", icon: "🌍", fallback: "—" },
+  { key: "ads", label: "Оголошень", icon: "📋", fallback: "—" },
+  { key: "events", label: "Подій щороку", icon: "🎉", fallback: "—" },
 ];
 
 // ── Features ──────────────────────────────────────────────
@@ -121,6 +124,36 @@ const TESTIMONIALS = [
 ];
 
 const Landing = () => {
+  const [stats, setStats] = useState({
+    users: null,
+    countries: null,
+    ads: null,
+    events: null,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const { data } = await customFetch.get("/public/stats");
+        setStats({
+          users: data.users ?? null,
+          countries: data.countries ?? null,
+          ads: data.ads ?? null,
+          events: data.events ?? null,
+        });
+      } catch (error) {
+        console.error("Помилка завантаження статистики:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const fmt = (n) => (n == null ? "—" : n.toLocaleString("uk-UA") + "+");
+
   return (
     <Box>
       {/* ── HERO ──────────────────────────────────────────── */}
@@ -246,7 +279,7 @@ const Landing = () => {
             {/* Stats side */}
             <Grid size={{ xs: 12, md: 5 }}>
               <Grid container spacing={2}>
-                {STATS.map((s) => (
+                {STATS_DEF.map((s) => (
                   <Grid key={s.label} size={{ xs: 6 }}>
                     <Paper
                       sx={{
@@ -259,15 +292,19 @@ const Landing = () => {
                         color: "white",
                       }}
                     >
-                      <Typography fontSize="1.8rem" mb={0.5}>
-                        {s.icon}
-                      </Typography>
+                      {loading ? (
+                        <CircularProgress size={30} sx={{ color: "#FFD700", mb: 1 }} />
+                      ) : (
+                        <Typography fontSize="1.8rem" mb={0.5}>
+                          {s.icon}
+                        </Typography>
+                      )}
                       <Typography
                         variant="h5"
                         fontWeight={800}
                         sx={{ color: "#FFD700", letterSpacing: "-0.02em" }}
                       >
-                        {s.value}
+                        {loading ? "—" : fmt(stats[s.key])}
                       </Typography>
                       <Typography variant="caption" sx={{ opacity: 0.75 }}>
                         {s.label}

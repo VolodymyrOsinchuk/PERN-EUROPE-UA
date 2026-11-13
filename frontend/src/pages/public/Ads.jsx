@@ -20,7 +20,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { GridView, HeroSection, ListView, CitySelectField } from "../../components";
-import { useLoaderData, Link } from "react-router-dom";
+import { useLoaderData, Link, useSearchParams } from "react-router-dom";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
 import ViewListIcon from "@mui/icons-material/ViewList";
@@ -269,6 +269,24 @@ export default function Ads() {
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
   const [search, setSearch] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const urlSearch = searchParams.get("search") || "";
+    setSearch(urlSearch);
+  }, [searchParams]);
+
+  useEffect(() => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (search) {
+        next.set("search", search);
+      } else {
+        next.delete("search");
+      }
+      return next;
+    });
+  }, [search, searchParams]);
   const [viewMode, setViewMode] = useState("grid");
   const [showFilters, setShowFilters] = useState(true);
 

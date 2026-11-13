@@ -40,4 +40,23 @@ async function notifyAdOwner({
   );
 }
 
-module.exports = { notifyAdOwner };
+async function notifyNewMessage({
+  userId,
+  conversationId,
+  senderName,
+  adTitle,
+  transaction,
+}) {
+  return Notification.create(
+    {
+      userId,
+      conversationId,
+      advId: null,
+      type: "message_received",
+      message: `Нове повідомлення від ${senderName} щодо оголошення «${adTitle}».`,
+    },
+    { transaction },
+  );
+}
+
+module.exports = { notifyAdOwner, notifyNewMessage };

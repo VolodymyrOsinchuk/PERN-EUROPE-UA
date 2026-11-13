@@ -14,6 +14,7 @@ const Notification = sequelize.define(
     },
     userId: { type: DataTypes.INTEGER, allowNull: false },
     advId: { type: DataTypes.INTEGER, allowNull: true },
+    conversationId: { type: DataTypes.INTEGER, allowNull: true },
     type: {
       type: DataTypes.STRING(40),
       allowNull: false,
@@ -26,6 +27,7 @@ const Notification = sequelize.define(
               "ad_rejected",
               "ad_needs_changes",
               "ad_hidden",
+              "message_received",
             ],
           ],
           msg: "Невірний тип сповіщення",

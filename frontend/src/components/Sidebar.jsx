@@ -19,6 +19,11 @@ const links = [
   { text: "Категорії", path: "/dashboard/categories", icon: "category" },
   { text: "Публікації", path: "/dashboard/posts", icon: "article" },
   { text: "Події", path: "/dashboard/events", icon: "event" },
+  {
+    text: "Повідомлення",
+    path: "/dashboard/message-reports",
+    icon: "notifications",
+  },
   { text: "Новини", path: "/dashboard/news", icon: "newspaper" },
   { text: "Форум", path: "/dashboard/forum", icon: "forum" },
   { text: "Статистика", path: "/dashboard/stats", icon: "bar_chart" },

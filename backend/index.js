@@ -33,6 +33,7 @@ const settingsRouter = require("./routes/settingsRouter");
 const adminRouter = require("./routes/adminRouter");
 const config = require("./config/config");
 const { authMiddleware } = require("./middleware/authMiddleware");
+const { getPublicStats } = require("./controllers/publicStatsController");
 
 app.use(
   helmet({
@@ -68,6 +69,7 @@ app.get("/api", (req, res) => {
 });
 
 app.use("/api/v1/auth", authRoutes);
+app.get("/api/v1/public/stats", getPublicStats);
 app.use("/api/v1/users", authMiddleware, userRoutes);
 app.use("/api/v1/adv", advRoutes);
 app.use("/api/v1/categories", categoryRoutes);
@@ -81,6 +83,9 @@ app.use("/api/v1/contact", contactRoutes);
 app.use("/api/v1/external-news", require("./routes/externalNewsRouter"));
 app.use("/api/v1/moderation", require("./routes/moderationRouter"));
 app.use("/api/v1/notifications", require("./routes/notificationRouter"));
+app.use("/api/v1/conversations", require("./routes/conversationRouter"));
+app.use("/api/v1/ad-email", require("./routes/adEmailRouter"));
+app.use("/api/v1/messages", require("./routes/messageRouter"));
 app.use("/api/v1/admin/ad-expiration-settings", adExpirationSettingsRouter);
 app.use("/api/v1/admin/settings", settingsRouter);
 app.use("/api/v1/admin", adminRouter);

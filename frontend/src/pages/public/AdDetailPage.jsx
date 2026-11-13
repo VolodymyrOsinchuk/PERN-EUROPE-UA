@@ -59,35 +59,41 @@ export const loader = async ({ params }) => {
   }
 };
 
-export const action = async ({ request, params }) => {
+export const action = async ({ request }) => {
   const formData = await request.formData();
   const intent = formData.get("intent");
+  const adId = Number(formData.get("adId"));
+  const message = formData.get("message");
   try {
-    if (intent === "message") {
-      const message = formData.get("message");
-      const recipientId = formData.get("recipientId");
-      const adId = formData.get("adId");
-      await customFetch.post("/messages", { adId, recipientId, message });
+    if (intent === "email") {
+      await customFetch.post("/ad-email", { adId, message });
+      toast.success("Лист надіслано");
+      return { success: true };
+    }
+    if (intent === "chat") {
+      const { data } = await customFetch.post("/conversations", {
+        adId,
+        body: message,
+      });
       toast.success("Повідомлення надіслано");
-    } else if (intent === "report") {
-      const reason = formData.get("reason");
-      const details = formData.get("details");
-      const adId = formData.get("adId");
+      return redirect(`/messages/${data.id}`);
+    }
+    if (intent === "report") {
       await customFetch.post("/reports", {
-        adId: Number(adId),
-        reason,
-        details,
+        adId,
+        reason: formData.get("reason"),
+        details: formData.get("details"),
       });
       toast.success("Скаргу надіслано на модерацію");
+      return { success: true };
     }
     return { success: true };
   } catch (error) {
-    // Non connecté → rediriger vers la connexion
     if (error?.response?.status === 401) {
       toast.info("Увійдіть, щоб виконати цю дію");
       throw redirect("/login");
     }
-    toast.error(error?.response?.data?.error || error?.response?.data?.message || "Помилка");
+    toast.error(error?.response?.data?.message || "Помилка");
     return { error: error?.response?.data?.message || "Error" };
   }
 };
@@ -116,7 +122,7 @@ const REPORT_REASONS = [
 ];
 
 /* ── Sub-components ── */
-function ContactCard({ ad, onMessage, onReport }) {
+function ContactCard({ ad, onChat, onEmail, onReport }) {
   const authorName =
     ad.author ||
     (ad.user ? `${ad.user.firstName} ${ad.user.lastName}` : "Анонім");
@@ -300,7 +306,7 @@ function ContactCard({ ad, onMessage, onReport }) {
         </Box>
 
         {/* CTA buttons */}
-        <Button
+        {/* <Button
           fullWidth
           variant="contained"
           startIcon={<ChatBubbleOutlineIcon />}
@@ -324,7 +330,45 @@ function ContactCard({ ad, onMessage, onReport }) {
           }}
         >
           Написати повідомлення
-        </Button>
+        </Button> */}
+
+        {ad.contactByChat && (
+          <Button
+            fullWidth
+            variant="contained"
+            startIcon={<ChatBubbleOutlineIcon />}
+            onClick={onChat}
+            sx={{
+              fontFamily: F_BODY,
+              fontWeight: 700,
+              textTransform: "none",
+              bgcolor: BLUE,
+              borderRadius: "12px",
+              py: 1.4,
+              mb: 1.5,
+            }}
+          >
+            Написати в чаті
+          </Button>
+        )}
+        {ad.contactByEmail && (
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<EmailOutlinedIcon />}
+            onClick={onEmail}
+            sx={{
+              fontFamily: F_BODY,
+              fontWeight: 700,
+              textTransform: "none",
+              borderRadius: "12px",
+              py: 1.3,
+              mb: 1.5,
+            }}
+          >
+            Написати на email
+          </Button>
+        )}
 
         <Button
           fullWidth
@@ -375,11 +419,12 @@ function ContactCard({ ad, onMessage, onReport }) {
 function MessageDialog({
   open,
   onClose,
+  intent,
   recipient,
-  recipientId,
   adId,
   isSubmitting,
 }) {
+  const isChat = intent === "chat";
   return (
     <Dialog
       open={open}
@@ -389,8 +434,7 @@ function MessageDialog({
       PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}
     >
       <Form method="post" onSubmit={onClose}>
-        <input type="hidden" name="intent" value="message" />
-        <input type="hidden" name="recipientId" value={recipientId} />
+        <input type="hidden" name="intent" value={intent} />
         <input type="hidden" name="adId" value={adId} />
         <DialogTitle
           sx={{
@@ -400,7 +444,9 @@ function MessageDialog({
             pb: 1,
           }}
         >
-          Написати {recipient}
+          {isChat
+            ? `Написати в чаті: ${recipient}`
+            : `Написати листом: ${recipient}`}
         </DialogTitle>
         <DialogContent>
           <Typography
@@ -411,7 +457,9 @@ function MessageDialog({
               mb: 2.5,
             }}
           >
-            Ваше повідомлення буде надіслане автору оголошення.
+            {isChat
+              ? "Розмова збережеться на платформі. Ви побачите відповідь у розділі «Повідомлення»."
+              : "Лист піде на email оголошення. Ваш email буде видно продавцю для відповіді."}
           </Typography>
           <TextField
             autoFocus
@@ -420,47 +468,12 @@ function MessageDialog({
             fullWidth
             name="message"
             label="Ваше повідомлення"
-            variant="outlined"
             required
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "12px",
-                fontFamily: F_BODY,
-                "&:hover fieldset": { borderColor: BLUE },
-                "&.Mui-focused fieldset": { borderColor: BLUE },
-              },
-              "& .MuiInputLabel-root.Mui-focused": { color: BLUE },
-            }}
           />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
-          <Button
-            onClick={onClose}
-            sx={{
-              fontFamily: F_BODY,
-              fontWeight: 600,
-              textTransform: "none",
-              color: "#64748b",
-              borderRadius: "10px",
-              border: "1px solid #e2e8f0",
-            }}
-          >
-            Скасувати
-          </Button>
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={isSubmitting}
-            sx={{
-              fontFamily: F_BODY,
-              fontWeight: 700,
-              textTransform: "none",
-              bgcolor: BLUE,
-              borderRadius: "10px",
-              px: 3,
-              "&:hover": { bgcolor: "#003d82" },
-            }}
-          >
+          <Button onClick={onClose}>Скасувати</Button>
+          <Button type="submit" variant="contained" disabled={isSubmitting}>
             {isSubmitting ? "Надсилання..." : "Надіслати"}
           </Button>
         </DialogActions>
@@ -603,6 +616,8 @@ export default function AdDetailPage() {
 
   const [messageOpen, setMessageOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [emailOpen, setEmailOpen] = useState(false);
   const [saved, setSaved] = useState(false);
 
   if (!ad || !ad.title) {
@@ -795,7 +810,6 @@ export default function AdDetailPage() {
           </Box>
         </Container>
       </Box>
-
       <Box sx={{ bgcolor: "#f8fafc", py: { xs: 4, md: 6 }, minHeight: "80vh" }}>
         <Container maxWidth="lg">
           <Grid container spacing={4}>
@@ -1193,20 +1207,29 @@ export default function AdDetailPage() {
             <Grid size={{ xs: 12, md: 4 }}>
               <ContactCard
                 ad={ad}
-                onMessage={() => setMessageOpen(true)}
+                onChat={() => setChatOpen(true)}
+                onEmail={() => setEmailOpen(true)}
                 onReport={() => setReportOpen(true)}
               />
             </Grid>
           </Grid>
         </Container>
       </Box>
-
       {/* ── Dialogs ── */}
+      {/* Діалоги: */}
       <MessageDialog
-        open={messageOpen}
-        onClose={() => setMessageOpen(false)}
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+        intent="chat"
         recipient={recipient}
-        recipientId={ad.user?.id || ad.userId}
+        adId={ad.id}
+        isSubmitting={isSubmitting}
+      />
+      <MessageDialog
+        open={emailOpen}
+        onClose={() => setEmailOpen(false)}
+        intent="email"
+        recipient={recipient}
         adId={ad.id}
         isSubmitting={isSubmitting}
       />

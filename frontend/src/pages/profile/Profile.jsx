@@ -92,6 +92,7 @@ export async function action({ request }) {
           phoneNumber: formData.get("phoneNumber"),
           country: formData.get("country"),
           state: formData.get("state"),
+          city: formData.get("city"),
           location: formData.get("location"),
           about: formData.get("about"),
         };
@@ -295,7 +296,7 @@ function ProfileHero({ user, onImageChange }) {
                       color: "rgba(255,255,255,.6)",
                     }}
                   >
-                    {[user?.state, user?.country].filter(Boolean).join(", ")}
+                    {[user?.city, user?.state, user?.country].filter(Boolean).join(", ")}
                   </Typography>
                 </Box>
               )}
@@ -897,6 +898,7 @@ export default function Profile() {
     phoneNumber: "",
     country: "",
     state: "",
+    city: "",
     location: "",
     about: "",
   });
@@ -911,6 +913,7 @@ export default function Profile() {
         phoneNumber: user.phoneNumber || "",
         country: user.country || "",
         state: user.state || "",
+        city: user.city || "",
         location: user.location || "",
         about: user.about || "",
       });
@@ -1172,7 +1175,7 @@ export default function Profile() {
                     { label: "Регіон", value: user?.state, icon: "map" },
                     {
                       label: "Місто",
-                      value: user?.location,
+                      value: user?.city,
                       icon: "location_city",
                     },
                   ].map((row) => (
@@ -1810,7 +1813,8 @@ export default function Profile() {
                 { name: "phoneNumber", label: "Телефон", type: "tel" },
                 { name: "country", label: "Країна", type: "text" },
                 { name: "state", label: "Регіон", type: "text" },
-                { name: "location", label: "Місто", type: "text" },
+                { name: "city", label: "Місто", type: "text" },
+                { name: "location", label: "Адреса", type: "text" },
               ].map((f) => (
                 <Grid size={{ xs: 12, sm: 6 }} key={f.name}>
                   <TextField

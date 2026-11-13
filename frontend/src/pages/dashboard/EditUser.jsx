@@ -38,6 +38,9 @@ export default function EditUser() {
         <TextField name="lastName" label="Прізвище" defaultValue={user.lastName} fullWidth sx={{ mb: 2 }} />
         <TextField name="email" label="Email" type="email" defaultValue={user.email} fullWidth sx={{ mb: 2 }} />
         <TextField name="phoneNumber" label="Телефон" defaultValue={user.phoneNumber} fullWidth sx={{ mb: 2 }} />
+        <TextField name="country" label="Країна" defaultValue={user.country} fullWidth sx={{ mb: 2 }} />
+        <TextField name="state" label="Регіон" defaultValue={user.state} fullWidth sx={{ mb: 2 }} />
+        <TextField name="city" label="Місто" defaultValue={user.city} fullWidth sx={{ mb: 2 }} />
         <Button type="submit" variant="contained">Зберегти</Button>
       </Form>
     </Container>

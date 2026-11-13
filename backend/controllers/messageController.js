@@ -1,219 +1,160 @@
 const { Op } = require("sequelize");
-const { Conversation, Message } = require("../models/conversation");
+const { Conversation } = require("../models/conversation");
+const { Message } = require("../models/message");
+const { MessageReport } = require("../models/messageReport");
 const { User } = require("../models/user");
-const { Adv } = require("../models/adv");
-const { sendAdContactEmail } = require("../utils/emailService");
+const { sanitizeText } = require("../utils/sanitize");
 
-// Une personne fait partie d'une conversation si elle l'a créée
-// ou si elle a envoyé/reçu au moins un message dedans.
-async function isParticipant(conversation, userId) {
-  if (conversation.createdBy === userId) return true;
-  const count = await Message.count({
-    where: {
-      conversationId: conversation.id,
-      [Op.or]: [{ senderId: userId }, { recipientId: userId }],
-    },
-  });
-  return count > 0;
-}
+const REPORT_REASONS = ["Спам", "Шахрайство", "Образливий зміст", "Інше"];
+const STATUSES = ["pending", "resolved", "dismissed"];
 
-exports.createMessage = async (req, res, next) => {
+const parseId = (value) => {
+  const n = Number(value);
+  return Number.isInteger(n) && n > 0 ? n : null;
+};
+
+const isParticipant = (conv, userId) =>
+  conv.buyerId === userId || conv.sellerId === userId;
+
+// POST /messages/:id/report  { reason, details }
+exports.reportMessage = async (req, res) => {
   try {
-    const senderId = req.user.userId;
-    const { adId, message } = req.body;
-    const text = typeof message === "string" ? message.trim() : "";
+    const me = req.user.userId;
+    const id = parseId(req.params.id);
+    const reason = req.body?.reason;
+    const details =
+      typeof req.body?.details === "string"
+        ? sanitizeText(req.body.details).slice(0, 1000)
+        : null;
 
-    const adIdNum = Number(adId);
-    if (!Number.isInteger(adIdNum) || adIdNum <= 0 || !text) {
+    if (!id)
+      return res.status(400).json({ message: "Некоректний ідентифікатор" });
+    if (!REPORT_REASONS.includes(reason)) {
+      return res.status(400).json({ message: "Оберіть причину скарги" });
+    }
+
+    const msg = await Message.findByPk(id);
+    if (!msg)
+      return res.status(404).json({ message: "Повідомлення не знайдено" });
+
+    const conv = await Conversation.findByPk(msg.conversationId);
+    if (!conv || !isParticipant(conv, me)) {
+      // 404, щоб не розкривати чужі розмови
+      return res.status(404).json({ message: "Повідомлення не знайдено" });
+    }
+    if (msg.senderId === me) {
       return res
         .status(400)
-        .json({ message: "Вкажіть оголошення та текст повідомлення" });
-    }
-    if (text.length > 2000) {
-      return res.status(400).json({
-        message: "Повідомлення занадто довге (максимум 2000 символів)",
-      });
+        .json({ message: "Не можна поскаржитися на власне повідомлення" });
     }
 
-    // Le destinataire vient de l'annonce (pas du navigateur)
-    const ad = await Adv.findByPk(adId, {
-      attributes: ["id", "title", "email", "userId", "status", "isArchived"],
+    const report = await MessageReport.create({
+      messageId: id,
+      reporterId: me,
+      reason,
+      details,
     });
-    if (!ad || ad.isArchived === true || ad.status !== "Active") {
-      return res.status(404).json({ message: "Оголошення не знайдено" });
-    }
-    if (ad.userId === senderId) {
+
+    res.status(201).json({ message: "Скаргу надіслано на розгляд", report });
+  } catch (error) {
+    if (error.name === "SequelizeUniqueConstraintError") {
       return res
-        .status(400)
-        .json({ message: "Ви не можете написати власному оголошенню" });
+        .status(409)
+        .json({ message: "Ви вже скаржилися на це повідомлення" });
     }
-
-    // L'adresse de réponse est celle du compte vérifié de l'acheteur
-    const sender = await User.findByPk(senderId, {
-      attributes: ["firstName", "lastName", "email"],
-    });
-    if (!sender) {
-      return res.status(401).json({ message: "Потрібна автентифікація" });
-    }
-
-    const sent = await sendAdContactEmail({
-      to: ad.email,
-      adId: ad.id,
-      adTitle: ad.title,
-      senderName: `${sender.firstName} ${sender.lastName}`.trim(),
-      senderEmail: sender.email,
-      message: text,
-    });
-
-    if (!sent) {
-      return res
-        .status(502)
-        .json({ message: "Не вдалося надіслати лист. Спробуйте пізніше" });
-    }
-
-    return res.status(200).json({ message: "Повідомлення надіслано" });
-  } catch (err) {
-    console.error("Помилка createMessage:", err);
-    next(err);
+    console.error("Помилка reportMessage:", error);
+    res.status(500).json({ message: "Внутрішня помилка сервера" });
   }
 };
 
-exports.getConversations = async (req, res, next) => {
+// GET /messages/unread-count
+exports.getUnreadMessageCount = async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    // Find all conversation IDs where user has sent or received messages
-    const userMessages = await Message.findAll({
+    const unreadCount = await Message.count({
+      include: [
+        {
+          model: Conversation,
+          as: "conversation",
+          attributes: [],
+          where: {
+            [Op.or]: [{ buyerId: userId }, { sellerId: userId }],
+          },
+        },
+      ],
       where: {
-        [Op.or]: [{ senderId: userId }, { recipientId: userId }],
+        readAt: null,
+        senderId: { [Op.ne]: userId },
       },
-      attributes: ["conversationId"],
-      group: ["conversationId"],
     });
 
-    const convIds = userMessages.map((m) => m.conversationId);
+    res.status(200).json({ unread: unreadCount });
+  } catch (error) {
+    console.error("Помилка getUnreadMessageCount:", error);
+    res.status(500).json({ message: "Внутрішня помилка сервера" });
+  }
+};
 
-    const whereClause = convIds.length
-      ? { [Op.or]: [{ id: convIds }, { createdBy: userId }] }
-      : { createdBy: userId };
+// GET /moderation/message-reports?status=pending  (admin, moderator)
+exports.listMessageReports = async (req, res) => {
+  try {
+    const status = STATUSES.includes(req.query.status)
+      ? req.query.status
+      : "pending";
 
-    const convs = await Conversation.findAll({
-      where: whereClause,
+    const reports = await MessageReport.findAll({
+      where: { status },
       include: [
         {
           model: Message,
-          as: "messages",
-          limit: 1,
-          order: [["createdAt", "DESC"]],
-          include: [
-            {
-              model: User,
-              as: "sender",
-              attributes: ["id", "firstName", "lastName"],
-            },
-            {
-              model: User,
-              as: "recipient",
-              attributes: ["id", "firstName", "lastName"],
-            },
-          ],
-        },
-        {
-          model: Adv,
-          as: "ad",
-          attributes: ["id", "title", "photos"],
-          required: false,
+          as: "message",
+          attributes: ["id", "body", "senderId", "conversationId", "createdAt"],
         },
         {
           model: User,
-          as: "creator",
-          attributes: ["id", "firstName", "lastName"],
-        },
-      ],
-      order: [["lastMessageAt", "DESC"]],
-    });
-
-    res.status(200).json(convs);
-  } catch (err) {
-    console.error("Помилка getConversations:", err);
-    next(err);
-  }
-};
-
-exports.getMessages = async (req, res, next) => {
-  try {
-    const userId = req.user.userId;
-    const conversationId = Number(req.params.conversationId);
-
-    if (!Number.isInteger(conversationId) || conversationId <= 0) {
-      return res
-        .status(400)
-        .json({ error: "Некоректний ідентифікатор розмови" });
-    }
-
-    const conv = await Conversation.findByPk(conversationId);
-    if (!conv || !(await isParticipant(conv, userId))) {
-      return res.status(404).json({ error: "Розмову не знайдено" });
-    }
-
-    const messages = await Message.findAll({
-      where: { conversationId },
-      include: [
-        {
-          model: User,
-          as: "sender",
-          attributes: ["id", "firstName", "lastName", "profilePicture"],
-        },
-        {
-          model: User,
-          as: "recipient",
+          as: "reporter",
           attributes: ["id", "firstName", "lastName"],
         },
       ],
       order: [["createdAt", "ASC"]],
     });
-
-    // Mark messages as read where current user is recipient
-    await Message.update(
-      { isRead: true },
-      { where: { conversationId, recipientId: userId, isRead: false } },
-    );
-
-    res.status(200).json(messages);
-  } catch (err) {
-    console.error("Помилка getMessages:", err);
-    next(err);
+    res.status(200).json(reports);
+  } catch (error) {
+    console.error("Помилка listMessageReports:", error);
+    res.status(500).json({ message: "Внутрішня помилка сервера" });
   }
 };
 
-exports.markRead = async (req, res, next) => {
+// PATCH /moderation/message-reports/:id  { decision: "resolved" | "dismissed" }
+// Журнал рішення: decidedBy і decidedAt у самій скарзі.
+exports.decideMessageReport = async (req, res) => {
   try {
-    const userId = req.user.userId;
-    const conversationId = parseInt(req.params.conversationId, 10);
+    const id = parseId(req.params.id);
+    const decision = req.body?.decision;
 
-    await Message.update(
-      { isRead: true },
-      { where: { conversationId, recipientId: userId, isRead: false } },
+    if (!id)
+      return res.status(400).json({ message: "Некоректний ідентифікатор" });
+    if (!["resolved", "dismissed"].includes(decision)) {
+      return res.status(400).json({ message: "Некоректне рішення" });
+    }
+
+    // Умова status = pending: два адміністратори не перезапишуть одне одного.
+    const [updated] = await MessageReport.update(
+      { status: decision, decidedBy: req.user.userId, decidedAt: new Date() },
+      { where: { id, status: "pending" } },
     );
+    if (updated === 0) {
+      const exists = await MessageReport.count({ where: { id } });
+      return res.status(exists ? 409 : 404).json({
+        message: exists ? "Скаргу вже розглянуто" : "Скаргу не знайдено",
+      });
+    }
 
-    res.status(204).send();
-  } catch (err) {
-    console.error("Помилка markRead:", err);
-    next(err);
-  }
-};
-
-exports.getUnreadCount = async (req, res, next) => {
-  try {
-    const userId = req.user.userId;
-
-    const count = await Message.count({
-      where: { recipientId: userId, isRead: false },
-    });
-
-    res.status(200).json({ unread: count });
-  } catch (err) {
-    console.error("Помилка getUnreadCount:", err);
-    next(err);
+    const report = await MessageReport.findByPk(id);
+    res.status(200).json(report);
+  } catch (error) {
+    console.error("Помилка decideMessageReport:", error);
+    res.status(500).json({ message: "Внутрішня помилка сервера" });
   }
 };
