@@ -165,7 +165,7 @@ exports.login = async (req, res) => {
       httpOnly: true,
       expires: new Date(Date.now() + oneDay),
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
 
     res.status(200).json({
@@ -195,7 +195,7 @@ exports.logout = (req, res) => {
     httpOnly: true,
     expires: new Date(Date.now()),
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   });
   res.status(200).json({ message: "Користувач вийшов із системи" });
 };
@@ -261,7 +261,7 @@ const issueSessionCookie = (res, user) => {
     httpOnly: true,
     expires: new Date(Date.now() + oneDay),
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   });
 };
 
