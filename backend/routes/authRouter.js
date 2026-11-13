@@ -11,6 +11,7 @@ const {
   facebookCallback,
   forgotPassword,
   resetPassword,
+  resendVerification,
 } = require("../controllers/authController");
 const {
   loginLimiter,
@@ -28,6 +29,7 @@ router.get("/verify-email/:token", verifyEmailLimiter, verifyEmail);
 // додайте до деструктуризації контролера: forgotPassword, resetPassword
 router.post("/forgot-password", passwordResetLimiter, forgotPassword);
 router.post("/reset-password/:token", passwordResetLimiter, resetPassword);
+router.post("/resend-verification", verifyEmailLimiter, resendVerification);
 
 // OAuth social — Google
 router.get("/google", googleLogin);

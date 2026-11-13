@@ -51,6 +51,7 @@ export default function ModerationManager() {
   const [status, setStatus] = useState("pending");
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pendingCount, setPendingCount] = useState(0);
   const [busyId, setBusyId] = useState(null);
   const [dialog, setDialog] = useState({ open: false, mode: null, ad: null });
   const [reason, setReason] = useState("");
@@ -69,9 +70,19 @@ export default function ModerationManager() {
     }
   }, [status]);
 
+  const loadPendingCount = useCallback(async () => {
+    try {
+      const { data } = await customFetch.get("/moderation/pending-count");
+      setPendingCount(data.count || 0);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   useEffect(() => {
     load();
-  }, [load]);
+    loadPendingCount();
+  }, [load, loadPendingCount]);
 
   // Retourne true si l'action a réussi.
   const runAction = async (ad, action, body) => {
@@ -112,7 +123,11 @@ export default function ModerationManager() {
     <Box>
       <PageHeader
         title="Модерація оголошень"
-        subtitle="Перевірка оголошень перед публікацією"
+        subtitle={
+          pendingCount > 0
+            ? `Нових оголошень на перевірці: ${pendingCount}`
+            : "Перевірка оголошень перед публікацією"
+        }
         breadcrumbs={[
           { label: "Панель", to: "/dashboard" },
           { label: "Модерація" },

@@ -33,6 +33,10 @@ exports.updateAdminRole = async (req, res) => {
     if (!validRoles.includes(role)) {
       return res.status(400).json({ error: "Невірна роль" });
     }
+    // Запобігаємо самодемоції адміна (видалення власної ролі адміністратора)
+    if (req.user.userId === Number(id) && role !== "admin") {
+      return res.status(400).json({ error: "Не можна зняти з себе роль адміністратора" });
+    }
     const user = await User.findByPk(id);
     if (!user) return res.status(404).json({ error: "Користувача не знайдено" });
     await user.update({ role });
@@ -52,6 +56,11 @@ exports.createAdmin = async (req, res) => {
     if (password.length < 8) {
       return res.status(400).json({ error: "Пароль має містити щонайменше 8 символів" });
     }
+    const validRoles = ["admin", "moderator", "user"];
+    const requestedRole = role || "admin";
+    if (!validRoles.includes(requestedRole)) {
+      return res.status(400).json({ error: "Невірна роль" });
+    }
     const existing = await User.findOne({ where: { email } });
     if (existing) {
       return res.status(400).json({ error: "Користувач з таким email вже існує" });
@@ -61,7 +70,7 @@ exports.createAdmin = async (req, res) => {
       lastName,
       email,
       password,
-      role: role || "admin",
+      role: requestedRole,
       isVerified: true,
     });
     res.status(201).json({
@@ -112,12 +121,10 @@ exports.getSystemInfo = async (req, res) => {
 
 exports.toggleMaintenance = async (req, res) => {
   try {
-    const { enabled } = req.body;
-    res.status(200).json({
-      message: enabled
-        ? "Режим обслуговування активовано"
-        : "Режим обслуговування вимкнено",
-      maintenance: !!enabled,
+    // Функціонал не реалізовано — немає сховища для режиму обслуговування
+    return res.status(501).json({
+      error: "Не реалізовано",
+      message: "Режим обслуговування ще не підтримується",
     });
   } catch (error) {
     console.error("Помилка toggleMaintenance:", error);
@@ -127,7 +134,10 @@ exports.toggleMaintenance = async (req, res) => {
 
 exports.clearCache = async (req, res) => {
   try {
-    res.status(200).json({ message: "Кеш очищено успішно" });
+    return res.status(501).json({
+      error: "Не реалізовано",
+      message: "Очищення кешу ще не підтримується",
+    });
   } catch (error) {
     console.error("Помилка clearCache:", error);
     res.status(500).json({ error: error.message });
@@ -136,7 +146,10 @@ exports.clearCache = async (req, res) => {
 
 exports.backupDb = async (req, res) => {
   try {
-    res.status(200).json({ message: "Резервну копію створено" });
+    return res.status(501).json({
+      error: "Не реалізовано",
+      message: "Резервне копіювання ще не підтримується",
+    });
   } catch (error) {
     console.error("Помилка backupDb:", error);
     res.status(500).json({ error: error.message });

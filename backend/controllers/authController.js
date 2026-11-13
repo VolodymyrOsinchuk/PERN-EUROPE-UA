@@ -157,11 +157,15 @@ exports.login = async (req, res) => {
     await user.update({ lastLogin: new Date() });
 
     const oneDay = 1000 * 60 * 60 * 24;
+    // SameSite=Lax для сумісності з Safari iPhone при крос-доменному розгортанні.
+    // Якщо фронтенд і API на одній домені — можна залишити Lax.
+    // Якщо на різних доменах і потрібен SameSite=None — потрібно secure=true +
+    // додати CORS origin із конкретного домenu (не wildcard).
     res.cookie("token", token, {
       httpOnly: true,
       expires: new Date(Date.now() + oneDay),
-      secure: true,
-      sameSite: "none",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
     });
 
     res.status(200).json({
@@ -190,8 +194,8 @@ exports.logout = (req, res) => {
   res.cookie("token", "logout", {
     httpOnly: true,
     expires: new Date(Date.now()),
-    secure: true,
-    sameSite: "none",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
   });
   res.status(200).json({ message: "Користувач вийшов із системи" });
 };
@@ -256,8 +260,8 @@ const issueSessionCookie = (res, user) => {
   res.cookie("token", token, {
     httpOnly: true,
     expires: new Date(Date.now() + oneDay),
-    secure: true,
-    sameSite: "none",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
   });
 };
 
@@ -532,6 +536,40 @@ exports.resetPassword = async (req, res) => {
     return res.status(200).json({ message: "Пароль успішно змінено" });
   } catch (error) {
     console.error("Помилка resetPassword:", error.name);
+    return res.status(500).json({ message: "Помилка сервера" });
+  }
+};
+
+// POST /auth/resend-verification  { email }
+// Повторна відправка листа підтвердження email.
+// Повертає однакову відповідь незалежно від існування акаунту (захист від перебору).
+exports.resendVerification = async (req, res) => {
+  try {
+    const email =
+      typeof req.body?.email === "string" ? req.body.email.trim() : "";
+    if (!email || email.length > 150) {
+      return res.status(400).json({ message: "Вкажіть коректний email" });
+    }
+
+    const user = await User.findOne({ where: { email } });
+
+    if (user && !user.isVerified) {
+      const verificationToken = crypto.randomBytes(32).toString("hex");
+      await user.update({
+        verificationToken,
+        verificationTokenExpires: new Date(
+          Date.now() + VERIFICATION_TOKEN_TTL_MS,
+        ),
+      });
+      await sendVerificationEmail(user.email, user.firstName, verificationToken);
+    }
+
+    return res.status(200).json({
+      message:
+        "Якщо акаунт існує і не підтверджено, ми надіслали на його пошту лист із посиланням підтвердження.",
+    });
+  } catch (error) {
+    console.error("Помилка resendVerification:", error.name);
     return res.status(500).json({ message: "Помилка сервера" });
   }
 };

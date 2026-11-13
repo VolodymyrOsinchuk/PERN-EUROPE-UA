@@ -50,9 +50,10 @@ exports.createPublication = async (req, res) => {
 
     // FIX P1-8: sanitisation avant stockage
     const newPublication = await Publication.create({
-      ...req.body,
       title: sanitizeText(req.body.title),
       content: sanitizeRichText(req.body.content),
+      category: req.body.category,
+      readTime: req.body.readTime,
       userId: req.user.userId,
       author: user
         ? `${user.firstName} ${user.lastName}`.trim()
@@ -77,7 +78,13 @@ exports.updatePublication = async (req, res) => {
         .json({ message: "Не дозволено змінювати цю публікацію" });
     }
 
-    const updateData = { ...req.body };
+    const allowedFields = ["title", "content", "category", "readTime"];
+    const updateData = {};
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    });
     if (updateData.title) updateData.title = sanitizeText(updateData.title);
     if (updateData.content)
       updateData.content = sanitizeRichText(updateData.content);

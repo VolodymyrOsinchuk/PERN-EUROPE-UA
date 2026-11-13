@@ -103,29 +103,27 @@ app.use((err, req, res, next) => {
 
   if (err.name === "SequelizeValidationError") {
     return res.status(400).json({
-      error: "Помилка валідації",
+      message: "Помилка валідації",
       details: err.errors.map((e) => e.message),
     });
   }
 
   if (err.name === "SequelizeUniqueConstraintError") {
     return res.status(409).json({
-      error: "Виник конфлікт",
+      message: "Виник конфлікт",
       details: err.errors.map((e) => e.message),
     });
   }
 
   if (err.name === "JsonWebTokenError") {
-    return res.status(401).json({ error: "Невірний токен" });
+    return res.status(401).json({ message: "Невірний токен" });
   }
 
   if (err.name === "TokenExpiredError") {
-    return res.status(401).json({ error: "Токен прострочений" });
+    return res.status(401).json({ message: "Токен прострочений" });
   }
 
-  res
-    .status(500)
-    .json({ error: "Внутрішня помилка сервера", message: err.message });
+  res.status(500).json({ message: "Внутрішня помилка сервера" });
 });
 
 app.use((req, res) => {

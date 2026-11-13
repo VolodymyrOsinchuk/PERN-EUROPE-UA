@@ -1,6 +1,7 @@
 const { Adv, PUBLIC_WHERE } = require("../models/adv");
 const { Category, SubCategory } = require("../models/category");
 const { User } = require("../models/user");
+const { Notification } = require("../models/notification");
 const { deleteCloudinaryFile } = require("../config/cloudinary");
 const { normalizePhone } = require("../utils/normalizePhone");
 const {
@@ -64,6 +65,22 @@ exports.createAnnonce = async (req, res) => {
         title: newAd.title,
         type: "ad_pending",
       });
+
+      // Notify all admins and moderators about a new ad awaiting moderation
+      const staff = await User.findAll({
+        where: { role: ["admin", "moderator"] },
+        attributes: ["id"],
+      });
+      await Promise.all(
+        staff.map((u) =>
+          Notification.create({
+            userId: u.id,
+            advId: newAd.id,
+            type: "ad_pending",
+            message: `Нове оголошення «${newAd.title}» на чекає модерації.`,
+          })
+        )
+      );
     }
 
     return res.status(201).json({
@@ -202,7 +219,7 @@ exports.updateAnnonce = async (req, res) => {
     const updatedAdv = await Adv.findByPk(adv.id, {
       include: [
         { model: Category, as: "category", attributes: ["id", "name"] },
-        { model: User, as: "user", attributes: ["id", "email"] },
+        { model: User, as: "user", attributes: ["id", "firstName"] },
       ],
     });
 

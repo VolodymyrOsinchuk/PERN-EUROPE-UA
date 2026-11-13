@@ -17,6 +17,8 @@ import About from "./pages/About";
 import Login, { action as loginAction } from "./pages/Login";
 import Register, { action as registerAction } from "./pages/Register";
 import VerifyAccount, { loader as accountLoader } from "./pages/VerifyAccount";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Policy from "./pages/Policy";
 
 // News — loader API réel
@@ -240,6 +242,9 @@ const router = createBrowserRouter(
               element: <VerifyAccount />,
               loader: accountLoader,
             },
+            // Password reset
+            { path: "forgot-password", element: <ForgotPassword /> },
+            { path: "reset-password/:token", element: <ResetPassword /> },
 
             // Contact
             { path: "contact", element: <Contacts />, action: contactAction },

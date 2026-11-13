@@ -29,6 +29,7 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  MenuItem,
   FormControlLabel,
   Checkbox,
   Snackbar,
@@ -64,59 +65,43 @@ export const action = async ({ request }) => {
   const intent = formData.get("intent");
   try {
     switch (intent) {
-      case "toggle-active": {
-        const id = formData.get("id");
-        await customFetch.put(`/admin/admins/${id}/role`, {
-          role: formData.get("role"),
-        });
-        return { ok: true };
-      }
       case "delete-admin": {
         const id = formData.get("id");
-        await customFetch.delete(`/admin/admins/${id}`);
-        toast.success("Адміністратора видалено");
+        if (window.confirm("Видалити адміністратора?")) {
+          await customFetch.delete(`/admin/admins/${id}`);
+          toast.success("Адміністратора видалено");
+        }
         return { ok: true };
       }
       case "add-admin": {
         const firstName = formData.get("firstName");
+        const lastName = formData.get("lastName") || "";
         const email = formData.get("email");
         const password = formData.get("password");
+        const role = formData.get("role") || "admin";
         await customFetch.post("/admin/admins", {
           firstName,
-          lastName: "",
+          lastName,
           email,
           password,
-          role: "admin",
+          role,
         });
         toast.success("Адміністратора додано");
         return { ok: true };
       }
       case "edit-admin": {
         const id = formData.get("id");
-        await customFetch.put(`/admin/admins/${id}/role`, {
-          role: "admin",
+        const firstName = formData.get("firstName");
+        const lastName = formData.get("lastName") || "";
+        const email = formData.get("email");
+        const role = formData.get("role") || "user";
+        await customFetch.put(`/admin/admins/${id}`, {
+          firstName,
+          lastName,
+          email,
+          role,
         });
         toast.success("Дані оновлено");
-        return { ok: true };
-      }
-      case "maintenance": {
-        const enabled = formData.get("enabled") === "true";
-        await customFetch.post("/admin/maintenance", { enabled });
-        toast.success(
-          enabled
-            ? "Режим обслуговування активовано"
-            : "Режим обслуговування вимкнено",
-        );
-        return { ok: true, maintenance: enabled };
-      }
-      case "clear-cache": {
-        await customFetch.post("/admin/clear-cache");
-        toast.success("Кеш очищено успішно");
-        return { ok: true };
-      }
-      case "backup": {
-        await customFetch.post("/admin/backup");
-        toast.success("Резервну копію створено");
         return { ok: true };
       }
       default:
@@ -181,20 +166,12 @@ const SectionCard = ({ icon, title, subtitle, action, children }) => (
   </Paper>
 );
 
+// Ролі беруться з даних API (user | moderator | admin), не хардкодяться
 const ROLE_CFG = {
-  "super-admin": { label: "Суперадмін", color: "#FEF3C7", textColor: "#92400E" },
-  admin: { label: "Адмін", color: "#FEF3C7", textColor: "#92400E" },
+  admin: { label: "Адміністратор", color: "#FEF3C7", textColor: "#92400E" },
   moderator: { label: "Модератор", color: "#EFF6FF", textColor: "#1D4ED8" },
-  editor: { label: "Редактор", color: "#F0FDF4", textColor: "#166534" },
   user: { label: "Користувач", color: "#F8FAFC", textColor: "#475569" },
 };
-
-const ROLES = [
-  { id: 1, name: "super-admin", perms: ["users", "ads", "categories", "events", "settings", "admin"], ...ROLE_CFG["super-admin"] },
-  { id: 2, name: "moderator", perms: ["ads", "categories", "events"], ...ROLE_CFG["moderator"] },
-  { id: 3, name: "editor", perms: ["ads", "events"], ...ROLE_CFG["editor"] },
-  { id: 4, name: "user", perms: [], ...ROLE_CFG["user"] },
-];
 
 const RoleChip = ({ role }) => {
   const cfg = ROLE_CFG[role] || {};
@@ -337,22 +314,14 @@ const Admin = () => {
                       </Typography>
                     </TableCell>
                     <TableCell align="center">
-                      <fetcher.Form method="post" style={{ display: "inline" }}>
-                        <input type="hidden" name="intent" value="toggle-active" />
-                        <input type="hidden" name="id" value={admin.id} />
-                        <input
-                          type="hidden"
-                          name="role"
-                          value={admin.active ? "moderator" : "admin"}
-                        />
-                        <Switch
-                          checked={admin.active}
+                      <Tooltip title="Редагувати роль">
+                        <IconButton
                           size="small"
-                          onChange={(e) => {
-                            e.target.form && fetcher.submit(e.target.form);
-                          }}
-                        />
-                      </fetcher.Form>
+                          onClick={() => openDialog("edit-admin", admin)}
+                        >
+                          <EditOutlinedIcon sx={{ fontSize: 14, color: "#64748B" }} />
+                        </IconButton>
+                      </Tooltip>
                     </TableCell>
                     <TableCell align="right">
                       <Tooltip title="Редагувати">
@@ -389,93 +358,53 @@ const Admin = () => {
             </Table>
           </SectionCard>
 
-          {/* Roles & Permissions */}
+          {/* Roles info (read-only, roles come from API) */}
           <SectionCard
             icon={
               <span className="material-icons" style={{ fontSize: 18 }}>
                 manage_accounts
               </span>
             }
-            title="Ролі та дозволи"
-            subtitle="Права доступу для кожної ролі"
+            title="Ролі користувачів"
+            subtitle="Доступні ролі: Адміністратор, Модератор, Користувач"
           >
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              {ROLES.map((role) => (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+              {Object.entries(ROLE_CFG).map(([key, cfg]) => (
                 <Box
-                  key={role.id}
+                  key={key}
                   sx={{
-                    p: 2,
+                    p: 1.5,
                     borderRadius: 2,
                     border: "1px solid rgba(15,23,42,0.07)",
                     bgcolor: "#FAFBFC",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
-                  <Box
+                  <Box>
+                    <Typography variant="body2" fontWeight={600}>
+                      {cfg.label}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Роль: {key}
+                    </Typography>
+                  </Box>
+                  <Chip
+                    label={cfg.label}
+                    size="small"
                     sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      mb: 1.5,
+                      bgcolor: cfg.color,
+                      color: cfg.textColor,
+                      fontWeight: 700,
                     }}
-                  >
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Chip
-                        label={role.label}
-                        size="small"
-                        sx={{
-                          bgcolor: role.color,
-                          color: role.textColor,
-                          fontWeight: 700,
-                        }}
-                      />
-                    </Box>
-                    <Tooltip title="Редагувати дозволи">
-                      <IconButton
-                        size="small"
-                        onClick={() => openDialog("edit-role", role)}
-                      >
-                        <EditOutlinedIcon
-                          sx={{ fontSize: 15, color: "#94A3B8" }}
-                        />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.8 }}>
-                    {ALL_PERMS.map((perm) => (
-                      <Chip
-                        key={perm.key}
-                        label={perm.label}
-                        size="small"
-                        sx={{
-                          fontSize: "0.7rem",
-                          bgcolor: role.perms.includes(perm.key)
-                            ? "#ECFDF5"
-                            : "#F1F5F9",
-                          color: role.perms.includes(perm.key)
-                            ? "#065F46"
-                            : "#94A3B8",
-                          fontWeight: 600,
-                        }}
-                        icon={
-                          <span
-                            className="material-icons"
-                            style={{
-                              fontSize: "12px !important",
-                              color: role.perms.includes(perm.key)
-                                ? "#10B981"
-                                : "#CBD5E1",
-                            }}
-                          >
-                            {role.perms.includes(perm.key)
-                              ? "check_circle"
-                              : "cancel"}
-                          </span>
-                        }
-                      />
-                    ))}
-                  </Box>
+                  />
                 </Box>
               ))}
+              <Typography variant="caption" color="text.secondary">
+                Редагування ролей доступно в картці кожного адміністратора
+                вище.
+              </Typography>
             </Box>
           </SectionCard>
         </Grid>
@@ -592,43 +521,27 @@ const Admin = () => {
           <SectionCard
             icon={<BuildOutlinedIcon sx={{ fontSize: 18, color: "#EF4444" }} />}
             title="Небезпечна зона"
-            subtitle="Дії з незворотніми наслідками"
+            subtitle="Дії з незворотніми наслідками (ще не реалізовано)"
           >
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <Box
                 sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
                   p: 1.5,
                   borderRadius: 2,
                   border: "1px solid rgba(239,68,68,0.2)",
                   bgcolor: "#FFF5F5",
                 }}
               >
-                <Box>
-                  <Typography
-                    variant="body2"
-                    fontWeight={600}
-                    sx={{ color: "#991B1B" }}
-                  >
-                    Режим обслуговування
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Сайт буде недоступний для користувачів
-                  </Typography>
-                </Box>
-                <Switch
-                  checked={maintenance}
-                  onChange={(e) => {
-                    setMaintenance(e.target.checked);
-                    const form = new FormData();
-                    form.append("intent", "maintenance");
-                    form.append("enabled", String(e.target.checked));
-                    fetcher.submit(form, { method: "post" });
-                  }}
-                  color="error"
-                />
+                <Typography
+                  variant="body2"
+                  fontWeight={600}
+                  sx={{ color: "#991B1B" }}
+                >
+                  Режим обслуговування
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Функціонал ще не реалізовано на бекенді
+                </Typography>
               </Box>
 
               <Button
@@ -636,18 +549,14 @@ const Admin = () => {
                 variant="outlined"
                 color="error"
                 size="small"
+                disabled
                 startIcon={
                   <span className="material-icons" style={{ fontSize: 16 }}>
                     delete_sweep
                   </span>
                 }
-                onClick={() => {
-                  const form = new FormData();
-                  form.append("intent", "clear-cache");
-                  fetcher.submit(form, { method: "post" });
-                }}
               >
-                Очистити кеш
+                Очистити кеш (недоступно)
               </Button>
 
               <Button
@@ -655,18 +564,14 @@ const Admin = () => {
                 variant="outlined"
                 color="error"
                 size="small"
+                disabled
                 startIcon={
                   <span className="material-icons" style={{ fontSize: 16 }}>
                     backup
                   </span>
                 }
-                onClick={() => {
-                  const form = new FormData();
-                  form.append("intent", "backup");
-                  fetcher.submit(form, { method: "post" });
-                }}
               >
-                Резервна копія БД
+                Резервна копія БД (недоступно)
               </Button>
             </Box>
           </SectionCard>
@@ -698,6 +603,7 @@ const Admin = () => {
               name="firstName"
               fullWidth
               defaultValue={dialog.data?.firstName || ""}
+              required
             />
             <TextField
               label="Email"
@@ -705,9 +611,23 @@ const Admin = () => {
               type="email"
               fullWidth
               defaultValue={dialog.data?.email || ""}
+              required
             />
+            {dialog.mode === "edit-admin" && (
+              <TextField
+                select
+                label="Роль"
+                name="role"
+                fullWidth
+                defaultValue={dialog.data?.role || "user"}
+              >
+                <MenuItem value="user">Користувач</MenuItem>
+                <MenuItem value="moderator">Модератор</MenuItem>
+                <MenuItem value="admin">Адміністратор</MenuItem>
+              </TextField>
+            )}
             {dialog.mode === "add-admin" && (
-              <TextField label="Пароль" name="password" type="password" fullWidth />
+              <TextField label="Пароль" name="password" type="password" fullWidth required />
             )}
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2.5 }}>
@@ -717,7 +637,6 @@ const Admin = () => {
             <Button
               type="submit"
               variant="contained"
-              onClick={closeDialog}
             >
               {dialog.mode === "add-admin" ? "Додати" : "Зберегти"}
             </Button>
@@ -755,8 +674,22 @@ const Admin = () => {
           <Button
             variant="contained"
             onClick={() => {
-              closeDialog();
-              toast.success("Дозволи оновлено");
+              if (!dialog.data?.id) return;
+              const selectedPerms = ALL_PERMS.filter((p) =>
+                document.querySelector(`input[name="${p.key}"]`)?.checked
+              ).map((p) => p.key);
+              customFetch
+                .put(`/admin/admins/${dialog.data.id}/role`, {
+                  role: dialog.data.role || "moderator",
+                  permissions: selectedPerms,
+                })
+                .then(() => {
+                  closeDialog();
+                  toast.success("Дозволи оновлено");
+                })
+                .catch(() => {
+                  toast.error("Помилка оновлення дозволів");
+                });
             }}
           >
             Зберегти

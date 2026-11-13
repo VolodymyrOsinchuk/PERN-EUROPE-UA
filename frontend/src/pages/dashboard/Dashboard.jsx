@@ -1,7 +1,22 @@
 import { useLoaderData } from "react-router-dom";
-import { Box, Grid, Paper, Typography, Divider } from "@mui/material";
+import {
+  Box,
+  Grid,
+  Paper,
+  Typography,
+  Divider,
+} from "@mui/material";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 export const loader = async () => {
   try {
@@ -138,6 +153,23 @@ const Dashboard = () => {
   const data = useLoaderData();
   const recentActivity = data?.recentActivity || [];
 
+  /* Групуємо активність за днями (останні 7 днів) */
+  const activityByDay = recentActivity.reduce((acc, n) => {
+    const day = new Date(n.createdAt).toLocaleDateString("uk-UA", {
+      weekday: "short",
+    });
+    acc[day] = (acc[day] || 0) + 1;
+    return acc;
+  }, {});
+
+  const daysOrder = ["Пн", "Вів", "Ср", "Чт", "Пт", "Сб", "Вс"];
+  const chartData = daysOrder.map((d) => ({
+    name: d,
+    active: activityByDay[d] || 0,
+  }));
+
+  const totalActivity = recentActivity.length;
+
   return (
     <Box>
       {/* Page header */}
@@ -173,7 +205,7 @@ const Dashboard = () => {
         })}
       </Grid>
 
-      {/* Placeholder for charts / activity feed */}
+      {/* Activity chart */}
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 8 }}>
           <Paper sx={{ p: 3 }}>
@@ -181,20 +213,46 @@ const Dashboard = () => {
               Активність
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            <Box
-              sx={{
-                height: 220,
-                bgcolor: "#F8FAFC",
-                borderRadius: 2,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                border: "1px dashed rgba(15,23,42,0.12)",
-              }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                Графік активності (підключіть Recharts)
-              </Typography>
+            <Box sx={{ height: 260 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="active"
+                    stroke="#0057B8"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </Box>
+            <Box sx={{ mt: 1, display: "flex", gap: 2, flexWrap: "wrap" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <span
+                  className="material-icons"
+                  style={{ fontSize: 14, color: "#0057B8" }}
+                >
+                  notifications
+                </span>
+                <Typography variant="caption" fontWeight={600}>
+                  {totalActivity} повідомлень за тиждень
+                </Typography>
+              </Box>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <span
+                  className="material-icons"
+                  style={{ fontSize: 14, color: "#64748B" }}
+                >
+                  trending_flat
+                </span>
+                <Typography variant="caption" color="text.secondary">
+                  Графік на основі реальних подій
+                </Typography>
+              </Box>
             </Box>
           </Paper>
         </Grid>

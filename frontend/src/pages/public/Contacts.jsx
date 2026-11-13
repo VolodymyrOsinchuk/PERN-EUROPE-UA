@@ -58,18 +58,21 @@ const SOCIALS = [
     href: "https://facebook.com",
     label: "Facebook",
     color: "#1877F2",
+    disabled: true,
   },
   {
     icon: "telegram",
     href: "https://telegram.org",
     label: "Telegram",
     color: "#0088cc",
+    disabled: true,
   },
   {
     icon: "instagram",
     href: "https://instagram.com",
     label: "Instagram",
     color: "#e1306c",
+    disabled: true,
   },
 ];
 
@@ -357,10 +360,10 @@ export default function Contacts() {
                   {SOCIALS.map((s) => (
                     <Box
                       key={s.label}
-                      component="a"
-                      href={s.href}
-                      target="_blank"
-                      rel="noopener"
+                      component={s.disabled ? "span" : "a"}
+                      href={s.disabled ? undefined : s.href}
+                      target={s.disabled ? undefined : "_blank"}
+                      rel={s.disabled ? undefined : "noopener"}
                       sx={{
                         display: "flex",
                         alignItems: "center",
@@ -368,15 +371,21 @@ export default function Contacts() {
                         px: 2,
                         py: 1,
                         borderRadius: "10px",
-                        border: "1px solid #e2e8f0",
+                        border: `1px solid ${s.disabled ? "#e2e8f0" : s.color}`,
                         textDecoration: "none",
-                        color: "#334155",
+                        color: s.disabled ? "#94a3b8" : "#334155",
+                        cursor: s.disabled ? "default" : "pointer",
+                        opacity: s.disabled ? 0.5 : 1,
                         transition: "all 0.2s",
-                        "&:hover": {
-                          borderColor: s.color,
-                          color: s.color,
-                          bgcolor: `${s.color}10`,
-                        },
+                        ...(s.disabled
+                          ? {}
+                          : {
+                              "&:hover": {
+                                borderColor: s.color,
+                                color: s.color,
+                                bgcolor: `${s.color}10`,
+                              },
+                            }),
                       }}
                     >
                       <span className="material-icons" style={{ fontSize: 16 }}>

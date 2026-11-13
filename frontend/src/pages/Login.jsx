@@ -316,8 +316,11 @@ export default function Login() {
             </Box>
           </Typography>
 
-          {/* Social buttons — redirigent vers le backend OAuth */}
-          <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
+          {/* Social buttons — redirigent vers le backend OAuth.
+               ДЕАКТИВОВАНО: немає GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
+               та FACEBOOK_APP_ID / FACEBOOK_APP_SECRET у .env.
+               Після додавання змінних оточення розкоментуйте цей блок. */}
+          {/* <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
             {SOCIAL_PROVIDERS.map((p) => (
               <Button
                 key={p.name}
@@ -350,7 +353,7 @@ export default function Login() {
                 {p.name}
               </Button>
             ))}
-          </Box>
+          </Box> */}
 
           <Divider sx={{ my: 3 }}>
             <Typography
@@ -405,7 +408,7 @@ export default function Login() {
               >
                 <Box
                   component={Link}
-                  to="#"
+                  to="/forgot-password"
                   sx={{
                     fontFamily: fontBody,
                     fontSize: "0.8rem",

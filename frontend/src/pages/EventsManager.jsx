@@ -40,6 +40,14 @@ export const action = async ({ request }) => {
     if (intent === "delete") {
       await customFetch.delete(`/events/${formData.get("id")}`);
       toast.success("Подію видалено");
+    } else if (intent === "create") {
+      await customFetch.post("/events", {
+        title: formData.get("title"),
+        date: formData.get("date"),
+        location: formData.get("location"),
+        description: formData.get("description"),
+      });
+      toast.success("Подію створено");
     }
   } catch (error) {
     toast.error(error?.response?.data?.message);
@@ -238,7 +246,7 @@ const EventsManager = () => {
               Скасувати
             </Button>
             <Button type="submit" variant="contained">
-              Créer
+              Створити
             </Button>
           </DialogActions>
         </Form>

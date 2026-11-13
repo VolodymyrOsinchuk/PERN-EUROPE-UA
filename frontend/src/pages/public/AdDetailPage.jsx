@@ -42,7 +42,6 @@ import ReportOutlinedIcon from "@mui/icons-material/ReportOutlined";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
-import VerifiedIcon from "@mui/icons-material/Verified";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
@@ -182,12 +181,11 @@ function ContactCard({ ad, onChat, onEmail, onReport }) {
               >
                 {authorName}
               </Typography>
-              <VerifiedIcon sx={{ fontSize: 16, color: BLUE }} />
-            </Box>
+              </Box>
             <Typography
               sx={{ fontFamily: F_BODY, fontSize: "0.78rem", color: "#64748b" }}
             >
-              На сайті з 2023 року
+              Учасник спільноти
             </Typography>
           </Box>
         </Box>
@@ -618,7 +616,35 @@ export default function AdDetailPage() {
   const [reportOpen, setReportOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
-  const [saved, setSaved] = useState(false);
+
+  /* Saved ads — локальне сховище (localStorage) */
+  const FAV_KEY = "pern_europe_ua_favorites";
+  const [saved, setSaved] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const favs = JSON.parse(localStorage.getItem(FAV_KEY) || "[]");
+      return Array.isArray(favs) && favs.includes(ad?.id);
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleFavorite = () => {
+    if (!ad?.id) return;
+    try {
+      const favs = JSON.parse(localStorage.getItem(FAV_KEY) || "[]");
+      const next = favs.includes(ad.id)
+        ? favs.filter((id) => id !== ad.id)
+        : [...favs, ad.id];
+      localStorage.setItem(FAV_KEY, JSON.stringify(next));
+      setSaved(!saved);
+      toast.success(
+        !saved ? "Додано до обраних" : "Видалено з обраних"
+      );
+    } catch {
+      toast.error("Не вдалося оновити обране");
+    }
+  };
 
   if (!ad || !ad.title) {
     return (
@@ -742,7 +768,7 @@ export default function AdDetailPage() {
               <Tooltip title={saved ? "Збережено" : "Зберегти"}>
                 <IconButton
                   size="small"
-                  onClick={() => setSaved((v) => !v)}
+                  onClick={toggleFavorite}
                   sx={{
                     border: "1.5px solid",
                     borderColor: saved ? BLUE : "#e2e8f0",

@@ -33,9 +33,8 @@ export const loader = async () => {
     const { data } = await customFetch.get("/publications");
     return data;
   } catch (error) {
-    // Publications route may not be mounted yet — return mock data
-    console.warn("API публікацій недоступний:", error?.message);
-    return MOCK_PUBLICATIONS;
+    toast.error("Помилка завантаження публікацій");
+    return [];
   }
 };
 
@@ -55,48 +54,21 @@ export const action = async ({ request }) => {
         readTime: formData.get("readTime"),
       });
       toast.success("Публікацію створено");
+    } else if (intent === "update") {
+      await customFetch.put(`/publications/${formData.get("id")}`, {
+        title: formData.get("title"),
+        content: formData.get("content"),
+        category: formData.get("category"),
+        author: formData.get("author"),
+        readTime: formData.get("readTime"),
+      });
+      toast.success("Публікацію оновлено");
     }
   } catch (error) {
     toast.error(error?.response?.data?.message || "Помилка операції");
   }
   return redirect("/dashboard/posts");
 };
-
-// ── Mock data (fallback si API non montée) ────────────────
-const MOCK_PUBLICATIONS = [
-  {
-    id: 1,
-    title: "Як отримати дозвіл на проживання в Німеччині",
-    category: "Документи",
-    author: "Марія Петренко",
-    readTime: "12 хв",
-    date: new Date("2024-10-15"),
-  },
-  {
-    id: 2,
-    title: "ТОП-10 сайтів для пошуку роботи в Польщі",
-    category: "Робота",
-    author: "Олександр Коваленко",
-    readTime: "8 хв",
-    date: new Date("2024-10-12"),
-  },
-  {
-    id: 3,
-    title: "Медичне страхування в країнах ЄС",
-    category: "Медицина",
-    author: "Ірина Василенко",
-    readTime: "15 хв",
-    date: new Date("2024-10-10"),
-  },
-  {
-    id: 4,
-    title: "Освіта за кордоном: можливості для студентів",
-    category: "Освіта",
-    author: "Павло Мельник",
-    readTime: "10 хв",
-    date: new Date("2024-10-08"),
-  },
-];
 
 const CATEGORIES = [
   "Документи",
@@ -123,9 +95,12 @@ const categoryColor = (cat) => {
 };
 
 const Posts = () => {
-  const publications = useLoaderData() || MOCK_PUBLICATIONS;
+  const publications = useLoaderData() || [];
   const [search, setSearch] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [editData, setEditData] = useState({ title: "", content: "", category: "", author: "", readTime: "" });
 
   const filtered = publications.filter(
     (p) =>
@@ -216,7 +191,23 @@ const Posts = () => {
       render: (row) => (
         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
           <Tooltip title="Редагувати">
-            <IconButton size="small">
+            <IconButton
+              size="small"
+              onClick={() => {
+                const rowData = publications.find((p) => p.id === row.id);
+                if (rowData) {
+                  setEditId(rowData.id);
+                  setEditData({
+                    title: rowData.title || "",
+                    content: rowData.content || "",
+                    category: rowData.category || "",
+                    author: rowData.author || "",
+                    readTime: rowData.readTime || "",
+                  });
+                  setEditOpen(true);
+                }
+              }}
+            >
               <EditOutlinedIcon fontSize="small" sx={{ color: "#64748B" }} />
             </IconButton>
           </Tooltip>
@@ -336,6 +327,63 @@ const Posts = () => {
             </Button>
             <Button type="submit" variant="contained">
               Опублікувати
+            </Button>
+          </DialogActions>
+        </Form>
+      </Dialog>
+
+      {/* Edit publication dialog */}
+      <Dialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Редагувати публікацію</DialogTitle>
+        <Form method="post" onSubmit={() => setEditOpen(false)}>
+          <input type="hidden" name="intent" value="update" />
+          <input type="hidden" name="id" value={editId} />
+          <DialogContent
+            sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}
+          >
+            <TextField name="title" label="Заголовок" fullWidth required defaultValue={editData.title} />
+            <FormControl fullWidth size="small">
+              <InputLabel>Категорія</InputLabel>
+              <Select name="category" label="Категорія" defaultValue={editData.category}>
+                {CATEGORIES.map((c) => (
+                  <MenuItem key={c} value={c}>
+                    {c}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField name="author" label="Автор" fullWidth defaultValue={editData.author} />
+            <TextField
+              name="readTime"
+              label="Час читання (напр. 10 хв)"
+              fullWidth
+              defaultValue={editData.readTime}
+            />
+            <TextField
+              name="content"
+              label="Контент"
+              fullWidth
+              multiline
+              rows={4}
+              required
+              defaultValue={editData.content}
+            />
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2.5 }}>
+            <Button
+              onClick={() => setEditOpen(false)}
+              variant="outlined"
+              color="inherit"
+            >
+              Скасувати
+            </Button>
+            <Button type="submit" variant="contained">
+              Зберегти
             </Button>
           </DialogActions>
         </Form>

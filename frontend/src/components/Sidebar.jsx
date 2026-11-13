@@ -8,14 +8,18 @@ import {
   Typography,
   Box,
   Chip,
+  Badge,
 } from "@mui/material";
 import { Link, useLocation } from "react-router-dom";
+import { useAuthContext } from "../context/AuthContext";
+import { useState, useEffect } from "react";
+import customFetch from "../utils/customFetch";
 
 const links = [
   { text: "Огляд", path: "/dashboard", icon: "dashboard" },
   { text: "Користувачі", path: "/dashboard/users", icon: "people_alt" },
   { text: "Оголошення", path: "/dashboard/ads", icon: "campaign" },
-  { text: "Модерація ", path: "/dashboard/moderation", icon: "verified_user" },
+  { text: "Модерація", path: "/dashboard/moderation", icon: "verified_user" },
   { text: "Категорії", path: "/dashboard/categories", icon: "category" },
   { text: "Публікації", path: "/dashboard/posts", icon: "article" },
   { text: "Події", path: "/dashboard/events", icon: "event" },
@@ -51,6 +55,34 @@ const groups = [
 
 function Sidebar() {
   const location = useLocation();
+  const { user } = useAuthContext();
+  const [pendingCount, setPendingCount] = useState(0);
+
+  const isStaff = user && ["admin", "moderator"].includes(user.role);
+
+  useEffect(() => {
+    if (!isStaff) return;
+    let cancelled = false;
+    customFetch
+      .get("/moderation/pending-count")
+      .then(({ data }) => {
+        if (!cancelled) setPendingCount(data.count || 0);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isStaff]);
+
+  const userName = user
+    ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email
+    : "Адміністратор";
+  const userEmail = user ? user.email : "admin@site.com";
+  const userInitials = user
+    ? `${(user.firstName || "")[0]}${ (user.lastName || "")[0]}`
+        .toUpperCase()
+        .trim() || "А"
+    : "А";
 
   return (
     <Box
@@ -88,6 +120,7 @@ function Sidebar() {
                   path === "/dashboard"
                     ? location.pathname === "/dashboard"
                     : location.pathname.startsWith(path);
+                const isModeration = path === "/dashboard/moderation";
                 return (
                   <ListItemButton
                     key={text}
@@ -114,19 +147,39 @@ function Sidebar() {
                         color: isActive ? "#2563EB" : "#334155",
                       }}
                     />
-                    {badge && (
-                      <Chip
-                        label={badge}
-                        size="small"
-                        sx={{
-                          height: 18,
-                          fontSize: "0.6rem",
-                          fontWeight: 700,
-                          bgcolor: "#FEF3C7",
-                          color: "#92400E",
-                        }}
-                      />
-                    )}
+                    {badge || (isModeration && pendingCount > 0) ? (
+                      <>
+                        {badge && (
+                          <Chip
+                            label={badge}
+                            size="small"
+                            sx={{
+                              height: 18,
+                              fontSize: "0.6rem",
+                              fontWeight: 700,
+                              bgcolor: "#FEF3C7",
+                              color: "#92400E",
+                            }}
+                          />
+                        )}
+                        {isModeration && pendingCount > 0 && (
+                          <Badge
+                            badgeContent={pendingCount}
+                            color="error"
+                            sx={{
+                              ml: 1,
+                              bgcolor: "#DC2626",
+                              color: "#fff",
+                              fontSize: "0.7rem",
+                              fontWeight: 700,
+                              height: 20,
+                              minWidth: 20,
+                              borderRadius: 10,
+                            }}
+                          />
+                        )}
+                      </>
+                    ) : null}
                   </ListItemButton>
                 );
               })}
@@ -161,7 +214,7 @@ function Sidebar() {
             flexShrink: 0,
           }}
         >
-          А
+          {userInitials}
         </Box>
         <Box sx={{ minWidth: 0 }}>
           <Typography
@@ -171,13 +224,13 @@ function Sidebar() {
             noWrap
             sx={{ color: "#0F172A" }}
           >
-            Адміністратор
+            {userName}
           </Typography>
           <Typography
             variant="caption"
             sx={{ color: "#94A3B8", fontSize: "0.7rem" }}
           >
-            admin@site.com
+            {userEmail}
           </Typography>
         </Box>
       </Box>

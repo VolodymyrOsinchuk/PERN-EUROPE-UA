@@ -162,6 +162,13 @@ exports.getModerationAds = wrap(async (req, res) => {
   res.status(200).json(ads);
 }, "getModerationAds");
 
+exports.getPendingCount = wrap(async (req, res) => {
+  const count = await Adv.count({
+    where: { moderationStatus: "pending" },
+  });
+  res.status(200).json({ count });
+}, "getPendingCount");
+
 exports.approveAd = wrap(
   (req, res) =>
     moderate(req, res, { newStatus: "approved", needsReason: false }),

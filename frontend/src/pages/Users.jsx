@@ -14,6 +14,10 @@ import {
   Tooltip,
   Typography,
   InputAdornment,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -39,7 +43,11 @@ export const action = async ({ request }) => {
 
   try {
     if (intent === "delete") {
-      await customFetch.delete(`/users/${formData.get("id")}`);
+      const userId = formData.get("id");
+      if (!window.confirm("Видалити цього користувача?")) {
+        return redirect("/dashboard/users");
+      }
+      await customFetch.delete(`/users/${userId}`);
       toast.success("Користувача видалено");
     } else if (intent === "create") {
       await customFetch.post("/users", Object.fromEntries(formData));
@@ -228,13 +236,18 @@ const Users = () => {
                 fullWidth
               />
             )}
-            <TextField
-              name="role"
-              label="Роль"
-              fullWidth
-              defaultValue={dialogData.user?.role}
-              helperText="Наприклад: user, moderator, admin"
-            />
+            <FormControl fullWidth>
+              <InputLabel>Роль</InputLabel>
+              <Select
+                name="role"
+                label="Роль"
+                defaultValue={dialogData.user?.role || "user"}
+              >
+                <MenuItem value="user">Користувач</MenuItem>
+                <MenuItem value="moderator">Модератор</MenuItem>
+                <MenuItem value="admin">Адміністратор</MenuItem>
+              </Select>
+            </FormControl>
             <input type="hidden" name="id" value={dialogData.user?.id ?? ""} />
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2.5 }}>
