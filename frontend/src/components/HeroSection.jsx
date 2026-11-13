@@ -1,85 +1,14 @@
-// import { Typography, Container, Button } from "@mui/material";
-// import { Link } from "react-router-dom";
-// import { ReactTyped } from "react-typed";
-// const HeroSection = ({
-//   typedStrings = [],
-//   subtitle,
-//   buttonText,
-//   buttonLink,
-//   textColor = "inherit",
-// }) => {
-//   // heroStyles removed (unused) — styling is handled in CSS
-//   return (
-//     <div
-//       // style={heroStyles}
-//       className="hero"
-//     >
-//       <Container>
-//         <Typography
-//           variant="h2"
-//           gutterBottom
-//           style={{
-//             color: textColor,
-//             fontWeight: "bold",
-//             marginBottom: "20px",
-//           }}
-//         >
-//           {typedStrings.length > 0 && (
-//             <ReactTyped
-//               strings={typedStrings}
-//               typeSpeed={200}
-//               backSpeed={150}
-//               loop
-//             />
-//           )}
-//         </Typography>
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
+  Chip,
+} from "@mui/material";
 
-//         {subtitle && (
-//           <Typography
-//             variant="h5"
-//             gutterBottom
-//             style={{
-//               color: textColor,
-//               marginBottom: "30px",
-//             }}
-//           >
-//             {subtitle}
-//           </Typography>
-//         )}
-
-//         {buttonText && (
-//           <Button
-//             variant="contained"
-//             color="secondary"
-//             size="large"
-//             LinkComponent={Link}
-//             to={buttonLink}
-//             style={{ marginTop: "20px" }}
-//           >
-//             {buttonText}
-//           </Button>
-//         )}
-//       </Container>
-//     </div>
-//   );
-// };
-
-// export default HeroSection;
-import { Box, Container, Typography, Button, Chip } from "@mui/material";
 import { Link } from "react-router-dom";
 import { ReactTyped } from "react-typed";
 
-/**
- * HeroSection — modernisé avec :
- * - Dégradé éditorial Ukraine + particules décoratives
- * - Typography Playfair Display / Plus Jakarta Sans
- * - Animations fadeUp
- * - Accent doré et bleu ukrainien
- *
- * Props identiques à l'original + nouveaux optionnels :
- *  title, typedStrings, subtitle, buttonText, buttonLink,
- *  badge?, secondaryButtonText?, secondaryButtonLink?, size? ('sm'|'md'|'lg')
- */
 export default function HeroSection({
   title,
   typedStrings = [],
@@ -92,226 +21,405 @@ export default function HeroSection({
   size = "md",
 }) {
   const sizes = {
-    sm: { pt: "60px", pb: "56px" },
-    md: { pt: "80px", pb: "80px" },
-    lg: { pt: "96px", pb: "100px" },
+    sm: {
+      py: { xs: 7, sm: 8, md: 9 },
+    },
+    md: {
+      py: { xs: 9, sm: 11, md: 13 },
+    },
+    lg: {
+      py: { xs: 11, sm: 13, md: 16 },
+    },
+  };
+
+  const hasTypedText =
+    Array.isArray(typedStrings) && typedStrings.length > 0;
+
+  const buttonStyle = {
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    fontWeight: 700,
+    fontSize: { xs: ".9rem", md: ".95rem" },
+    textTransform: "none",
+    borderRadius: "12px",
+    px: 3.5,
+    py: 1.5,
+    transition: "all .3s cubic-bezier(.16,1,.3,1)",
   };
 
   return (
     <Box
+      component="section"
       sx={{
         position: "relative",
+        isolation: "isolate",
         overflow: "hidden",
+        color: "#fff",
+
         background:
-          "linear-gradient(135deg, #0057B8 0%, #003d82 55%, #002255 100%)",
-        ...sizes[size],
+          "linear-gradient(135deg, #061B35 0%, #003D82 52%, #0757A6 100%)",
+
+        ...sizes[size] || sizes.md,
+
+        // Animations
+        "@keyframes heroFadeUp": {
+          from: {
+            opacity: 0,
+            transform: "translateY(24px)",
+          },
+          to: {
+            opacity: 1,
+            transform: "translateY(0)",
+          },
+        },
+
+        "@keyframes heroFloat": {
+          "0%, 100%": {
+            transform: "translateY(0)",
+          },
+          "50%": {
+            transform: "translateY(-14px)",
+          },
+        },
+
+        "@keyframes heroGlow": {
+          "0%, 100%": {
+            opacity: 0.35,
+          },
+          "50%": {
+            opacity: 0.7,
+          },
+        },
+
+        "@media (prefers-reduced-motion: reduce)": {
+          "& *": {
+            animation: "none !important",
+            transition: "none !important",
+          },
+        },
       }}
     >
-      {/* ── Decorative background elements ── */}
-      {/* Golden sun / circle */}
+
+      {/* BACKGROUND DECORATIONS */}
+
       <Box
         sx={{
           position: "absolute",
-          top: "-80px",
-          right: "-80px",
-          width: 420,
-          height: 420,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(255,215,0,.18) 0%, rgba(255,215,0,0) 70%)",
+          inset: 0,
+          zIndex: -1,
           pointerEvents: "none",
+
+          backgroundImage:
+            "radial-gradient(rgba(255,255,255,.09) 1px, transparent 1px)",
+
+          backgroundSize: "32px 32px",
+
+          opacity: 0.45,
+
+          maskImage:
+            "linear-gradient(to bottom, black, transparent)",
         }}
       />
-      {/* Bottom left fade */}
+
+      {/* GOLDEN GLOW */}
+
       <Box
         sx={{
           position: "absolute",
-          bottom: "-60px",
-          left: "-60px",
-          width: 320,
-          height: 320,
+          width: { xs: 280, md: 500 },
+          height: { xs: 280, md: 500 },
           borderRadius: "50%",
+          top: -180,
+          right: { xs: -130, md: -100 },
+
           background:
-            "radial-gradient(circle, rgba(0,87,184,.4) 0%, transparent 70%)",
+            "radial-gradient(circle, rgba(255,215,0,.2), transparent 70%)",
+
+          filter: "blur(12px)",
+          animation: "heroGlow 7s ease-in-out infinite",
           pointerEvents: "none",
         }}
       />
-      {/* Gold stripe top accent */}
+
+      {/* BLUE LIGHT */}
+
+      <Box
+        sx={{
+          position: "absolute",
+          width: 400,
+          height: 400,
+          borderRadius: "50%",
+          bottom: -280,
+          left: -150,
+
+          background:
+            "radial-gradient(circle, rgba(0,145,255,.25), transparent 70%)",
+
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* DECORATIVE CIRCLE */}
+
+      <Box
+        sx={{
+          position: "absolute",
+          width: { xs: 180, md: 330 },
+          height: { xs: 180, md: 330 },
+          borderRadius: "50%",
+          border: "1px solid rgba(255,255,255,.09)",
+          top: "50%",
+          right: { xs: -90, md: "5%" },
+          transform: "translateY(-50%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      <Box
+        sx={{
+          position: "absolute",
+          width: { xs: 120, md: 220 },
+          height: { xs: 120, md: 220 },
+          borderRadius: "50%",
+          border: "1px solid rgba(255,215,0,.13)",
+          top: "50%",
+          right: { xs: -60, md: "9%" },
+          transform: "translateY(-50%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* GOLD TOP LINE */}
+
       <Box
         sx={{
           position: "absolute",
           top: 0,
           left: 0,
           right: 0,
-          height: 4,
+          height: 3,
+
           background:
-            "linear-gradient(90deg, transparent 0%, #FFD700 30%, #FFD700 70%, transparent 100%)",
-          opacity: 0.8,
-        }}
-      />
-      {/* Geometric dots grid */}
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          backgroundImage: `radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px)`,
-          backgroundSize: "32px 32px",
-          pointerEvents: "none",
+            "linear-gradient(90deg, transparent, #FFD700 30%, #FFD700 70%, transparent)",
+
+          opacity: 0.85,
         }}
       />
 
-      <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
-        <Box sx={{ maxWidth: 760, mx: "auto", textAlign: "center" }}>
-          {/* Badge */}
+      {/* CONTENT */}
+
+      <Container
+        maxWidth="lg"
+        sx={{
+          position: "relative",
+          zIndex: 2,
+        }}
+      >
+        <Box
+          sx={{
+            maxWidth: 850,
+            mx: "auto",
+            textAlign: "center",
+          }}
+        >
+
+          {/* BADGE */}
+
           {badge && (
             <Chip
               label={badge}
               sx={{
                 mb: 3,
-                bgcolor: "rgba(255,215,0,.15)",
+                height: 34,
+                px: 1,
+                borderRadius: "50px",
+
                 color: "#FFD700",
-                fontFamily: "'Plus Jakarta Sans',sans-serif",
+                background: "rgba(255,215,0,.10)",
+
+                border:
+                  "1px solid rgba(255,215,0,.28)",
+
+                fontFamily:
+                  "'Plus Jakarta Sans', sans-serif",
+
                 fontWeight: 700,
-                fontSize: "0.75rem",
-                letterSpacing: "0.05em",
-                border: "1px solid rgba(255,215,0,.3)",
-                borderRadius: "99px",
-                height: 30,
-                animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both",
-                "@keyframes fadeUp": {
-                  from: { opacity: 0, transform: "translateY(20px)" },
-                  to: { opacity: 1, transform: "translateY(0)" },
-                },
+                fontSize: ".72rem",
+                letterSpacing: ".08em",
+
+                animation:
+                  "heroFadeUp .7s cubic-bezier(.16,1,.3,1) both",
               }}
             />
           )}
 
-          {/* Title */}
+          {/* TITLE */}
+
           <Typography
             component="h1"
             sx={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontWeight: 900,
-              fontSize: { xs: "2.2rem", sm: "2.8rem", md: "3.6rem" },
-              lineHeight: 1.1,
-              letterSpacing: "-0.02em",
+              fontFamily:
+                "'Playfair Display', Georgia, serif",
+
+              fontWeight: 800,
+
+              fontSize: {
+                xs: "2.5rem",
+                sm: "3.3rem",
+                md: "4.3rem",
+                lg: "4.8rem",
+              },
+
+              lineHeight: 1.12,
+              letterSpacing: "-.035em",
+
               color: "#fff",
-              mb: 2,
-              animation: "fadeUp 0.6s 0.05s cubic-bezier(0.16,1,0.3,1) both",
-              "@keyframes fadeUp": {
-                from: { opacity: 0, transform: "translateY(24px)" },
-                to: { opacity: 1, transform: "translateY(0)" },
+
+              mb: 2.5,
+
+              overflowWrap: "break-word",
+
+              animation:
+                "heroFadeUp .8s .1s cubic-bezier(.16,1,.3,1) both",
+
+              "& .typed-cursor": {
+                color: "#FFD700",
+                fontWeight: 300,
               },
             }}
           >
-            {typedStrings.length > 0 ? (
+            {hasTypedText ? (
               <ReactTyped
                 strings={typedStrings}
-                typeSpeed={120}
-                backSpeed={80}
+                typeSpeed={65}
+                backSpeed={35}
+                backDelay={2200}
                 loop
+                showCursor
               />
             ) : (
               title
             )}
           </Typography>
 
-          {/* Gold accent line */}
+          {/* GOLD ACCENT */}
+
           <Box
             sx={{
-              width: 64,
+              width: 70,
               height: 4,
-              background: "linear-gradient(90deg, #FFD700, rgba(255,215,0,.3))",
-              borderRadius: "99px",
+              borderRadius: 10,
               mx: "auto",
-              mb: 3,
-              animation: "fadeUp 0.6s 0.15s cubic-bezier(0.16,1,0.3,1) both",
+              mb: 3.5,
+
+              background:
+                "linear-gradient(90deg, #FFD700, #FFF0A6)",
+
+              boxShadow:
+                "0 0 18px rgba(255,215,0,.3)",
+
+              animation:
+                "heroFadeUp .8s .2s cubic-bezier(.16,1,.3,1) both",
             }}
           />
 
-          {/* Subtitle */}
+          {/* SUBTITLE */}
+
           {subtitle && (
             <Typography
               sx={{
-                fontFamily: "'Plus Jakarta Sans',sans-serif",
+                fontFamily:
+                  "'Plus Jakarta Sans', sans-serif",
+
                 fontWeight: 400,
-                fontSize: { xs: "1rem", md: "1.15rem" },
-                color: "rgba(255,255,255,.8)",
-                lineHeight: 1.7,
-                mb: 4,
-                maxWidth: 580,
+
+                fontSize: {
+                  xs: ".98rem",
+                  sm: "1.05rem",
+                  md: "1.17rem",
+                },
+
+                color: "rgba(255,255,255,.78)",
+                lineHeight: 1.85,
+
+                maxWidth: 650,
                 mx: "auto",
-                animation: "fadeUp 0.6s 0.2s cubic-bezier(0.16,1,0.3,1) both",
+                mb: 4,
+
+                animation:
+                  "heroFadeUp .8s .3s cubic-bezier(.16,1,.3,1) both",
               }}
             >
               {subtitle}
             </Typography>
           )}
 
-          {/* Buttons */}
+          {/* BUTTONS */}
+
           {(buttonText || secondaryButtonText) && (
             <Box
               sx={{
                 display: "flex",
                 gap: 2,
                 justifyContent: "center",
+                alignItems: "center",
                 flexWrap: "wrap",
-                animation: "fadeUp 0.6s 0.3s cubic-bezier(0.16,1,0.3,1) both",
+
+                animation:
+                  "heroFadeUp .8s .4s cubic-bezier(.16,1,.3,1) both",
               }}
             >
+
               {buttonText && (
                 <Button
                   component={Link}
                   to={buttonLink || "/"}
                   sx={{
-                    fontFamily: "'Plus Jakarta Sans',sans-serif",
-                    fontWeight: 700,
-                    fontSize: "0.95rem",
-                    textTransform: "none",
-                    bgcolor: "#FFD700",
-                    color: "#003d82",
-                    borderRadius: "12px",
-                    px: 3.5,
-                    py: 1.4,
-                    boxShadow: "0 6px 24px rgba(255,215,0,.4)",
+                    ...buttonStyle,
+
+                    color: "#07366B",
+                    background: "#FFD700",
+
+                    boxShadow:
+                      "0 7px 24px rgba(255,215,0,.25)",
+
                     "&:hover": {
-                      bgcolor: "#f5c400",
-                      transform: "translateY(-2px)",
-                      boxShadow: "0 10px 32px rgba(255,215,0,.5)",
+                      background: "#FFE36A",
+                      transform: "translateY(-3px)",
+                      boxShadow:
+                        "0 12px 30px rgba(255,215,0,.35)",
                     },
-                    transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
                   }}
                 >
                   {buttonText}
                 </Button>
               )}
+
               {secondaryButtonText && (
                 <Button
                   component={Link}
                   to={secondaryButtonLink || "/"}
+                  variant="outlined"
                   sx={{
-                    fontFamily: "'Plus Jakarta Sans',sans-serif",
-                    fontWeight: 600,
-                    fontSize: "0.95rem",
-                    textTransform: "none",
+                    ...buttonStyle,
+
                     color: "#fff",
-                    borderRadius: "12px",
-                    px: 3.5,
-                    py: 1.4,
-                    border: "1.5px solid rgba(255,255,255,.35)",
+                    border:
+                      "1px solid rgba(255,255,255,.4)",
+
                     "&:hover": {
-                      bgcolor: "rgba(255,255,255,.08)",
-                      borderColor: "rgba(255,255,255,.6)",
-                      transform: "translateY(-1px)",
+                      background: "rgba(255,255,255,.08)",
+                      borderColor: "#fff",
+                      transform: "translateY(-2px)",
                     },
-                    transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
                   }}
                 >
                   {secondaryButtonText}
                 </Button>
               )}
+
             </Box>
           )}
+
         </Box>
       </Container>
     </Box>

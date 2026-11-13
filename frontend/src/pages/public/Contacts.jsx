@@ -1,413 +1,690 @@
-import { useState } from "react";
-import { HeroSection } from "../../components";
 import {
   Alert,
   Box,
   Button,
   Container,
-  IconButton,
   Paper,
   TextField,
   Typography,
   Grid,
+  Stack,
+  Divider,
+  IconButton,
+  CircularProgress,
 } from "@mui/material";
+
 import { Form, useActionData, useNavigation } from "react-router-dom";
+
+import {
+  MailOutline,
+  LocationOnOutlined,
+  AccessTimeOutlined,
+  ArrowOutward,
+  SendRounded,
+  Facebook,
+  Instagram,
+  Telegram,
+  CheckCircleOutline,
+} from "@mui/icons-material";
+
 import { toast } from "react-toastify";
 import customFetch from "../../utils/customFetch";
+import { HeroSection } from "../../components";
+
+const BLUE = "#0756A5";
+const NAVY = "#10243B";
+const MUTED = "#64748b";
 
 export const action = async ({ request }) => {
   const formData = await request.formData();
   const data = Object.fromEntries(formData);
 
+  if (data.website) {
+    return { success: true };
+  }
+
   try {
     await customFetch.post("/contact", data);
+
     toast.success("Дякуємо! Ми зв'яжемося з вами найближчим часом.");
+
     return { success: true };
   } catch (error) {
-    toast.error(
-      error?.response?.data?.error || "Помилка при відправці повідомлення",
-    );
-    return { error: "Помилка" };
+    const message =
+      error?.response?.data?.error || "Помилка при відправці повідомлення";
+
+    toast.error(message);
+
+    return { error: message };
   }
 };
 
-const fontBody = "'Plus Jakarta Sans', sans-serif";
-const fontDisplay = "'Playfair Display', serif";
-
-const inputSx = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "12px",
-    fontFamily: fontBody,
-    bgcolor: "#f8fafc",
-    "&:hover fieldset": { borderColor: "#0057B8" },
-    "&.Mui-focused fieldset": { borderColor: "#0057B8", borderWidth: "1.5px" },
-  },
-  "& .MuiInputLabel-root.Mui-focused": { color: "#0057B8" },
-  "& .MuiInputLabel-root": { fontFamily: fontBody },
-};
-
 const CONTACT_INFO = [
-  { icon: "email", label: "Email", value: "info@ukrainians-in-europe.com" },
-  { icon: "location_on", label: "Офіс", value: "Варшава, Польща" },
-  { icon: "schedule", label: "Графік роботи", value: "Пн–Пт, 9:00–18:00 CET" },
+  {
+    icon: <MailOutline />,
+    label: "Електронна пошта",
+    value: "info@ukrainians-in-europe.com",
+    href: "mailto:info@ukrainians-in-europe.com",
+  },
+  {
+    icon: <LocationOnOutlined />,
+    label: "Наш офіс",
+    value: "Варшава, Польща",
+  },
+  {
+    icon: <AccessTimeOutlined />,
+    label: "Графік роботи",
+    value: "Пн–Пт, 9:00–18:00 CET",
+  },
 ];
 
 const SOCIALS = [
   {
-    icon: "facebook",
-    href: "https://facebook.com",
+    icon: <Facebook />,
     label: "Facebook",
+    href: "https://facebook.com",
     color: "#1877F2",
-    disabled: true,
   },
   {
-    icon: "telegram",
-    href: "https://telegram.org",
-    label: "Telegram",
-    color: "#0088cc",
-    disabled: true,
-  },
-  {
-    icon: "instagram",
-    href: "https://instagram.com",
+    icon: <Instagram />,
     label: "Instagram",
-    color: "#e1306c",
-    disabled: true,
+    href: "https://instagram.com",
+    color: "#E1306C",
+  },
+  {
+    icon: <Telegram />,
+    label: "Telegram",
+    href: "https://telegram.org",
+    color: "#229ED9",
   },
 ];
+
+function SectionLabel({ children }) {
+  return (
+    <Typography
+      sx={{
+        fontSize: "0.72rem",
+        fontWeight: 800,
+        letterSpacing: "0.15em",
+        textTransform: "uppercase",
+        color: BLUE,
+        mb: 1.5,
+      }}
+    >
+      {children}
+    </Typography>
+  );
+}
+
+const fieldSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "12px",
+    backgroundColor: "#f8fafc",
+    fontSize: "0.95rem",
+    transition: "all .2s ease",
+
+    "& fieldset": {
+      borderColor: "#e2e8f0",
+    },
+
+    "&:hover fieldset": {
+      borderColor: "#94b8df",
+    },
+
+    "&.Mui-focused": {
+      backgroundColor: "#fff",
+    },
+
+    "&.Mui-focused fieldset": {
+      borderColor: BLUE,
+      borderWidth: "1.5px",
+    },
+  },
+
+  "& .MuiInputLabel-root.Mui-focused": {
+    color: BLUE,
+  },
+};
 
 export default function Contacts() {
   const actionData = useActionData();
   const navigation = useNavigation();
+
   const isSubmitting = navigation.state === "submitting";
 
   return (
-    <>
+    <Box
+      sx={{
+        backgroundColor: "#f8fafc",
+        minHeight: "100vh",
+      }}
+    >
+      {/* HERO SECTION */}
+
       <HeroSection
         title="Контакти"
-        typedStrings={["Зв'яжіться з нами"]}
-        subtitle="Маєте питання чи пропозиції? Ми завжди раді вам допомогти!"
+        badge="МИ ЗАВЖДИ НА ЗВ'ЯЗКУ"
+        typedStrings={[
+          "Зв'яжіться з нами",
+          "Ми завжди готові допомогти",
+          "Давайте спілкуватися",
+        ]}
+        subtitle="Маєте запитання, ідею або пропозицію? Напишіть нам — ми завжди відкриті до спілкування та готові допомогти."
         size="sm"
       />
 
-      <Box sx={{ py: { xs: 6, md: 10 } }}>
-        <Container maxWidth="lg">
-          <Grid container spacing={5} alignItems="flex-start">
-            {/* ── Form ── */}
-            <Grid size={{ xs: 12, md: 7 }}>
-              <Box sx={{ mb: 4 }}>
-                <Typography
-                  sx={{
-                    fontFamily: fontBody,
-                    fontSize: "0.7rem",
-                    fontWeight: 700,
-                    letterSpacing: "0.12em",
-                    textTransform: "uppercase",
-                    color: "#0057B8",
-                    mb: 0.5,
-                  }}
-                >
-                  Написати нам
-                </Typography>
-                <Typography
-                  sx={{
-                    fontFamily: fontDisplay,
-                    fontWeight: 700,
-                    fontSize: { xs: "1.8rem", md: "2.2rem" },
-                    color: "#0f172a",
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  Форма зворотного зв'язку
-                </Typography>
-                <Box
-                  sx={{
-                    width: 48,
-                    height: 4,
-                    background: "linear-gradient(90deg, #0057B8, #FFD700)",
-                    borderRadius: "99px",
-                    mt: 1.5,
-                  }}
-                />
-              </Box>
+      {/* MAIN CONTENT */}
 
-              <Paper
-                elevation={0}
+      <Container
+        maxWidth="lg"
+        sx={{
+          py: {
+            xs: 6,
+            md: 10,
+          },
+          position: "relative",
+        }}
+      >
+        <Grid
+          container
+          spacing={{
+            xs: 4,
+            md: 6,
+          }}
+        >
+          {/* CONTACT FORM */}
+
+          <Grid size={{ xs: 12, md: 7 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: {
+                  xs: 2.5,
+                  sm: 4,
+                  md: 5,
+                },
+                borderRadius: {
+                  xs: "18px",
+                  md: "24px",
+                },
+                border: "1px solid #e8edf3",
+                boxShadow: "0 15px 50px rgba(15,35,65,.045)",
+              }}
+            >
+              <SectionLabel>Напишіть нам</SectionLabel>
+
+              <Typography
+                component="h2"
                 sx={{
-                  borderRadius: "20px",
-                  border: "1px solid #e2e8f0",
-                  p: { xs: 3, md: 4 },
-                  boxShadow: "0 4px 24px rgba(0,87,184,.06)",
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: {
+                    xs: "1.9rem",
+                    md: "2.35rem",
+                  },
+                  fontWeight: 700,
+                  color: NAVY,
+                  mb: 1.5,
                 }}
               >
-                {actionData?.success && (
-                  <Alert
-                    severity="success"
-                    sx={{ mb: 3, borderRadius: "12px", fontFamily: fontBody }}
-                  >
-                    Дякуємо! Ми зв'яжемося з вами найближчим часом.
-                  </Alert>
-                )}
+                Ми готові вас вислухати
+              </Typography>
 
-                <Form method="post">
-                  <Box
-                    sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}
-                  >
-                    <Box
-                      sx={{
-                        display: "grid",
-                        gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                        gap: 2.5,
-                      }}
-                    >
+              <Typography
+                sx={{
+                  color: MUTED,
+                  lineHeight: 1.8,
+                  mb: 4,
+                  fontSize: ".94rem",
+                }}
+              >
+                Заповніть форму нижче, і наша команда відповість вам найближчим
+                часом.
+              </Typography>
+
+              {actionData?.success && (
+                <Alert
+                  severity="success"
+                  icon={<CheckCircleOutline />}
+                  sx={{
+                    mb: 3,
+                    borderRadius: "12px",
+                  }}
+                >
+                  Дякуємо! Ваше повідомлення успішно надіслано.
+                </Alert>
+              )}
+
+              {actionData?.error && (
+                <Alert
+                  severity="error"
+                  sx={{
+                    mb: 3,
+                    borderRadius: "12px",
+                  }}
+                >
+                  {actionData.error}
+                </Alert>
+              )}
+
+              <Form method="post">
+                <Stack spacing={2.5}>
+                  <Grid container spacing={2}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         name="name"
-                        label="Ім'я"
+                        label="Ваше ім'я"
+                        placeholder="Як до вас звертатися?"
                         required
                         fullWidth
-                        sx={inputSx}
+                        autoComplete="name"
+                        sx={fieldSx}
                       />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         name="email"
                         label="Email"
+                        placeholder="example@email.com"
                         type="email"
                         required
                         fullWidth
-                        sx={inputSx}
+                        autoComplete="email"
+                        sx={fieldSx}
                       />
-                    </Box>
-                    <TextField
-                      name="subject"
-                      label="Тема"
-                      required
-                      fullWidth
-                      sx={inputSx}
-                    />
-                    <TextField
-                      name="message"
-                      label="Повідомлення"
-                      multiline
-                      rows={5}
-                      required
-                      fullWidth
-                      sx={inputSx}
-                    />
-                    <Box
-                      component="input"
-                      type="text"
-                      name="website"
-                      tabIndex={-1}
-                      autoComplete="off"
-                      aria-hidden="true"
-                      sx={{ display: "none" }}
-                    />
-                    <Button
-                      type="submit"
-                      disabled={isSubmitting}
-                      sx={{
-                        fontFamily: fontBody,
-                        fontWeight: 700,
-                        textTransform: "none",
-                        bgcolor: "#0057B8",
+                    </Grid>
+                  </Grid>
+
+                  <TextField
+                    name="subject"
+                    label="Тема повідомлення"
+                    placeholder="Про що хочете поговорити?"
+                    required
+                    fullWidth
+                    sx={fieldSx}
+                  />
+
+                  <TextField
+                    name="message"
+                    label="Ваше повідомлення"
+                    placeholder="Напишіть ваше повідомлення тут..."
+                    multiline
+                    minRows={5}
+                    required
+                    fullWidth
+                    sx={fieldSx}
+                  />
+
+                  {/* HONEYPOT */}
+
+                  <Box
+                    component="input"
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    sx={{
+                      position: "absolute",
+                      width: 1,
+                      height: 1,
+                      overflow: "hidden",
+                      clip: "rect(0, 0, 0, 0)",
+                    }}
+                  />
+
+                  {/* SUBMIT BUTTON */}
+
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    endIcon={
+                      isSubmitting ? (
+                        <CircularProgress size={18} color="inherit" />
+                      ) : (
+                        <SendRounded />
+                      )
+                    }
+                    sx={{
+                      alignSelf: {
+                        xs: "stretch",
+                        sm: "flex-start",
+                      },
+                      px: 4,
+                      py: 1.6,
+                      borderRadius: "12px",
+                      background: BLUE,
+                      color: "#fff",
+                      fontWeight: 700,
+                      fontSize: ".95rem",
+                      textTransform: "none",
+                      boxShadow: "0 6px 18px rgba(7,86,165,.22)",
+                      transition: "all .25s ease",
+
+                      "&:hover": {
+                        background: "#06437f",
+                        transform: "translateY(-2px)",
+                        boxShadow: "0 10px 25px rgba(7,86,165,.28)",
+                      },
+
+                      "&:disabled": {
+                        background: "#94a3b8",
                         color: "#fff",
-                        borderRadius: "12px",
-                        py: 1.5,
-                        fontSize: "0.95rem",
-                        boxShadow: "0 4px 14px rgba(0,87,184,.35)",
-                        "&:hover": {
-                          bgcolor: "#003d82",
-                          transform: "translateY(-1px)",
-                          boxShadow: "0 6px 20px rgba(0,87,184,.45)",
-                        },
-                        "&:disabled": { bgcolor: "#94a3b8" },
-                        transition: "all 0.25s ease",
-                        alignSelf: "flex-start",
-                        px: 4,
-                      }}
-                    >
-                      {isSubmitting ? "Відправка..." : "Надіслати повідомлення"}
-                    </Button>
-                  </Box>
-                </Form>
-              </Paper>
-            </Grid>
+                      },
+                    }}
+                  >
+                    {isSubmitting ? "Надсилаємо..." : "Надіслати повідомлення"}
+                  </Button>
 
-            {/* ── Info ── */}
-            <Grid size={{ xs: 12, md: 5 }}>
-              <Box sx={{ mb: 4 }}>
-                <Typography
-                  sx={{
-                    fontFamily: fontBody,
-                    fontSize: "0.7rem",
-                    fontWeight: 700,
-                    letterSpacing: "0.12em",
-                    textTransform: "uppercase",
-                    color: "#0057B8",
-                    mb: 0.5,
-                  }}
-                >
-                  Де ми є
-                </Typography>
-                <Typography
-                  sx={{
-                    fontFamily: fontDisplay,
-                    fontWeight: 700,
-                    fontSize: "1.8rem",
-                    color: "#0f172a",
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  Наші контакти
-                </Typography>
-                <Box
-                  sx={{
-                    width: 48,
-                    height: 4,
-                    background: "linear-gradient(90deg, #0057B8, #FFD700)",
-                    borderRadius: "99px",
-                    mt: 1.5,
-                  }}
-                />
-              </Box>
+                  <Typography
+                    sx={{
+                      color: "#94a3b8",
+                      fontSize: ".76rem",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    Надсилаючи форму, ви погоджуєтесь на обробку наданих вами
+                    контактних даних для відповіді на запит.
+                  </Typography>
+                </Stack>
+              </Form>
+            </Paper>
+          </Grid>
+          {/* ================================== */}
+          {/* CONTACT INFORMATION */}
+          {/* ================================== */}
 
-              <Paper
-                elevation={0}
+          <Grid size={{ xs: 12, md: 5 }}>
+            <Box sx={{ mb: 3 }}>
+              <SectionLabel>Наші контакти</SectionLabel>
+
+              <Typography
+                component="h2"
                 sx={{
-                  borderRadius: "20px",
-                  border: "1px solid #e2e8f0",
-                  p: { xs: 3, md: 4 },
-                  mb: 3,
-                  boxShadow: "0 4px 24px rgba(0,87,184,.06)",
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: {
+                    xs: "1.9rem",
+                    md: "2.2rem",
+                  },
+                  fontWeight: 700,
+                  color: NAVY,
+                  mb: 1,
                 }}
               >
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  {CONTACT_INFO.map((item) => (
-                    <Box
-                      key={item.label}
-                      sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}
+                Ми поруч
+              </Typography>
+
+              <Typography
+                sx={{
+                  color: MUTED,
+                  fontSize: ".94rem",
+                  lineHeight: 1.8,
+                }}
+              >
+                Оберіть зручний спосіб зв'язку з нашою командою.
+              </Typography>
+            </Box>
+
+            {/* CONTACT CARDS */}
+
+            <Stack spacing={2}>
+              {CONTACT_INFO.map((item) => (
+                <Paper
+                  key={item.label}
+                  elevation={0}
+                  sx={{
+                    p: 2.5,
+                    borderRadius: "17px",
+                    border: "1px solid #e8edf3",
+
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+
+                    transition: "all .25s ease",
+
+                    "&:hover": {
+                      transform: "translateY(-3px)",
+                      borderColor: "#bfd5ed",
+                      boxShadow: "0 10px 25px rgba(15,35,65,.05)",
+                    },
+                  }}
+                >
+                  {/* ICON */}
+
+                  <Box
+                    sx={{
+                      width: 50,
+                      height: 50,
+                      flexShrink: 0,
+
+                      display: "grid",
+                      placeItems: "center",
+
+                      borderRadius: "14px",
+                      background: "#edf5ff",
+                      color: BLUE,
+
+                      "& svg": {
+                        fontSize: 25,
+                      },
+                    }}
+                  >
+                    {item.icon}
+                  </Box>
+
+                  {/* TEXT */}
+
+                  <Box
+                    sx={{
+                      minWidth: 0,
+                      flex: 1,
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color: MUTED,
+                        fontSize: ".73rem",
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: ".08em",
+                        mb: 0.5,
+                      }}
                     >
-                      <Box
+                      {item.label}
+                    </Typography>
+
+                    {item.href ? (
+                      <Typography
+                        component="a"
+                        href={item.href}
                         sx={{
-                          width: 44,
-                          height: 44,
-                          borderRadius: "12px",
-                          bgcolor: "#eff6ff",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
+                          color: NAVY,
+                          fontWeight: 700,
+
+                          fontSize: {
+                            xs: ".82rem",
+                            sm: ".92rem",
+                          },
+
+                          textDecoration: "none",
+                          overflowWrap: "anywhere",
+
+                          "&:hover": {
+                            color: BLUE,
+                          },
                         }}
                       >
-                        <span
-                          className="material-icons"
-                          style={{ fontSize: 20, color: "#0057B8" }}
-                        >
-                          {item.icon}
-                        </span>
-                      </Box>
-                      <Box>
-                        <Typography
-                          sx={{
-                            fontFamily: fontBody,
-                            fontWeight: 700,
-                            fontSize: "0.8rem",
-                            color: "#94a3b8",
-                            textTransform: "uppercase",
-                            letterSpacing: "0.06em",
-                            mb: 0.25,
-                          }}
-                        >
-                          {item.label}
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontFamily: fontBody,
-                            fontWeight: 500,
-                            fontSize: "0.95rem",
-                            color: "#0f172a",
-                          }}
-                        >
-                          {item.value}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  ))}
-                </Box>
-              </Paper>
-
-              {/* Socials */}
-              <Paper
-                elevation={0}
-                sx={{
-                  borderRadius: "20px",
-                  border: "1px solid #e2e8f0",
-                  p: { xs: 3, md: 4 },
-                  boxShadow: "0 4px 24px rgba(0,87,184,.06)",
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontFamily: fontBody,
-                    fontWeight: 700,
-                    fontSize: "0.95rem",
-                    color: "#0f172a",
-                    mb: 2.5,
-                  }}
-                >
-                  Слідкуйте за нами
-                </Typography>
-                <Box sx={{ display: "flex", gap: 1.5 }}>
-                  {SOCIALS.map((s) => (
-                    <Box
-                      key={s.label}
-                      component={s.disabled ? "span" : "a"}
-                      href={s.disabled ? undefined : s.href}
-                      target={s.disabled ? undefined : "_blank"}
-                      rel={s.disabled ? undefined : "noopener"}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                        px: 2,
-                        py: 1,
-                        borderRadius: "10px",
-                        border: `1px solid ${s.disabled ? "#e2e8f0" : s.color}`,
-                        textDecoration: "none",
-                        color: s.disabled ? "#94a3b8" : "#334155",
-                        cursor: s.disabled ? "default" : "pointer",
-                        opacity: s.disabled ? 0.5 : 1,
-                        transition: "all 0.2s",
-                        ...(s.disabled
-                          ? {}
-                          : {
-                              "&:hover": {
-                                borderColor: s.color,
-                                color: s.color,
-                                bgcolor: `${s.color}10`,
-                              },
-                            }),
-                      }}
-                    >
-                      <span className="material-icons" style={{ fontSize: 16 }}>
-                        {s.icon}
-                      </span>
+                        {item.value}
+                      </Typography>
+                    ) : (
                       <Typography
                         sx={{
-                          fontFamily: fontBody,
-                          fontWeight: 600,
-                          fontSize: "0.8rem",
+                          color: NAVY,
+                          fontWeight: 700,
+                          fontSize: ".92rem",
                         }}
                       >
-                        {s.label}
+                        {item.value}
                       </Typography>
-                    </Box>
-                  ))}
-                </Box>
-              </Paper>
-            </Grid>
+                    )}
+                  </Box>
+
+                  {/* EMAIL LINK */}
+
+                  {item.href && (
+                    <IconButton
+                      component="a"
+                      href={item.href}
+                      aria-label={`Написати: ${item.label}`}
+                      sx={{
+                        color: BLUE,
+                        flexShrink: 0,
+                      }}
+                    >
+                      <ArrowOutward />
+                    </IconButton>
+                  )}
+                </Paper>
+              ))}
+            </Stack>
+
+            {/* ================================== */}
+            {/* SOCIAL NETWORKS */}
+            {/* ================================== */}
+
+            <Paper
+              elevation={0}
+              sx={{
+                mt: 3,
+                p: 3,
+                borderRadius: "18px",
+                background: NAVY,
+                color: "#fff",
+                overflow: "hidden",
+                position: "relative",
+
+                "&::after": {
+                  content: '""',
+                  position: "absolute",
+                  width: 140,
+                  height: 140,
+                  borderRadius: "50%",
+                  border: "1px solid rgba(255,255,255,.12)",
+                  right: -55,
+                  bottom: -75,
+                },
+              }}
+            >
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  fontSize: "1.05rem",
+                  mb: 1,
+                  position: "relative",
+                  zIndex: 1,
+                }}
+              >
+                Слідкуйте за нами
+              </Typography>
+
+              <Typography
+                sx={{
+                  color: "rgba(255,255,255,.65)",
+                  fontSize: ".85rem",
+                  mb: 2.5,
+                  lineHeight: 1.7,
+                  position: "relative",
+                  zIndex: 1,
+                }}
+              >
+                Будьте в курсі новин та цікавих подій нашої спільноти.
+              </Typography>
+
+              <Stack direction="row" spacing={1.5}>
+                {SOCIALS.map((social) => (
+                  <IconButton
+                    key={social.label}
+                    component="a"
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={social.label}
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: "12px",
+                      color: "#fff",
+
+                      border: "1px solid rgba(255,255,255,.2)",
+
+                      position: "relative",
+                      zIndex: 1,
+
+                      transition: "all .2s ease",
+
+                      "&:hover": {
+                        background: social.color,
+                        borderColor: social.color,
+                        transform: "translateY(-3px)",
+                      },
+                    }}
+                  >
+                    {social.icon}
+                  </IconButton>
+                ))}
+              </Stack>
+            </Paper>
           </Grid>
-        </Container>
-      </Box>
-    </>
+        </Grid>
+
+        {/* ================================== */}
+        {/* BOTTOM MESSAGE */}
+        {/* ================================== */}
+
+        <Divider
+          sx={{
+            my: {
+              xs: 5,
+              md: 7,
+            },
+            borderColor: "#e8edf3",
+          }}
+        />
+
+        <Box
+          sx={{
+            textAlign: "center",
+            maxWidth: 600,
+            mx: "auto",
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: {
+                xs: "1.45rem",
+                md: "1.8rem",
+              },
+              color: NAVY,
+              fontWeight: 700,
+              mb: 1,
+            }}
+          >
+            Разом ми можемо більше 💙💛
+          </Typography>
+
+          <Typography
+            sx={{
+              color: MUTED,
+              fontSize: ".9rem",
+              lineHeight: 1.8,
+            }}
+          >
+            Дякуємо, що ви з нами. Будемо раді вашому повідомленню!
+          </Typography>
+        </Box>
+      </Container>
+    </Box>
   );
 }

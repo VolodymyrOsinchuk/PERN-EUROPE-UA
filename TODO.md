@@ -452,3 +452,1205 @@ Solutions simples : pagination 20 par page avec « Charger plus », recherche c�
 Pour avancer, j'ai besoin que tu me dises **« OK »** pour démarrer par la tâche **1.1** (une seule petite modification, expliquée pas à pas, avec le test à faire). Dis-moi aussi si tu veux garder actualités, événements, publications et forum dans le MVP ou les masquer pour l'instant. Si tu peux m'envoyer `backend/index.js`, `services/adExpirationSettingsService.js`, `customFetch.js`, `AuthContext.jsx` et `frontend/package.json`, je pourrai lever les points marqués ❓.
 
 Je peux aussi mettre cet audit dans un fichier `AUDIT.md` pour que tu le retrouves pendant les corrections.
+
+import { Fragment, useState, useMemo } from "react";
+import { HeroSection } from "../components";
+
+import {
+Box,
+Button,
+Card,
+CardContent,
+Chip,
+Container,
+Dialog,
+DialogActions,
+DialogContent,
+DialogTitle,
+Divider,
+FormControl,
+InputAdornment,
+InputLabel,
+MenuItem,
+Paper,
+Select,
+TextField,
+Typography,
+Grid,
+Avatar,
+Skeleton,
+Tooltip,
+IconButton,
+Tabs,
+Tab,
+} from "@mui/material";
+
+import SearchIcon from "@mui/icons-material/Search";
+import AddIcon from "@mui/icons-material/Add";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import PushPinIcon from "@mui/icons-material/PushPin";
+import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
+import LightbulbOutlinedIcon from "@mui/icons-material/LightbulbOutlined";
+import SortIcon from "@mui/icons-material/Sort";
+import GridViewIcon from "@mui/icons-material/GridView";
+import ViewListIcon from "@mui/icons-material/ViewList";
+import ClearIcon from "@mui/icons-material/Clear";
+
+import {
+Form,
+useLoaderData,
+useNavigation,
+Link,
+} from "react-router-dom";
+
+import customFetch from "../utils/customFetch";
+import { toast } from "react-toastify";
+import { useAuthContext } from "../context/AuthContext";
+import CitySelectField from "../components/CitySelectField";
+import { EUROPEAN_COUNTRIES } from "../data/europeanLocations";
+
+// ─────────────────────────────────────────
+// PREMIUM DESIGN SYSTEM
+// ─────────────────────────────────────────
+
+const BLUE = "#0752A0";
+const BLUE_DARK = "#062C59";
+const GOLD = "#E8BD55";
+
+const fontBody = "'Plus Jakarta Sans', sans-serif";
+const fontDisplay = "'Plus Jakarta Sans', sans-serif";
+
+const COLORS = {
+blue: BLUE,
+dark: BLUE_DARK,
+gold: GOLD,
+background: "#F5F7FA",
+surface: "#FFFFFF",
+text: "#172B45",
+secondary: "#718096",
+border: "#E8EDF3",
+success: "#159B75",
+};
+
+const EUROPE_COUNTRIES = EUROPEAN_COUNTRIES.map(
+(country) => country.name
+);
+
+// ─────────────────────────────────────────
+// LOADER
+// ─────────────────────────────────────────
+
+export async function loader() {
+try {
+const [topicsRes, categoriesRes, statsRes] =
+await Promise.allSettled([
+customFetch.get("/forum"),
+customFetch.get("/forum/categories"),
+customFetch.get("/forum/stats"),
+]);
+
+    return {
+      topics:
+        topicsRes.status === "fulfilled"
+          ? topicsRes.value.data
+          : [],
+
+      categories:
+        categoriesRes.status === "fulfilled"
+          ? categoriesRes.value.data
+          : [],
+
+      stats:
+        statsRes.status === "fulfilled"
+          ? statsRes.value.data
+          : null,
+    };
+
+} catch (error) {
+toast.error("Не вдалося завантажити форум");
+
+    return {
+      topics: [],
+      categories: [],
+      stats: null,
+    };
+
+}
+}
+
+// ─────────────────────────────────────────
+// ACTION
+// ─────────────────────────────────────────
+
+export async function action({ request }) {
+const formData = await request.formData();
+
+const title = formData.get("title");
+const content = formData.get("content");
+
+const forumCategoryId = formData.get("forumCategoryId");
+const forumSubcategoryId =
+formData.get("forumSubcategoryId") || null;
+
+const country = formData.get("country") || null;
+const city = formData.get("city") || null;
+
+try {
+const { data } = await customFetch.post("/forum", {
+title,
+content,
+
+      forumCategoryId: forumCategoryId
+        ? Number(forumCategoryId)
+        : null,
+
+      forumSubcategoryId: forumSubcategoryId
+        ? Number(forumSubcategoryId)
+        : null,
+
+      country,
+      city,
+    });
+
+    toast.success("Тему успішно створено!");
+
+    return {
+      success: true,
+      data,
+    };
+
+} catch (error) {
+const message =
+error?.response?.data?.message ||
+"Помилка створення теми";
+
+    toast.error(message);
+
+    return {
+      success: false,
+      message,
+    };
+
+}
+}
+
+// ─────────────────────────────────────────
+// PREMIUM SECTION LABEL
+// ─────────────────────────────────────────
+
+function SectionLabel({ children, light = false }) {
+return (
+<Typography
+sx={{
+        fontFamily: fontBody,
+        fontSize: "0.68rem",
+        fontWeight: 800,
+        letterSpacing: "0.16em",
+        textTransform: "uppercase",
+        color: light ? GOLD : BLUE,
+        mb: 1,
+      }} >
+{children}
+</Typography>
+);
+}
+
+// ─────────────────────────────────────────
+// STAT CARD
+// ─────────────────────────────────────────
+
+function StatCard({ icon, value, label }) {
+return (
+<Box
+sx={{
+display: "flex",
+alignItems: "center",
+gap: 2,
+py: 3,
+px: { xs: 1.5, md: 3 },
+height: "100%",
+transition: "background .25s",
+
+        "&:hover": {
+          bgcolor: "rgba(255,255,255,.045)",
+        },
+      }}
+    >
+      <Box
+        sx={{
+          width: 48,
+          height: 48,
+          minWidth: 48,
+          borderRadius: "16px",
+          bgcolor: "rgba(255,255,255,.09)",
+          border: "1px solid rgba(255,255,255,.13)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {icon}
+      </Box>
+
+      <Box sx={{ minWidth: 0 }}>
+        <Typography
+          sx={{
+            fontFamily: fontBody,
+            fontWeight: 800,
+            fontSize: {
+              xs: "1.35rem",
+              md: "1.75rem",
+            },
+            lineHeight: 1.15,
+            color: "#fff",
+            letterSpacing: "-0.05em",
+          }}
+        >
+          {value ?? (
+            <Skeleton
+              width={55}
+              sx={{
+                bgcolor: "rgba(255,255,255,.15)",
+              }}
+            />
+          )}
+        </Typography>
+
+        <Typography
+          sx={{
+            fontFamily: fontBody,
+            fontSize: "0.72rem",
+            fontWeight: 500,
+            color: "rgba(255,255,255,.65)",
+            mt: 0.5,
+          }}
+        >
+          {label}
+        </Typography>
+      </Box>
+    </Box>
+
+);
+}
+
+// ─────────────────────────────────────────
+// CATEGORY ROW
+// ─────────────────────────────────────────
+
+function CategoryRow({
+cat,
+isSelected,
+onClick,
+isLast,
+}) {
+const color = cat.color || BLUE;
+
+return (
+<Fragment>
+<Box
+onClick={onClick}
+sx={{
+display: "flex",
+alignItems: "center",
+gap: 2,
+px: { xs: 1.5, md: 2.5 },
+py: 2,
+mx: 1,
+borderRadius: "14px",
+cursor: "pointer",
+
+          bgcolor: isSelected
+            ? "rgba(7,82,160,.055)"
+            : "transparent",
+
+          borderLeft: isSelected
+            ? `3px solid ${color}`
+            : "3px solid transparent",
+
+          transition: "all .2s ease",
+
+          "&:hover": {
+            bgcolor: "rgba(7,82,160,.045)",
+          },
+
+          "&:hover .category-arrow": {
+            opacity: 1,
+            transform: "translateX(0)",
+          },
+        }}
+      >
+        <Box
+          sx={{
+            width: 46,
+            height: 46,
+            flexShrink: 0,
+            borderRadius: "14px",
+
+            bgcolor: isSelected
+              ? color
+              : cat.bgColor || "#EDF3FA",
+
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+
+            transition: "all .2s",
+          }}
+        >
+          <span
+            className="material-icons"
+            style={{
+              fontSize: 21,
+              color: isSelected ? "#fff" : color,
+            }}
+          >
+            {cat.icon || "forum"}
+          </span>
+        </Box>
+
+        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+          <Typography
+            sx={{
+              fontFamily: fontBody,
+              fontWeight: 700,
+              fontSize: "0.88rem",
+              color: isSelected ? BLUE : "#1D2D42",
+            }}
+          >
+            {cat.title}
+          </Typography>
+
+          {cat.description && (
+            <Typography
+              sx={{
+                fontFamily: fontBody,
+                fontSize: "0.72rem",
+                color: "#8794A5",
+                mt: 0.4,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {cat.description}
+            </Typography>
+          )}
+        </Box>
+
+        <Box sx={{ textAlign: "right", flexShrink: 0 }}>
+          <Typography
+            sx={{
+              fontFamily: fontBody,
+              fontWeight: 800,
+              fontSize: "0.88rem",
+              color: isSelected ? BLUE : "#34445A",
+            }}
+          >
+            {(cat.topicsCount || 0).toLocaleString()}
+          </Typography>
+
+          <Typography
+            sx={{
+              fontFamily: fontBody,
+              fontSize: "0.65rem",
+              color: "#A0AAB8",
+            }}
+          >
+            тем
+          </Typography>
+        </Box>
+
+        <ArrowForwardIcon
+          className="category-arrow"
+          sx={{
+            fontSize: 17,
+            color,
+            opacity: isSelected ? 1 : 0,
+            transform: isSelected
+              ? "translateX(0)"
+              : "translateX(-5px)",
+            transition: "all .2s",
+          }}
+        />
+      </Box>
+
+      {!isLast && (
+        <Divider
+          sx={{
+            mx: 3,
+            borderColor: "#F0F3F7",
+          }}
+        />
+      )}
+    </Fragment>
+
+);
+}
+
+// ─────────────────────────────────────────
+// CATEGORY CARD
+// ─────────────────────────────────────────
+
+function CategoryCard({
+cat,
+isSelected,
+onClick,
+}) {
+const color = cat.color || BLUE;
+
+return (
+<Card
+onClick={onClick}
+elevation={0}
+sx={{
+height: "100%",
+cursor: "pointer",
+borderRadius: "18px",
+overflow: "hidden",
+
+        border: isSelected
+          ? `1.5px solid ${color}`
+          : "1px solid #E8EDF3",
+
+        bgcolor: "#fff",
+
+        boxShadow: isSelected
+          ? "0 8px 28px rgba(7,82,160,.10)"
+          : "0 2px 10px rgba(20,40,70,.025)",
+
+        transition: "all .25s ease",
+
+        "&:hover": {
+          transform: "translateY(-4px)",
+          borderColor: color,
+          boxShadow: "0 12px 30px rgba(20,50,90,.09)",
+        },
+      }}
+    >
+      <Box
+        sx={{
+          height: 3,
+          bgcolor: color,
+        }}
+      />
+
+      <CardContent
+        sx={{
+          p: 2.5,
+          "&:last-child": {
+            pb: 2.5,
+          },
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            mb: 1.5,
+          }}
+        >
+          <Box
+            sx={{
+              width: 44,
+              height: 44,
+              borderRadius: "14px",
+              bgcolor: cat.bgColor || "#EDF3FA",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <span
+              className="material-icons"
+              style={{
+                fontSize: 21,
+                color,
+              }}
+            >
+              {cat.icon || "forum"}
+            </span>
+          </Box>
+
+          <Box sx={{ minWidth: 0 }}>
+            <Typography
+              sx={{
+                fontFamily: fontBody,
+                fontWeight: 750,
+                fontSize: "0.85rem",
+                color: "#1D2D42",
+                lineHeight: 1.4,
+              }}
+            >
+              {cat.title}
+            </Typography>
+
+            <Typography
+              sx={{
+                fontFamily: fontBody,
+                fontSize: "0.68rem",
+                color: "#91A0B1",
+                mt: 0.3,
+              }}
+            >
+              {cat.topicsCount || 0} тем · {cat.postsCount || 0} відповідей
+            </Typography>
+          </Box>
+        </Box>
+
+        {cat.description && (
+          <Typography
+            sx={{
+              fontFamily: fontBody,
+              fontSize: "0.74rem",
+              color: "#718096",
+              lineHeight: 1.65,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            {cat.description}
+          </Typography>
+        )}
+      </CardContent>
+    </Card>
+
+);
+}
+
+// ─────────────────────────────────────────────────────────
+// PART 2/3 — PREMIUM CATEGORY & TOPIC COMPONENTS
+// ─────────────────────────────────────────────────────────
+
+const PREMIUM_BLUE = "#0756B8";
+const PREMIUM_NAVY = "#092B55";
+const PREMIUM_GOLD = "#E6B83F";
+const PREMIUM_TEXT = "#14243A";
+const PREMIUM_MUTED = "#718096";
+const PREMIUM_BORDER = "#E8EDF4";
+const PREMIUM_BG = "#F5F7FB";
+
+const premiumCardShadow =
+"0 8px 30px rgba(15, 40, 75, 0.045)";
+
+const premiumHoverShadow =
+"0 18px 42px rgba(15, 40, 75, 0.10)";
+
+// ── Category Row ─────────────────────────────────────────
+
+function CategoryRow({ cat, isSelected, onClick, isLast }) {
+const color = cat.color || PREMIUM_BLUE;
+
+return (
+<>
+<Box
+onClick={onClick}
+sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 2,
+          px: { xs: 2, md: 2.5 },
+          py: 2,
+          cursor: "pointer",
+          position: "relative",
+          transition: "all .25s ease",
+          bgcolor: isSelected ? "#F0F6FF" : "transparent",
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            left: 0,
+            top: "20%",
+            bottom: "20%",
+            width: 3,
+            borderRadius: "0 4px 4px 0",
+            bgcolor: isSelected ? color : "transparent",
+            transition: "all .2s",
+          },
+          "&:hover": {
+            bgcolor: isSelected ? "#EDF4FF" : "#F8FAFD",
+          },
+          "&:hover .category-arrow": {
+            opacity: 1,
+            transform: "translateX(0)",
+          },
+        }} >
+<Box
+sx={{
+            width: 46,
+            height: 46,
+            borderRadius: "14px",
+            bgcolor: isSelected ? color : cat.bgColor || "#EDF4FF",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            transition: "all .25s",
+            boxShadow: isSelected
+              ? `0 5px 14px ${color}35`
+              : "none",
+          }} >
+<span
+className="material-icons"
+style={{
+              fontSize: 21,
+              color: isSelected ? "#fff" : color,
+            }} >
+{cat.icon || "forum"}
+</span>
+</Box>
+
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography
+            sx={{
+              fontFamily: fontBody,
+              fontSize: ".9rem",
+              fontWeight: 700,
+              color: isSelected ? color : PREMIUM_TEXT,
+              mb: .35,
+            }}
+          >
+            {cat.title}
+          </Typography>
+
+          {cat.description && (
+            <Typography
+              sx={{
+                fontFamily: fontBody,
+                fontSize: ".73rem",
+                color: PREMIUM_MUTED,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {cat.description}
+            </Typography>
+          )}
+        </Box>
+
+        <Box sx={{ textAlign: "right", flexShrink: 0 }}>
+          <Typography
+            sx={{
+              fontFamily: fontBody,
+              fontWeight: 800,
+              fontSize: ".9rem",
+              color: PREMIUM_TEXT,
+            }}
+          >
+            {(cat.topicsCount || 0).toLocaleString()}
+          </Typography>
+
+          <Typography
+            sx={{
+              fontFamily: fontBody,
+              fontSize: ".65rem",
+              color: "#9AA7B8",
+            }}
+          >
+            обговорень
+          </Typography>
+        </Box>
+
+        <ArrowForwardIcon
+          className="category-arrow"
+          sx={{
+            fontSize: 17,
+            color,
+            opacity: isSelected ? 1 : 0,
+            transform: isSelected
+              ? "translateX(0)"
+              : "translateX(-5px)",
+            transition: "all .2s",
+          }}
+        />
+      </Box>
+
+      {!isLast && (
+        <Divider
+          sx={{
+            mx: 2.5,
+            borderColor: "#F0F3F7",
+          }}
+        />
+      )}
+    </>
+
+);
+}
+
+// ── Category Card ────────────────────────────────────────
+
+function CategoryCard({ cat, isSelected, onClick }) {
+const color = cat.color || PREMIUM_BLUE;
+
+return (
+<Card
+onClick={onClick}
+elevation={0}
+sx={{
+        height: "100%",
+        minHeight: 160,
+        borderRadius: "18px",
+        border: `1px solid ${
+          isSelected ? color : PREMIUM_BORDER
+        }`,
+        bgcolor: isSelected ? "#F3F7FF" : "#fff",
+        cursor: "pointer",
+        overflow: "hidden",
+        position: "relative",
+        transition: "all .25s ease",
+        boxShadow: isSelected
+          ? `0 8px 25px ${color}18`
+          : premiumCardShadow,
+        "&:hover": {
+          transform: "translateY(-4px)",
+          boxShadow: premiumHoverShadow,
+          borderColor: color,
+        },
+      }} >
+<Box
+sx={{
+          height: 3,
+          background: `linear-gradient(90deg, ${color}, ${color}55)`,
+        }}
+/>
+
+      <CardContent
+        sx={{
+          p: 2.5,
+          "&:last-child": { pb: 2.5 },
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 2,
+          }}
+        >
+          <Box
+            sx={{
+              width: 44,
+              height: 44,
+              borderRadius: "14px",
+              bgcolor: cat.bgColor || "#EDF4FF",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <span
+              className="material-icons"
+              style={{
+                fontSize: 22,
+                color,
+              }}
+            >
+              {cat.icon || "forum"}
+            </span>
+          </Box>
+
+          {isSelected && (
+            <CheckCircleOutlineIcon
+              sx={{
+                color,
+                fontSize: 20,
+              }}
+            />
+          )}
+        </Box>
+
+        <Typography
+          sx={{
+            fontFamily: fontBody,
+            fontWeight: 800,
+            fontSize: ".9rem",
+            color: PREMIUM_TEXT,
+            mb: .6,
+          }}
+        >
+          {cat.title}
+        </Typography>
+
+        {cat.description && (
+          <Typography
+            sx={{
+              fontFamily: fontBody,
+              fontSize: ".73rem",
+              color: PREMIUM_MUTED,
+              lineHeight: 1.6,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              minHeight: 36,
+            }}
+          >
+            {cat.description}
+          </Typography>
+        )}
+
+        <Divider sx={{ my: 1.5, borderColor: "#F0F3F7" }} />
+
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: fontBody,
+              fontSize: ".7rem",
+              color: PREMIUM_MUTED,
+            }}
+          >
+            {cat.topicsCount || 0} тем
+          </Typography>
+
+          <Typography
+            sx={{
+              fontFamily: fontBody,
+              fontSize: ".7rem",
+              fontWeight: 700,
+              color,
+            }}
+          >
+            {cat.postsCount || 0} відповідей
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
+
+);
+}
+
+// ── Topic Card ───────────────────────────────────────────
+
+function TopicCard({ topic, categories, index }) {
+const cat =
+topic.forumCategory ||
+categories.find((c) => c.title === topic.category);
+
+const color = cat?.color || PREMIUM_BLUE;
+const bg = cat?.bgColor || "#EDF4FF";
+
+const authorInitial = topic.author
+? topic.author[0].toUpperCase()
+: "?";
+
+return (
+<Card
+component={Link}
+to={`/forum/${topic.id}`}
+elevation={0}
+sx={{
+        display: "block",
+        textDecoration: "none",
+        borderRadius: "20px",
+        border: `1px solid ${
+          topic.isPinned ? "#F0D98B" : PREMIUM_BORDER
+        }`,
+        bgcolor: "#fff",
+        boxShadow: topic.isPinned
+          ? "0 8px 25px rgba(230,184,63,.10)"
+          : premiumCardShadow,
+        transition: "all .25s ease",
+        position: "relative",
+        overflow: "hidden",
+        animation: "premiumFadeUp .4s ease both",
+        animationDelay: `${Math.min(index, 8) * .04}s`,
+        "@keyframes premiumFadeUp": {
+          from: {
+            opacity: 0,
+            transform: "translateY(12px)",
+          },
+          to: {
+            opacity: 1,
+            transform: "translateY(0)",
+          },
+        },
+        "&:hover": {
+          transform: "translateY(-3px)",
+          boxShadow: premiumHoverShadow,
+          borderColor: "#C7D9F2",
+        },
+      }} >
+<CardContent
+sx={{
+          p: { xs: 2, md: 2.75 },
+          "&:last-child": { pb: { xs: 2, md: 2.75 } },
+        }} >
+{(topic.isPinned || topic.isClosed) && (
+<Box
+sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 1,
+              mb: 2,
+            }} >
+{topic.isPinned && (
+<Chip
+icon={
+<PushPinIcon
+sx={{ fontSize: "13px !important" }}
+/>
+}
+label="Важлива тема"
+size="small"
+sx={{
+                  bgcolor: "#FFF8E6",
+                  color: "#956B13",
+                  border: "1px solid #F3E1AC",
+                  fontFamily: fontBody,
+                  fontWeight: 700,
+                  fontSize: ".67rem",
+                }}
+/>
+)}
+
+            {topic.isClosed && (
+              <Chip
+                icon={
+                  <LockOutlinedIcon
+                    sx={{ fontSize: "13px !important" }}
+                  />
+                }
+                label="Закрито"
+                size="small"
+                sx={{
+                  bgcolor: "#F1F4F8",
+                  color: "#64748B",
+                  fontFamily: fontBody,
+                  fontWeight: 600,
+                  fontSize: ".67rem",
+                }}
+              />
+            )}
+          </Box>
+        )}
+
+        {/* Author and title */}
+
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 1.75,
+            mb: 2,
+          }}
+        >
+          <Avatar
+            sx={{
+              width: 43,
+              height: 43,
+              bgcolor: bg,
+              color,
+              fontFamily: fontBody,
+              fontWeight: 800,
+              fontSize: ".95rem",
+              border: "1px solid",
+              borderColor: `${color}25`,
+            }}
+          >
+            {authorInitial}
+          </Avatar>
+
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography
+              sx={{
+                fontFamily: fontBody,
+                fontWeight: 800,
+                fontSize: { xs: ".9rem", md: ".97rem" },
+                lineHeight: 1.5,
+                color: PREMIUM_TEXT,
+                mb: .5,
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {topic.title}
+            </Typography>
+
+            <Typography
+              sx={{
+                fontFamily: fontBody,
+                fontSize: ".71rem",
+                color: "#94A3B8",
+              }}
+            >
+              {topic.author} ·{" "}
+              {new Date(topic.createdAt).toLocaleDateString("uk-UA")}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Category and location */}
+
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: .8,
+            mb: 2,
+          }}
+        >
+          {cat && (
+            <Chip
+              label={cat.title}
+              size="small"
+              icon={
+                <span
+                  className="material-icons"
+                  style={{ fontSize: 13, color }}
+                >
+                  {cat.icon || "forum"}
+                </span>
+              }
+              sx={{
+                bgcolor: bg,
+                color,
+                fontFamily: fontBody,
+                fontWeight: 700,
+                fontSize: ".67rem",
+                borderRadius: "8px",
+              }}
+            />
+          )}
+
+          {topic.forumSubcategory && (
+            <Chip
+              label={topic.forumSubcategory.title}
+              size="small"
+              sx={{
+                bgcolor: "#F3F5F8",
+                color: "#64748B",
+                fontFamily: fontBody,
+                fontWeight: 600,
+                fontSize: ".66rem",
+                borderRadius: "8px",
+              }}
+            />
+          )}
+
+          {(topic.country || topic.city) && (
+            <Chip
+              icon={
+                <PlaceOutlinedIcon
+                  sx={{
+                    fontSize: "13px !important",
+                    color: "#2681B9",
+                  }}
+                />
+              }
+              label={[topic.country, topic.city]
+                .filter(Boolean)
+                .join(", ")}
+              size="small"
+              sx={{
+                bgcolor: "#EFF8FD",
+                color: "#26749F",
+                fontFamily: fontBody,
+                fontWeight: 600,
+                fontSize: ".66rem",
+                borderRadius: "8px",
+              }}
+            />
+          )}
+        </Box>
+
+        <Divider sx={{ borderColor: "#F0F3F7", mb: 1.75 }} />
+
+        {/* Engagement statistics */}
+
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2.5,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: .6 }}>
+            <ChatBubbleOutlineIcon
+              sx={{ fontSize: 16, color: "#94A3B8" }}
+            />
+            <Typography
+              sx={{
+                fontFamily: fontBody,
+                fontSize: ".72rem",
+                fontWeight: 600,
+                color: "#718096",
+              }}
+            >
+              {topic.replies ?? 0}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: .6 }}>
+            <VisibilityOutlinedIcon
+              sx={{ fontSize: 16, color: "#94A3B8" }}
+            />
+            <Typography
+              sx={{
+                fontFamily: fontBody,
+                fontSize: ".72rem",
+                fontWeight: 600,
+                color: "#718096",
+              }}
+            >
+              {topic.views ?? 0}
+            </Typography>
+          </Box>
+
+          <Box sx={{ flex: 1 }} />
+
+          <ArrowForwardIcon
+            sx={{
+              fontSize: 18,
+              color: PREMIUM_BLUE,
+              transition: "transform .2s",
+              ".MuiCard-root:hover &": {
+                transform: "translateX(4px)",
+              },
+            }}
+          />
+        </Box>
+      </CardContent>
+    </Card>
+
+);
+}
+
+Так! Тут можна зробити набагато сильніший дизайн — не просто набір карток, а повноцінну сторінку сучасної європейської організації.
+
+Я пропоную стиль Premium Corporate / Ukrainian Identity:
+
+Темно-синій Hero з інтегрованим HeroSection, який ми щойно оновили.
+
+Елегантна типографіка Playfair Display + Plus Jakarta Sans.
+
+Золоті акценти замість надмірної кількості яскравих кольорів.
+
+Місію оформити як велику editorial-секцію.
+
+Історію перетворити на красивий timeline.
+
+Цінності — у чотири сучасні картки з делікатними hover-ефектами.
+
+Команду — у професійні профілі.
+
+Завершальний CTA — у преміальний синьо-золотий блок.
