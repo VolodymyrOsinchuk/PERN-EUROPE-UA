@@ -44,7 +44,7 @@ const Loading = ({
 
   return (
     <Box sx={containerStyle}>
-      <Stack spacing={2} alignItems="center" justifyContent="center">
+      <Stack spacing={2} sx={{ alignItems: "center", justifyContent: "center" }}>
         {type === "circular" ? (
           <CircularProgress color={color} size={size} thickness={thickness} />
         ) : (

@@ -266,13 +266,13 @@ export default function CitySelectField({
                 helperText={helperText}
                 sx={defaultInputSx}
                 InputProps={{
-                  ...params.InputProps,
+                  ...(params.InputProps || {}),
                   startAdornment: (
                     <>
                       <InputAdornment position="start">
                         <PlaceOutlinedIcon sx={{ fontSize: 18, color: BLUE }} />
                       </InputAdornment>
-                      {params.InputProps.startAdornment}
+                      {params.InputProps?.startAdornment}
                     </>
                   ),
                 }}
