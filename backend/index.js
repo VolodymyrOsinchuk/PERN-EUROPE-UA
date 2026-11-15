@@ -44,13 +44,29 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
+console.log("config.client.url:", config.client.url);
 app.use(
   cors({
-    origin: config.client.url,
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        config.client.url,
+        "https://pern-europe-ua-front.onrender.com",
+      ];
+      console.log("origin", origin);
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+
+    allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
+
+    optionsSuccessStatus: 204,
   }),
 );
 

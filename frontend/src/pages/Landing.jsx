@@ -11,11 +11,11 @@ import {
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
+import PeopleOutlineIcon from "@mui/icons-material/PeopleOutlineOutlined";
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import EventOutlinedIcon from "@mui/icons-material/EventOutlined";
 import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
-import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
+import WorkOutlineIcon from "@mui/icons-material/WorkOutlineOutlined";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
 import customFetch from "../utils/customFetch";

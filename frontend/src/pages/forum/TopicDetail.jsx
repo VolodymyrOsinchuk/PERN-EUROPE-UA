@@ -39,7 +39,7 @@ import PushPinIcon from "@mui/icons-material/PushPin";
 import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
 import DriveFileMoveOutlinedIcon from "@mui/icons-material/DriveFileMoveOutlined";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
 import { useAuthContext } from "../../context/AuthContext";

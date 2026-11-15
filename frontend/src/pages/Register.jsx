@@ -23,7 +23,7 @@ import customFetch from "../utils/customFetch";
 import { FormRow, FormRowSelect, CitySelectField } from "../components";
 import { toast } from "react-toastify";
 import { GetCountries } from "react-country-state-city";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 export const action = async ({ request }) => {

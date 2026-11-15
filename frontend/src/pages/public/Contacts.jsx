@@ -15,17 +15,15 @@ import {
 
 import { Form, useActionData, useNavigation } from "react-router-dom";
 
-import {
-  MailOutline,
-  LocationOnOutlined,
-  AccessTimeOutlined,
-  ArrowOutward,
-  SendRounded,
-  Facebook,
-  Instagram,
-  Telegram,
-  CheckCircleOutline,
-} from "@mui/icons-material";
+import MailOutline from "@mui/icons-material/MailOutlineOutlined";
+import LocationOnOutlined from "@mui/icons-material/LocationOnOutlined";
+import AccessTimeOutlined from "@mui/icons-material/AccessTimeOutlined";
+import ArrowOutward from "@mui/icons-material/ArrowOutward";
+import SendRounded from "@mui/icons-material/SendRounded";
+import Facebook from "@mui/icons-material/Facebook";
+import Instagram from "@mui/icons-material/Instagram";
+import Telegram from "@mui/icons-material/Telegram";
+import CheckCircleOutline from "@mui/icons-material/CheckCircleOutlineOutlined";
 
 import { toast } from "react-toastify";
 import customFetch from "../../utils/customFetch";

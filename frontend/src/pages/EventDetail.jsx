@@ -17,7 +17,7 @@ import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
 import { useAuthContext } from "../context/AuthContext";
