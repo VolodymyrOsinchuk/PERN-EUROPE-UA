@@ -276,6 +276,10 @@ export default function HeroSection({
 
               mb: 2.5,
 
+              // Stabilize height during ReactTyped loop to prevent
+              // Cumulative Layout Shift on mobile (text wraps 1↔2 lines)
+              minHeight: { xs: "6rem" },
+
               overflowWrap: "break-word",
 
               animation:
