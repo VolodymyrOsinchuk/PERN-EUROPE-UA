@@ -123,9 +123,11 @@ export default function NotificationBell() {
                 <ListItemText
                   primary={n.message}
                   secondary={new Date(n.createdAt).toLocaleString("uk-UA")}
-                  primaryTypographyProps={{
-                    variant: "body2",
-                    fontWeight: n.isRead ? 400 : 700,
+                  slotProps={{
+                    primary: {
+                      variant: "body2",
+                      fontWeight: n.isRead ? 400 : 700,
+                    },
                   }}
                 />
               </ListItemButton>

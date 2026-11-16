@@ -64,13 +64,7 @@ const AppBarComponent = ({ handleDrawerToggle }) => {
 
         {/* Right actions */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Tooltip title="Сповіщення">
-            <IconButton size="small" sx={{ color: "text.secondary" }}>
-              {/* <Badge badgeContent={3} color="error"> */}
-              <NotificationBell fontSize="small" />
-              {/* </Badge> */}
-            </IconButton>
-          </Tooltip>
+          <NotificationBell />
 
           <Button
             component={Link}

@@ -667,6 +667,30 @@ export default function Navbar() {
               >
                 Мої оголошення
               </Button>
+
+              {user.role === "admin" && (
+                <Button
+                  component={Link}
+                  to="/dashboard"
+                  onClick={() => setMobileOpen(false)}
+                  variant="outlined"
+                  fullWidth
+                  sx={{
+                    textTransform: "none",
+                    fontFamily: "'Plus Jakarta Sans',sans-serif",
+                    borderRadius: "10px",
+                    borderColor: "#0057B8",
+                    color: "#0057B8",
+                    "&:hover": {
+                      bgcolor: "rgba(0,87,184,.06)",
+                      borderColor: "#0057B8",
+                    },
+                  }}
+                >
+                  Панель
+                </Button>
+              )}
+
               <Button
                 component={Link}
                 to="/messages"

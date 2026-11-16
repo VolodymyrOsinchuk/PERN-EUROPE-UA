@@ -79,7 +79,7 @@ function Sidebar() {
     : "Адміністратор";
   const userEmail = user ? user.email : "admin@site.com";
   const userInitials = user
-    ? `${(user.firstName || "")[0]}${ (user.lastName || "")[0]}`
+    ? `${(user.firstName || "")[0]}${(user.lastName || "")[0]}`
         .toUpperCase()
         .trim() || "А"
     : "А";
@@ -139,14 +139,20 @@ function Sidebar() {
                         {icon}
                       </span>
                     </ListItemIcon>
+
                     <ListItemText
                       primary={text}
-                      primaryTypographyProps={{
-                        fontSize: "0.875rem",
-                        fontWeight: isActive ? 600 : 500,
-                        color: isActive ? "#2563EB" : "#334155",
+                      slotProps={{
+                        primary: {
+                          sx: {
+                            fontSize: "0.875rem",
+                            fontWeight: isActive ? 600 : 500,
+                            color: isActive ? "#2563EB" : "#334155",
+                          },
+                        },
                       }}
                     />
+
                     {badge || (isModeration && pendingCount > 0) ? (
                       <>
                         {badge && (
