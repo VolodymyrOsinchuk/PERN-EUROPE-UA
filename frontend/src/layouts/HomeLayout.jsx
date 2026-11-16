@@ -1,14 +1,10 @@
 import { Outlet } from "react-router-dom";
 import { Navbar, Footer } from "../components";
 import { Stack } from "@mui/material";
-import { Banner } from "../components";
 import { Loading } from "../components";
 
 const HomeLayout = () => {
   const isPageLoading = false;
-  const handleCookieAccept = () => {
-    console.log("Файли cookie прийнято");
-  };
 
   return (
     <>
@@ -27,7 +23,6 @@ const HomeLayout = () => {
         {isPageLoading ? <Loading /> : <Outlet />}
       </Stack>
       <Footer />
-      <Banner onAccept={handleCookieAccept} />
     </>
   );
 };
