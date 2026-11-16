@@ -34,17 +34,6 @@ const adminRouter = require("./routes/adminRouter");
 const config = require("./config/config");
 const { authMiddleware } = require("./middleware/authMiddleware");
 const { getPublicStats } = require("./controllers/publicStatsController");
-
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-    contentSecurityPolicy: false,
-  }),
-);
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-console.log("config.client.url:", config.client.url);
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -69,6 +58,17 @@ app.use(
     optionsSuccessStatus: 204,
   }),
 );
+
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: false,
+  }),
+);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+console.log("config.client.url:", config.client.url);
 
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 

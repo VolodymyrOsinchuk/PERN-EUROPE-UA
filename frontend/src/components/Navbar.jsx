@@ -365,14 +365,18 @@ export default function Navbar() {
                     anchorEl={userAnchor}
                     open={Boolean(userAnchor)}
                     onClose={() => setUserAnchor(null)}
-                    TransitionComponent={Fade}
-                    PaperProps={{
-                      sx: {
-                        mt: 1,
-                        borderRadius: "12px",
-                        border: "1px solid #e2e8f0",
-                        boxShadow: "0 8px 32px rgba(0,0,0,.1)",
-                        minWidth: 180,
+                    slots={{
+                      transition: Fade,
+                    }}
+                    slotProps={{
+                      paper: {
+                        sx: {
+                          mt: 1,
+                          borderRadius: "12px",
+                          border: "1px solid #e2e8f0",
+                          boxShadow: "0 8px 32px rgba(0,0,0,.1)",
+                          minWidth: 180,
+                        },
                       },
                     }}
                   >

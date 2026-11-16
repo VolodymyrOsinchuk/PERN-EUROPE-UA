@@ -170,6 +170,7 @@ exports.login = async (req, res) => {
 
     res.status(200).json({
       message: "Користувач увійшов в систему",
+      token,
       user: {
         id: user.id,
         firstName: user.firstName,
@@ -561,7 +562,11 @@ exports.resendVerification = async (req, res) => {
           Date.now() + VERIFICATION_TOKEN_TTL_MS,
         ),
       });
-      await sendVerificationEmail(user.email, user.firstName, verificationToken);
+      await sendVerificationEmail(
+        user.email,
+        user.firstName,
+        verificationToken,
+      );
     }
 
     return res.status(200).json({

@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import {
   createContext,
   useContext,
@@ -7,51 +7,57 @@ import {
   useCallback,
 } from "react";
 import { Box, CircularProgress } from "@mui/material";
-import customFetch from "../utils/customFetch";
-import { toast } from "react-toastify";
+import customFetch, {
+  clearAuthToken,
+  getAuthToken,
+} from "../utils/customFetch";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchUser = useCallback(async () => {
     try {
       const { data } = await customFetch.get("/users/current-user");
-      // console.log("🚀 ~ fetchUser ~ data:", data);
       setUser(data);
-    } catch (error) {
-      if (error.response?.status !== 401) {
-        toast.error(
-          "Помилка отримання даних користувача. Будь ласка, увійдіть знову.",
-        );
-      }
-      console.log("🚀 ~ fetchUser ~ помилка:", error.response);
-      console.error(
-        "Помилка fetchUser:",
-        error.response?.data || error.message,
-      );
+      return data;
+    } catch {
       setUser(null);
-    } finally {
-      setLoading(false);
+      return null;
     }
   }, []);
 
-  useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
-
-  const logoutUser = async () => {
+  const logoutUser = useCallback(async () => {
     try {
       await customFetch.post("/auth/logout");
-      setUser(null);
-      toast.success("Ви вийшли з системи...");
-      window.location.href = "/";
-    } catch (error) {
-      toast.error("Помилка виходу. Спробуйте ще раз.");
+    } catch {
+      /* локальну сесію очищаємо в будь-якому разі */
     }
-  };
+    clearAuthToken();
+    setUser(null);
+    navigate("/login", { replace: true });
+  }, [navigate]);
+
+  // Відновлення сесії при старті сайту та після оновлення сторінки.
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!getAuthToken()) {
+      setLoading(false);
+      return;
+    }
+
+    fetchUser().finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchUser]);
 
   if (loading) {
     return (

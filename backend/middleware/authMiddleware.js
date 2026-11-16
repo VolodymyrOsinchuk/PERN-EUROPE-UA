@@ -2,14 +2,15 @@ const jwt = require("jsonwebtoken");
 const { User } = require("../models/user"); // Adjust path as needed
 const { verifyJWT } = require("../utils/tokenUtils");
 
+// Витягує JWT із заголовка Authorization або з cookie (запасний варіант).
+const getTokenFromRequest = (req) => {
+  const header = req.headers.authorization || "";
+  if (header.startsWith("Bearer ")) return header.slice(7);
+  return req.cookies?.token || null;
+};
+
 const authMiddleware = async (req, res, next) => {
-  // console.log(
-  //   "🚀 ~ authMiddleware ~ req.cookies:",
-  //   JSON.stringify(req.cookies),
-  // );
-  // console.log("🚀 ~ authMiddleware ~ req.cookies.token:", req.cookies.token);
-  const { token } = req.cookies;
-  // console.log("🚀 ~ authMiddleware ~ token :", token);
+  const token = getTokenFromRequest(req);
 
   if (!token) {
     return res.status(401).json({
@@ -20,13 +21,6 @@ const authMiddleware = async (req, res, next) => {
 
   try {
     const { userId, email, role } = await verifyJWT(token);
-    // console.log(
-    //   "🚀 ~ authMiddleware ~  userId, email, role:",
-    //   userId,
-    //   email,
-    //   role,
-    // );
-
     req.user = { userId, email, role };
     next();
   } catch (error) {
@@ -37,14 +31,12 @@ const authMiddleware = async (req, res, next) => {
         message: "Автентифікація не виконана",
       });
     }
-
     if (error.name === "TokenExpiredError") {
       return res.status(401).json({
         error: "Токен прострочений",
         message: "Будь ласка, увійдіть знову",
       });
     }
-
     res.status(500).json({
       error: "Помилка сервера",
       message: "Процес автентифікації не виконано",

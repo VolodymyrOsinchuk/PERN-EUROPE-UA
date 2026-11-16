@@ -20,7 +20,7 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useState } from "react";
 import { FormRow } from "../components";
-import customFetch, { apiUrl } from "../utils/customFetch";
+import customFetch, { apiUrl, setAuthToken } from "../utils/customFetch";
 import { toast } from "react-toastify";
 import { useAuthContext } from "../context/AuthContext";
 
@@ -28,13 +28,9 @@ export const action = async ({ request }) => {
   const formData = await request.formData();
   const dataForm = Object.fromEntries(formData);
   try {
-    await customFetch.post("/auth/login", dataForm);
+    const { data } = await customFetch.post("/auth/login", dataForm);
+    setAuthToken(data.token); // ← токен має бути збережений до fetchUser()
     toast.success("Ви увійшли успішно");
-    // Le cookie JWT est enregistré par le backend. Pas de redirect()
-    // ici : le contexte AuthContext doit d'abord être rafraîchi
-    // (user y est encore null), sinon le garde de ProfileLayout
-    // renvoie immédiatement sur /login. La redirection est faite
-    // dans le composant via useEffect + navigate().
     return { success: true };
   } catch (error) {
     toast.error(error?.response?.data?.message || "Сталася помилка");
@@ -70,6 +66,7 @@ export default function Login() {
   const isSubmitting = navigation.state === "submitting";
   const actionData = useActionData();
   const { fetchUser } = useAuthContext();
+  const [sessionError, setSessionError] = useState("");
   const navigate = useNavigate();
 
   /* ── Redirection après connexion réussie ──
@@ -78,11 +75,25 @@ export default function Login() {
      2. navigate("/profile") UNIQUEMENT après : tant que user est null,
         le garde de ProfileLayout renvoie sur /login. */
   useEffect(() => {
-    if (actionData?.success) {
-      fetchUser().finally(() => {
+    if (!actionData?.success) return;
+    let cancelled = false;
+
+    (async () => {
+      const loggedUser = await fetchUser(); // має повертати user | null
+      if (cancelled) return;
+
+      if (loggedUser) {
         navigate("/profile", { replace: true });
-      });
-    }
+      } else {
+        toast.error(
+          "Вхід виконано, але сесія не збереглася. Вимкніть блокування cookies для сайту у налаштуваннях браузера та спробуйте ще раз.",
+        );
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [actionData, fetchUser, navigate]);
 
   return (
@@ -388,18 +399,19 @@ export default function Login() {
                 fullWidth
                 autoComplete="current-password"
                 sx={inputSx}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        onMouseDown={(e) => e.preventDefault()}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          edge="end"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
                 }}
               />
 
