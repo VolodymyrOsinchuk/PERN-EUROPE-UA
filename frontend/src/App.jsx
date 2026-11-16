@@ -20,6 +20,8 @@ import VerifyAccount, { loader as accountLoader } from "./pages/VerifyAccount";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Policy from "./pages/Policy";
+import { CookieConsentProvider } from "./context/CookieConsentContext";
+import CookieConsentUI from "./components/CookieConsent/CookieConsentUI";
 
 // News — loader API réel
 import News, { loader as newsLoader } from "./pages/News";
@@ -487,16 +489,19 @@ const router = createBrowserRouter(
 );
 
 const App = () => (
-  <RouterProvider
-    router={router}
-    future={{
-      v7_fetcherPersist: true,
-      v7_normalizeFormMethod: true,
-      v7_relativeSplatPath: true,
-      v7_skipActionErrorRevalidation: true,
-      v7_startTransition: true,
-    }}
-  />
+  <CookieConsentProvider>
+    <RouterProvider
+      router={router}
+      future={{
+        v7_fetcherPersist: true,
+        v7_normalizeFormMethod: true,
+        v7_relativeSplatPath: true,
+        v7_skipActionErrorRevalidation: true,
+        v7_startTransition: true,
+      }}
+    />
+    <CookieConsentUI />
+  </CookieConsentProvider>
 );
 
 export default App;

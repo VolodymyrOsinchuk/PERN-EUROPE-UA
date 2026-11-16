@@ -1,102 +1,3 @@
-// import React from 'react'
-// import { Container, Typography } from '@mui/material'
-// import '../assets/css/privacyPolicy.css'
-// import { HeroSection } from '../components'
-
-// const PrivacyPolicy = () => {
-//   return (
-//     <>
-//       <HeroSection subtitle="Політика конфіденційності" />
-//       <Container className="content-container">
-//         <div className="section">
-//           <Typography variant="h5" gutterBottom>
-//             1. Загальні положення
-//           </Typography>
-//           <Typography>
-//             Ця Політика конфіденційності пояснює, як сайт "Українці в Європі"
-//             збирає, використовує та захищає інформацію, яку ви надаєте при
-//             використанні нашого веб-сайту.
-//           </Typography>
-//         </div>
-
-//         <div className="section">
-//           <Typography variant="h5" gutterBottom>
-//             2. Збір інформації
-//           </Typography>
-//           <Typography>
-//             Ми збираємо інформацію, яку ви добровільно надаєте нам при:
-//           </Typography>
-//           <Typography component="ul">
-//             <li>Реєстрації на сайті</li>
-//             <li>Створенні оголошень</li>
-//             <li>Заповненні форм зворотного зв'язку</li>
-//             <li>Підписці на розсилку</li>
-//           </Typography>
-//         </div>
-
-//         <div className="section">
-//           <Typography variant="h5" gutterBottom>
-//             3. Використання інформації
-//           </Typography>
-//           <Typography>Зібрана інформація використовується для:</Typography>
-//           <Typography component="ul">
-//             <li>Надання послуг та покращення роботи сайту</li>
-//             <li>Персоналізації вашого досвіду</li>
-//             <li>Відправки інформаційних повідомлень</li>
-//             <li>Обробки ваших запитів</li>
-//           </Typography>
-//         </div>
-
-//         <div className="section">
-//           <Typography variant="h5" gutterBottom>
-//             4. Захист інформації
-//           </Typography>
-//           <Typography>
-//             Ми застосовуємо відповідні заходи безпеки для захисту від
-//             несанкціонованого доступу, зміни, розкриття або знищення вашої
-//             особистої інформації.
-//           </Typography>
-//         </div>
-
-//         <div className="section">
-//           <Typography variant="h5" gutterBottom>
-//             5. Cookies
-//           </Typography>
-//           <Typography>
-//             Наш сайт використовує cookies для покращення користувацького
-//             досвіду. Ви можете налаштувати свій браузер для відмови від cookies,
-//             але це може вплинути на функціональність сайту.
-//           </Typography>
-//         </div>
-
-//         <div className="section">
-//           <Typography variant="h5" gutterBottom>
-//             6. Зміни в політиці конфіденційності
-//           </Typography>
-//           <Typography>
-//             Ми маємо за собою право вносити зміни до цієї політики
-//             конфіденційності. Будь-які зміни будуть опубліковані на цій
-//             сторінці.
-//           </Typography>
-//         </div>
-
-//         <div className="section">
-//           <Typography variant="h5" gutterBottom>
-//             7. Контакти
-//           </Typography>
-//           <Typography>
-//             Якщо у вас є питання щодо цієї політики конфіденційності, будь
-//             ласка, зв'яжіться з нами:
-//           </Typography>
-//           <Typography>Email: privacy@ukrainians-in-europe.com</Typography>
-//         </div>
-//       </Container>
-//     </>
-//   )
-// }
-
-// export default PrivacyPolicy
-
 // Default React import removed - automatic JSX runtime in use
 import { Container, Box, Typography, List, ListItem } from "@mui/material";
 
@@ -116,6 +17,21 @@ const PrivacyPolicy = () => {
         "Заповненні форм зворотного зв'язку",
         "Підписці на розсилку",
       ],
+    },
+    {
+      title: "5. Cookie та подібні технології",
+      content:
+        "Сайт використовує такі технології. Вони вказані тут як фактично використовувані:",
+      list: [
+        "token — HttpOnly cookie з ознакою входу в акаунт. Необхідний для автентифікації та безпеки. Зберігається 24 години.",
+        "uve_cookie_consent (localStorage) — зберігає ваш вибір щодо cookie, версію налаштувань і дату вибору. Необхідний, щоб не показувати банер повторно. Зберігається до 12 місяців або до зміни вибору.",
+        "pern_europe_ua_favorites (localStorage) — список збережених оголошень. Створюється лише за вашою дією («Зберегти») і зберігається, доки ви не видалите їх.",
+      ],
+    },
+    {
+      title: "6. Категорії та керування згодою",
+      content:
+        "Необхідні cookie завжди увімкнені. Аналітичні та маркетингові cookie вимкнені за замовчуванням і вмикаються лише після вашої явної згоди. Наразі на сайті не використовуються сторонні аналітичні чи рекламні сервіси. Якщо це зміниться, ми оновимо цю політику та запитаємо згоду до запуску таких сервісів. Змінити або відкликати згоду можна кнопкою «Налаштування cookie» у лівому нижньому куті сайту. Також можна видалити cookie і дані сайту в налаштуваннях браузера; це може завершити сеанс входу.",
     },
     // Add other sections similarly...
   ];
