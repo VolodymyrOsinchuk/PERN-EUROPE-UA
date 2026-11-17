@@ -14,7 +14,7 @@ export const CROSS_PROMOTION = {
       name: "Конвектор онлайн",
       tagline: "Конвертуй файли швидко та безкоштовно",
       url: "https://texte-video.lovable.app",
-      logo: "/promo/project-one.png",
+      logo: "/promo/subtitle-lab-logo.png",
 
       description:
         "Безкоштовний онлайн-конвертер для швидкого перетворення файлів у різні формати.",
@@ -33,7 +33,7 @@ export const CROSS_PROMOTION = {
       name: "Знайомства без кордонів",
       tagline: "Нові знайомства без географічних меж",
       url: "https://ukrainian-connect.vercel.app",
-      logo: "/promo/project-two.png",
+      logo: "/promo/ukrainian-connect-logo.png",
 
       description:
         "Привітна спільнота, де можна познайомитися з українцями та людьми з усього світу — у безпеці та взаємній повазі.",
@@ -52,7 +52,7 @@ export const CROSS_PROMOTION = {
       name: "Linguae",
       tagline: "Вивчай мови через спілкування",
       url: "https://linguae-one.vercel.app",
-      logo: "/promo/project-three.png",
+      logo: "/promo/linguae-logo.png",
 
       description:
         "Практикуй іноземну мову з людиною, яка хоче вивчити твою рідну мову. Навчання через взаємний обмін.",

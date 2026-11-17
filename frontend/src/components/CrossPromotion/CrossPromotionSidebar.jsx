@@ -364,22 +364,6 @@ export default function CrossPromotionStrip() {
             </Box>
           ))}
         </Box>
-
-        {/* Mobile scroll hint */}
-        {sites.length > 1 && (
-          <Typography
-            sx={{
-              display: { xs: "block", md: "none" },
-              textAlign: "center",
-              mt: 1.5,
-              fontFamily: F_BODY,
-              fontSize: "0.72rem",
-              color: "#94a3b8",
-            }}
-          >
-            Перетягніть, щоб переглянути інші сайти →
-          </Typography>
-        )}
       </Container>
     </Box>
   );
