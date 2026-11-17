@@ -14,15 +14,19 @@ const HomeLayout = () => {
     <>
       <Navbar />
       <Stack
+        component="main"
         sx={{
           minHeight: "80vh",
           display: "flex",
           flexDirection: "column",
           width: "100%",
+          minWidth: 0,
+          maxWidth: "100%",
+          boxSizing: "border-box",
+          overflowX: "clip",
           bgcolor: "#f5f5f5",
-          pb: 4,
+          pb: { xs: 2, md: 4 },
         }}
-        component="main"
       >
         {isPageLoading ? <Loading /> : <Outlet />}
         {showPromotion && <CrossPromotionStrip />}
