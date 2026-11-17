@@ -168,9 +168,9 @@ const futureFlags = {
 
 // ── Route groups ──────────────────────────────────────────
 const publicRoutes = [
-  { index: true, element: <Home /> },
+  { index: true, element: <Home />, handle: { crossPromotion: true } },
   { path: "landing", element: <Landing /> },
-  { path: "about", element: <About /> },
+  { path: "about", element: <About />, handle: { crossPromotion: true } },
   { path: "policy", element: <Policy /> },
 
   // Auth
@@ -185,14 +185,29 @@ const publicRoutes = [
   { path: "reset-password/:token", element: <ResetPassword /> },
 
   // Contact
-  { path: "contact", element: <Contacts />, action: contactAction },
+  {
+    path: "contact",
+    element: <Contacts />,
+    action: contactAction,
+    handle: { crossPromotion: true },
+  },
 
   // News
-  { path: "news", element: <News />, loader: newsLoader },
+  {
+    path: "news",
+    element: <News />,
+    loader: newsLoader,
+    handle: { crossPromotion: true },
+  },
   { path: "news/:id", element: <NewsDetail />, loader: newsDetailLoader },
 
   // Events
-  { path: "events", element: <Events />, loader: eventsLoader },
+  {
+    path: "events",
+    element: <Events />,
+    loader: eventsLoader,
+    handle: { crossPromotion: true },
+  },
   { path: "events/:id", element: <EventDetail />, loader: eventDetailLoader },
 
   // Publications
@@ -200,6 +215,7 @@ const publicRoutes = [
     path: "publications",
     element: <Publications />,
     loader: publicationsLoader,
+    handle: { crossPromotion: true },
   },
   {
     path: "publications/:id",
@@ -208,11 +224,24 @@ const publicRoutes = [
   },
 
   // Countries
-  { path: "countries", element: <CountriesIndex /> },
-  { path: "countries/:code", element: <Country />, loader: countryLoader },
+  {
+    path: "countries",
+    element: <CountriesIndex />,
+    handle: { crossPromotion: true },
+  },
+  {
+    path: "countries/:code",
+    element: <Country />,
+    loader: countryLoader,
+  },
 
   // Ads
-  { path: "ads", element: <Ads />, loader: adsLoader },
+  {
+    path: "ads",
+    element: <Ads />,
+    loader: adsLoader,
+    handle: { crossPromotion: true },
+  },
   {
     path: "ads/:id",
     element: <AdDetailPage />,
@@ -233,6 +262,7 @@ const publicRoutes = [
     element: <Forum />,
     loader: forumLoader,
     action: forumAction,
+    handle: { crossPromotion: true },
   },
   {
     path: "forum/:id",

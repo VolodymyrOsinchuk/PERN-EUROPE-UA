@@ -19,7 +19,12 @@ import {
   InputAdornment,
   IconButton,
 } from "@mui/material";
-import { GridView, HeroSection, ListView, CitySelectField } from "../../components";
+import {
+  GridView,
+  HeroSection,
+  ListView,
+  CitySelectField,
+} from "../../components";
 import { useLoaderData, Link, useSearchParams } from "react-router-dom";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
@@ -105,7 +110,12 @@ export function getCategoryMeta(name) {
     n.includes("школ") ||
     n.includes("educat")
   ) {
-    return { icon: "school", bg: "#f5f3ff", text: "#6d28d9", border: "#ddd6fe" };
+    return {
+      icon: "school",
+      bg: "#f5f3ff",
+      text: "#6d28d9",
+      border: "#ddd6fe",
+    };
   }
   if (
     n.includes("транспорт") ||
@@ -114,7 +124,12 @@ export function getCategoryMeta(name) {
     n.includes("перевезен") ||
     n.includes("машин")
   ) {
-    return { icon: "directions_car", bg: "#ecfeff", text: "#0e7490", border: "#a5f3fc" };
+    return {
+      icon: "directions_car",
+      bg: "#ecfeff",
+      text: "#0e7490",
+      border: "#a5f3fc",
+    };
   }
   if (
     n.includes("спільнот") ||
@@ -123,7 +138,12 @@ export function getCategoryMeta(name) {
     n.includes("гуманітар") ||
     n.includes("благодійн")
   ) {
-    return { icon: "diversity_3", bg: "#fdf2f8", text: "#be185d", border: "#fbcfe8" };
+    return {
+      icon: "diversity_3",
+      bg: "#fdf2f8",
+      text: "#be185d",
+      border: "#fbcfe8",
+    };
   }
   if (
     n.includes("електрон") ||
@@ -132,7 +152,12 @@ export function getCategoryMeta(name) {
     n.includes("комп") ||
     n.includes("телефон")
   ) {
-    return { icon: "devices", bg: "#eef2ff", text: "#4338ca", border: "#c7d2fe" };
+    return {
+      icon: "devices",
+      bg: "#eef2ff",
+      text: "#4338ca",
+      border: "#c7d2fe",
+    };
   }
   if (
     n.includes("одяг") ||
@@ -140,16 +165,27 @@ export function getCategoryMeta(name) {
     n.includes("реч") ||
     n.includes("мод")
   ) {
-    return { icon: "checkroom", bg: "#fffbeb", text: "#b45309", border: "#fde68a" };
+    return {
+      icon: "checkroom",
+      bg: "#fffbeb",
+      text: "#b45309",
+      border: "#fde68a",
+    };
   }
-  if (
-    n.includes("дитяч") ||
-    n.includes("діт") ||
-    n.includes("іграшк")
-  ) {
-    return { icon: "child_care", bg: "#fff1f2", text: "#be123c", border: "#fecdd3" };
+  if (n.includes("дитяч") || n.includes("діт") || n.includes("іграшк")) {
+    return {
+      icon: "child_care",
+      bg: "#fff1f2",
+      text: "#be123c",
+      border: "#fecdd3",
+    };
   }
-  return { icon: "category", bg: "#f8fafc", text: "#475569", border: "#e2e8f0" };
+  return {
+    icon: "category",
+    bg: "#f8fafc",
+    text: "#475569",
+    border: "#e2e8f0",
+  };
 }
 
 /* ── Популярні країни для швидких фільтрів ── */
@@ -172,16 +208,16 @@ const CITY_SYNONYMS = {
   warszawa: ["warszawa", "warsaw", "варшава"],
   warsaw: ["warszawa", "warsaw", "варшава"],
   краків: ["kraków", "krakow", "краків"],
-  "kraków": ["kraków", "krakow", "краків"],
+  kraków: ["kraków", "krakow", "краків"],
   krakow: ["kraków", "krakow", "краків"],
   вроцлав: ["wrocław", "wroclaw", "вроцлав"],
-  "wrocław": ["wrocław", "wroclaw", "вроцлав"],
+  wrocław: ["wrocław", "wroclaw", "вроцлав"],
   wroclaw: ["wrocław", "wroclaw", "вроцлав"],
   познань: ["poznań", "poznan", "познань"],
-  "poznań": ["poznań", "poznan", "познань"],
+  poznań: ["poznań", "poznan", "познань"],
   гдиня: ["gdynia", "гдиня"],
   гданськ: ["gdańsk", "gdansk", "гданськ"],
-  "gdańsk": ["gdańsk", "gdansk", "гданськ"],
+  gdańsk: ["gdańsk", "gdansk", "гданськ"],
   щецин: ["szczecin", "щецин"],
   люблін: ["lublin", "люблін"],
   катовиці: ["katowice", "катовиці"],
@@ -189,13 +225,13 @@ const CITY_SYNONYMS = {
   берлін: ["berlin", "берлін"],
   berlin: ["berlin", "берлін"],
   мюнхен: ["münchen", "munich", "munchen", "мюнхен"],
-  "münchen": ["münchen", "munich", "munchen", "мюнхен"],
+  münchen: ["münchen", "munich", "munchen", "мюнхен"],
   munich: ["münchen", "munich", "munchen", "мюнхен"],
   "франкфурт-на-майні": ["frankfurt", "франкфурт", "frankfurt am main"],
   frankfurt: ["frankfurt", "франкфурт", "frankfurt am main"],
   гамбург: ["hamburg", "гамбург"],
   кельн: ["köln", "cologne", "koln", "кельн"],
-  "köln": ["köln", "cologne", "koln", "кельн"],
+  köln: ["köln", "cologne", "koln", "кельн"],
   прага: ["praha", "prague", "прага"],
   praha: ["praha", "prague", "прага"],
   prague: ["praha", "prague", "прага"],
@@ -247,7 +283,8 @@ export default function Ads() {
   // Динамічні категорії з /dashboard/categories (/categories)
   const [categories, setCategories] = useState(() => {
     if (Array.isArray(loaderData?.categories)) return loaderData.categories;
-    if (Array.isArray(loaderData?.categories?.data)) return loaderData.categories.data;
+    if (Array.isArray(loaderData?.categories?.data))
+      return loaderData.categories.data;
     return [];
   });
 
@@ -310,7 +347,7 @@ export default function Ads() {
   const selectedCategoryObj = useMemo(() => {
     if (!category) return null;
     return categories.find(
-      (c) => String(c.id) === String(category) || c.name === category
+      (c) => String(c.id) === String(category) || c.name === category,
     );
   }, [categories, category]);
 
@@ -331,76 +368,97 @@ export default function Ads() {
       if (ad.status && ad.status !== "Active") return false;
 
       // 1. ДИНАМІЧНИЙ ФІЛЬТР ЗА КАТЕГОРІЄЮ
-      const matchCat = !category || (() => {
-        const filterCatStr = String(category).trim().toLowerCase();
-        // Перевіряємо за categoryId
-        if (ad.categoryId && String(ad.categoryId) === filterCatStr) return true;
-        // Перевіряємо за ad.category.id
-        if (ad.category?.id && String(ad.category.id) === filterCatStr) return true;
-        // Перевіряємо за назвою категорії
-        const adCatName = (ad.category?.name || "").trim().toLowerCase();
-        if (
-          adCatName &&
-          (adCatName === filterCatStr ||
-            adCatName.includes(filterCatStr) ||
-            filterCatStr.includes(adCatName))
-        ) {
-          return true;
-        }
-        return false;
-      })();
+      const matchCat =
+        !category ||
+        (() => {
+          const filterCatStr = String(category).trim().toLowerCase();
+          // Перевіряємо за categoryId
+          if (ad.categoryId && String(ad.categoryId) === filterCatStr)
+            return true;
+          // Перевіряємо за ad.category.id
+          if (ad.category?.id && String(ad.category.id) === filterCatStr)
+            return true;
+          // Перевіряємо за назвою категорії
+          const adCatName = (ad.category?.name || "").trim().toLowerCase();
+          if (
+            adCatName &&
+            (adCatName === filterCatStr ||
+              adCatName.includes(filterCatStr) ||
+              filterCatStr.includes(adCatName))
+          ) {
+            return true;
+          }
+          return false;
+        })();
 
       // 1.1. ДИНАМІЧНИЙ ФІЛЬТР ЗА ПІДКАТЕГОРІЄЮ (якщо обрано)
-      const matchSubCat = !subcategory || (() => {
-        const filterSubStr = String(subcategory).trim().toLowerCase();
-        if (ad.subcategoryId && String(ad.subcategoryId) === filterSubStr) return true;
-        if (ad.subcategory?.id && String(ad.subcategory.id) === filterSubStr) return true;
-        const adSubName = (ad.subcategory?.name || "").trim().toLowerCase();
-        if (adSubName && (adSubName === filterSubStr || adSubName.includes(filterSubStr))) {
-          return true;
-        }
-        return false;
-      })();
+      const matchSubCat =
+        !subcategory ||
+        (() => {
+          const filterSubStr = String(subcategory).trim().toLowerCase();
+          if (ad.subcategoryId && String(ad.subcategoryId) === filterSubStr)
+            return true;
+          if (ad.subcategory?.id && String(ad.subcategory.id) === filterSubStr)
+            return true;
+          const adSubName = (ad.subcategory?.name || "").trim().toLowerCase();
+          if (
+            adSubName &&
+            (adSubName === filterSubStr || adSubName.includes(filterSubStr))
+          ) {
+            return true;
+          }
+          return false;
+        })();
 
       // 2. ФІЛЬТР СПОЧАТКУ ЗА КРАЇНОЮ
-      const matchCountry = !country || (() => {
-        const normFilterCountry = normalizeCountry(country).toLowerCase();
-        const adCountry = ad.country ? normalizeCountry(ad.country).toLowerCase() : "";
-        if (
-          adCountry &&
-          (adCountry === normFilterCountry ||
-            adCountry.includes(normFilterCountry) ||
-            normFilterCountry.includes(adCountry))
-        ) {
-          return true;
-        }
-        const adLoc = typeof ad.location === "string" ? ad.location.toLowerCase() : "";
-        const adState = typeof ad.state === "string" ? ad.state.toLowerCase() : "";
-        return (
-          adLoc.includes(normFilterCountry) || adState.includes(normFilterCountry)
-        );
-      })();
+      const matchCountry =
+        !country ||
+        (() => {
+          const normFilterCountry = normalizeCountry(country).toLowerCase();
+          const adCountry = ad.country
+            ? normalizeCountry(ad.country).toLowerCase()
+            : "";
+          if (
+            adCountry &&
+            (adCountry === normFilterCountry ||
+              adCountry.includes(normFilterCountry) ||
+              normFilterCountry.includes(adCountry))
+          ) {
+            return true;
+          }
+          const adLoc =
+            typeof ad.location === "string" ? ad.location.toLowerCase() : "";
+          const adState =
+            typeof ad.state === "string" ? ad.state.toLowerCase() : "";
+          return (
+            adLoc.includes(normFilterCountry) ||
+            adState.includes(normFilterCountry)
+          );
+        })();
 
       // 3. ФІЛЬТР ПОТІМ ЗА МІСТОМ (враховує українську та латинську назву)
-      const matchCity = !city || (() => {
-        const filterCity = city.trim().toLowerCase();
-        const adCity = (ad.city || "").trim().toLowerCase();
-        const adLoc = typeof ad.location === "string" ? ad.location.toLowerCase() : "";
+      const matchCity =
+        !city ||
+        (() => {
+          const filterCity = city.trim().toLowerCase();
+          const adCity = (ad.city || "").trim().toLowerCase();
+          const adLoc =
+            typeof ad.location === "string" ? ad.location.toLowerCase() : "";
 
-        if (
-          adCity &&
-          (adCity === filterCity ||
-            adCity.includes(filterCity) ||
-            filterCity.includes(adCity))
-        ) {
-          return true;
-        }
-        if (adLoc && adLoc.includes(filterCity)) {
-          return true;
-        }
-        const variants = getCityVariants(filterCity);
-        return variants.some((v) => adCity.includes(v) || adLoc.includes(v));
-      })();
+          if (
+            adCity &&
+            (adCity === filterCity ||
+              adCity.includes(filterCity) ||
+              filterCity.includes(adCity))
+          ) {
+            return true;
+          }
+          if (adLoc && adLoc.includes(filterCity)) {
+            return true;
+          }
+          const variants = getCityVariants(filterCity);
+          return variants.some((v) => adCity.includes(v) || adLoc.includes(v));
+        })();
 
       // 4. Пошук за назвою або описом
       const matchSearch =
@@ -408,11 +466,15 @@ export default function Ads() {
         ad.title?.toLowerCase().includes(search.toLowerCase()) ||
         ad.description?.toLowerCase().includes(search.toLowerCase());
 
-      return matchCat && matchSubCat && matchCountry && matchCity && matchSearch;
+      return (
+        matchCat && matchSubCat && matchCountry && matchCity && matchSearch
+      );
     });
   }, [data, category, subcategory, country, city, search]);
 
-  const hasFilters = Boolean(country || city || category || subcategory || search);
+  const hasFilters = Boolean(
+    country || city || category || subcategory || search,
+  );
 
   const clearFilters = () => {
     setCountry("");
@@ -424,7 +486,8 @@ export default function Ads() {
 
   // Динамічна статистика
   const totalActiveAds = useMemo(() => {
-    return (data || []).filter((a) => !a.status || a.status === "Active").length;
+    return (data || []).filter((a) => !a.status || a.status === "Active")
+      .length;
   }, [data]);
 
   const uniqueCitiesCount = useMemo(() => {
@@ -432,7 +495,7 @@ export default function Ads() {
       (data || [])
         .map((a) => a.city || a.location)
         .filter(Boolean)
-        .map((c) => String(c).trim().toLowerCase())
+        .map((c) => String(c).trim().toLowerCase()),
     ).size;
   }, [data]);
 
@@ -441,7 +504,7 @@ export default function Ads() {
       (data || [])
         .map((a) => a.country)
         .filter(Boolean)
-        .map((c) => normalizeCountry(c).toLowerCase())
+        .map((c) => normalizeCountry(c).toLowerCase()),
     ).size;
   }, [data]);
 
@@ -685,7 +748,7 @@ export default function Ads() {
               }}
             >
               {/* Поля форми фільтрів */}
-              <Grid container spacing={2} alignItems="center">
+              <Grid container spacing={2} sx={{ alignItems: "center" }}>
                 {/* 1. Пошук */}
                 <Grid size={{ xs: 12, md: 3.5 }}>
                   <TextField
@@ -694,24 +757,33 @@ export default function Ads() {
                     placeholder="Пошук за назвою або описом..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <SearchIcon sx={{ fontSize: 18, color: "#94a3b8" }} />
-                        </InputAdornment>
-                      ),
-                      endAdornment: search ? (
-                        <InputAdornment position="end">
-                          <IconButton
-                            size="small"
-                            onClick={() => setSearch("")}
-                            sx={{ p: 0.5, color: "#94a3b8" }}
-                          >
-                            <ClearIcon fontSize="small" />
-                          </IconButton>
-                        </InputAdornment>
-                      ) : null,
-                      sx: {
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <SearchIcon
+                              sx={{ fontSize: 18, color: "#94a3b8" }}
+                            />
+                          </InputAdornment>
+                        ),
+                        endAdornment: search ? (
+                          <InputAdornment position="end">
+                            <IconButton
+                              size="small"
+                              onClick={() => setSearch("")}
+                              sx={{ p: 0.5, color: "#94a3b8" }}
+                            >
+                              <ClearIcon fontSize="small" />
+                            </IconButton>
+                          </InputAdornment>
+                        ) : null,
+                      },
+                      htmlInput: {
+                        // Налаштування звичайного HTML input за потреби
+                      },
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
                         borderRadius: "12px",
                         fontFamily: F_BODY,
                         bgcolor: "#f8fafc",
@@ -1071,7 +1143,9 @@ export default function Ads() {
                       cursor: "pointer",
                       bgcolor: !subcategory ? BLUE : "#f8fafc",
                       color: !subcategory ? "#fff" : "#475569",
-                      "&:hover": { bgcolor: !subcategory ? "#003d82" : "#e2e8f0" },
+                      "&:hover": {
+                        bgcolor: !subcategory ? "#003d82" : "#e2e8f0",
+                      },
                     }}
                   />
                   {currentSubcategories.map((sub) => {
@@ -1094,12 +1168,12 @@ export default function Ads() {
                           cursor: "pointer",
                           bgcolor: isSubSel ? BLUE : "#fff",
                           color: isSubSel ? "#fff" : "#334155",
-                          border: `1px solid ${
-                            isSubSel ? BLUE : "#e2e8f0"
-                          }`,
+                          border: `1px solid ${isSubSel ? BLUE : "#e2e8f0"}`,
                           transition: "all 0.15s ease",
                           "&:hover": {
-                            bgcolor: isSubSel ? "#003d82" : "rgba(0,87,184,.06)",
+                            bgcolor: isSubSel
+                              ? "#003d82"
+                              : "rgba(0,87,184,.06)",
                             borderColor: BLUE,
                           },
                         }}
@@ -1171,7 +1245,7 @@ export default function Ads() {
                         categories.find(
                           (c) =>
                             String(c.id) === String(category) ||
-                            c.name === category
+                            c.name === category,
                         )?.name ||
                         category
                       }`}
@@ -1193,7 +1267,7 @@ export default function Ads() {
                         currentSubcategories.find(
                           (s) =>
                             String(s.id) === String(subcategory) ||
-                            s.name === subcategory
+                            s.name === subcategory,
                         )?.name || subcategory
                       }`}
                       onDelete={() => setSubcategory("")}

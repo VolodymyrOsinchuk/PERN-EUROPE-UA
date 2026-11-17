@@ -93,7 +93,7 @@ export default function Home() {
         }}
       >
         <Container maxWidth="lg">
-          <Grid container spacing={0} justifyContent="center">
+          <Grid container spacing={0} sx={{ justifyContent: "center" }}>
             {STATS_DEF.map((s, i) => (
               <Grid
                 size={{ xs: 6, sm: 3 }}

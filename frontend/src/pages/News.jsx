@@ -180,12 +180,14 @@ export default function News() {
                   "&.Mui-focused fieldset": { borderColor: "#0057B8" },
                 },
               }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon sx={{ fontSize: 18, color: "#94a3b8" }} />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ fontSize: 18, color: "#94a3b8" }} />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
 
@@ -288,7 +290,13 @@ export default function News() {
                             fontSize: "0.72rem",
                           }}
                         />
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5,
+                          }}
+                        >
                           {item.importance === "high" && (
                             <Box
                               sx={{
@@ -307,11 +315,14 @@ export default function News() {
                             }}
                           >
                             {item.date
-                              ? new Date(item.date).toLocaleDateString("uk-UA", {
-                                  day: "2-digit",
-                                  month: "short",
-                                  year: "numeric",
-                                })
+                              ? new Date(item.date).toLocaleDateString(
+                                  "uk-UA",
+                                  {
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "numeric",
+                                  },
+                                )
                               : "—"}
                           </Typography>
                         </Box>

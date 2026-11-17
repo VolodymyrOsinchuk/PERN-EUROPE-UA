@@ -493,7 +493,14 @@ function TopicCard({ topic, categories, index }) {
         </Box>
 
         {/* Location & Tags */}
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
           {cat && (
             <Chip
               label={cat.title}
@@ -532,7 +539,11 @@ function TopicCard({ topic, categories, index }) {
 
           {(topic.country || topic.city) && (
             <Chip
-              icon={<PlaceOutlinedIcon sx={{ fontSize: "12px !important", color: "#0284c7" }} />}
+              icon={
+                <PlaceOutlinedIcon
+                  sx={{ fontSize: "12px !important", color: "#0284c7" }}
+                />
+              }
               label={[topic.country, topic.city].filter(Boolean).join(", ")}
               size="small"
               sx={{
@@ -548,7 +559,9 @@ function TopicCard({ topic, categories, index }) {
           <Box sx={{ flexGrow: 1 }} />
 
           <Chip
-            icon={<ChatBubbleOutlineIcon sx={{ fontSize: "11px !important" }} />}
+            icon={
+              <ChatBubbleOutlineIcon sx={{ fontSize: "11px !important" }} />
+            }
             label={`${topic.replies ?? 0}`}
             size="small"
             sx={{
@@ -560,7 +573,9 @@ function TopicCard({ topic, categories, index }) {
             }}
           />
           <Chip
-            icon={<VisibilityOutlinedIcon sx={{ fontSize: "11px !important" }} />}
+            icon={
+              <VisibilityOutlinedIcon sx={{ fontSize: "11px !important" }} />
+            }
             label={`${topic.views ?? 0}`}
             size="small"
             sx={{
@@ -619,7 +634,9 @@ export default function Forum() {
       toast.warning("Увійдіть в акаунт, щоб створити тему");
       return;
     }
-    setModalCatId(selectedCategoryId || (categories[0]?.id ? String(categories[0].id) : ""));
+    setModalCatId(
+      selectedCategoryId || (categories[0]?.id ? String(categories[0].id) : ""),
+    );
     setModalSubCatId("");
     setModalCountry(countryFilter || "");
     setModalCity("");
@@ -668,7 +685,7 @@ export default function Forum() {
         (t) =>
           t.title?.toLowerCase().includes(q) ||
           t.content?.toLowerCase().includes(q) ||
-          t.category?.toLowerCase().includes(q)
+          t.category?.toLowerCase().includes(q),
       );
     }
 
@@ -676,19 +693,19 @@ export default function Forum() {
       result = result.filter(
         (t) =>
           String(t.forumCategoryId) === String(selectedCategoryId) ||
-          (selectedCategoryObj && t.category === selectedCategoryObj.title)
+          (selectedCategoryObj && t.category === selectedCategoryObj.title),
       );
     }
 
     if (selectedSubcategoryId) {
       result = result.filter(
-        (t) => String(t.forumSubcategoryId) === String(selectedSubcategoryId)
+        (t) => String(t.forumSubcategoryId) === String(selectedSubcategoryId),
       );
     }
 
     if (countryFilter) {
       result = result.filter(
-        (t) => t.country?.toLowerCase() === countryFilter.toLowerCase()
+        (t) => t.country?.toLowerCase() === countryFilter.toLowerCase(),
       );
     }
 
@@ -767,7 +784,10 @@ export default function Forum() {
     <>
       <HeroSection
         title="Форум «Українці в Європі»"
-        typedStrings={["Єдиний простір взаємодопомоги та досвіду", "30 тематичних розділів для всіх країн Європи"]}
+        typedStrings={[
+          "Єдиний простір взаємодопомоги та досвіду",
+          "30 тематичних розділів для всіх країн Європи",
+        ]}
         subtitle="Спілкуйтеся, ставте запитання, знаходьте житло, роботу та діліться корисними порадами"
         size="sm"
       />
@@ -840,17 +860,22 @@ export default function Forum() {
                     bgcolor: "#f8fafc",
                   },
                 }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon sx={{ fontSize: 18, color: "#94a3b8" }} />
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ fontSize: 18, color: "#94a3b8" }} />
+                      </InputAdornment>
+                    ),
+                  },
                 }}
               />
 
               {/* Geographic Country filter */}
-              <FormControl size="small" sx={{ minWidth: 160, flex: "0 0 auto" }}>
+              <FormControl
+                size="small"
+                sx={{ minWidth: 160, flex: "0 0 auto" }}
+              >
                 <InputLabel sx={{ fontFamily: fontBody }}>Країна</InputLabel>
                 <Select
                   value={countryFilter}
@@ -859,7 +884,11 @@ export default function Forum() {
                     setCountryFilter(e.target.value);
                     setCityFilter("");
                   }}
-                  sx={{ borderRadius: "12px", fontFamily: fontBody, bgcolor: "#f8fafc" }}
+                  sx={{
+                    borderRadius: "12px",
+                    fontFamily: fontBody,
+                    bgcolor: "#f8fafc",
+                  }}
                 >
                   <MenuItem value="">Всі країни Європи</MenuItem>
                   {EUROPE_COUNTRIES.map((c) => (
@@ -885,8 +914,13 @@ export default function Forum() {
               </Box>
 
               {/* Sort by */}
-              <FormControl size="small" sx={{ minWidth: 160, flex: "0 0 auto" }}>
-                <InputLabel sx={{ fontFamily: fontBody }}>Сортування</InputLabel>
+              <FormControl
+                size="small"
+                sx={{ minWidth: 160, flex: "0 0 auto" }}
+              >
+                <InputLabel sx={{ fontFamily: fontBody }}>
+                  Сортування
+                </InputLabel>
                 <Select
                   value={sortBy}
                   label="Сортування"
@@ -896,7 +930,11 @@ export default function Forum() {
                       <SortIcon sx={{ fontSize: 16, color: "#94a3b8" }} />
                     </InputAdornment>
                   }
-                  sx={{ borderRadius: "12px", fontFamily: fontBody, bgcolor: "#f8fafc" }}
+                  sx={{
+                    borderRadius: "12px",
+                    fontFamily: fontBody,
+                    bgcolor: "#f8fafc",
+                  }}
                 >
                   <MenuItem value="latest" sx={{ fontFamily: fontBody }}>
                     Найновіші
@@ -911,7 +949,9 @@ export default function Forum() {
               </FormControl>
 
               {/* Action buttons */}
-              <Box sx={{ display: "flex", gap: 1, ml: "auto", flexWrap: "wrap" }}>
+              <Box
+                sx={{ display: "flex", gap: 1, ml: "auto", flexWrap: "wrap" }}
+              >
                 <Tooltip title="Запропонувати створити нову категорію адміністратору">
                   <Button
                     variant="outlined"
@@ -933,7 +973,13 @@ export default function Forum() {
 
                 <Button
                   variant="contained"
-                  startIcon={user ? <AddIcon /> : <LockOutlinedIcon sx={{ fontSize: 16 }} />}
+                  startIcon={
+                    user ? (
+                      <AddIcon />
+                    ) : (
+                      <LockOutlinedIcon sx={{ fontSize: 16 }} />
+                    )
+                  }
                   onClick={handleOpenCreate}
                   sx={{
                     fontFamily: fontBody,
@@ -963,7 +1009,13 @@ export default function Forum() {
                   flexWrap: "wrap",
                 }}
               >
-                <Typography sx={{ fontFamily: fontBody, fontSize: "0.8rem", color: "#64748b" }}>
+                <Typography
+                  sx={{
+                    fontFamily: fontBody,
+                    fontSize: "0.8rem",
+                    color: "#64748b",
+                  }}
+                >
                   Активні фільтри:
                 </Typography>
 
@@ -985,24 +1037,25 @@ export default function Forum() {
                   />
                 )}
 
-                {selectedSubcategoryId && selectedCategoryObj?.subcategories && (
-                  <Chip
-                    label={`Підкатегорія: ${
-                      selectedCategoryObj.subcategories.find(
-                        (s) => String(s.id) === String(selectedSubcategoryId)
-                      )?.title || selectedSubcategoryId
-                    }`}
-                    size="small"
-                    onDelete={() => setSelectedSubcategoryId("")}
-                    sx={{
-                      fontFamily: fontBody,
-                      fontWeight: 600,
-                      fontSize: "0.75rem",
-                      bgcolor: "#f1f5f9",
-                      color: "#334155",
-                    }}
-                  />
-                )}
+                {selectedSubcategoryId &&
+                  selectedCategoryObj?.subcategories && (
+                    <Chip
+                      label={`Підкатегорія: ${
+                        selectedCategoryObj.subcategories.find(
+                          (s) => String(s.id) === String(selectedSubcategoryId),
+                        )?.title || selectedSubcategoryId
+                      }`}
+                      size="small"
+                      onDelete={() => setSelectedSubcategoryId("")}
+                      sx={{
+                        fontFamily: fontBody,
+                        fontWeight: 600,
+                        fontSize: "0.75rem",
+                        bgcolor: "#f1f5f9",
+                        color: "#334155",
+                      }}
+                    />
+                  )}
 
                 {countryFilter && (
                   <Chip
@@ -1190,7 +1243,7 @@ export default function Forum() {
                             clickable
                             onClick={() =>
                               setSelectedSubcategoryId(
-                                isSubSelected ? "" : String(sub.id)
+                                isSubSelected ? "" : String(sub.id),
                               )
                             }
                             sx={{
@@ -1446,7 +1499,9 @@ export default function Forum() {
 
             {/* Category Select */}
             <FormControl fullWidth required>
-              <InputLabel sx={{ fontFamily: fontBody }}>Розділ форуму *</InputLabel>
+              <InputLabel sx={{ fontFamily: fontBody }}>
+                Розділ форуму *
+              </InputLabel>
               <Select
                 name="forumCategoryId"
                 label="Розділ форуму *"
@@ -1455,7 +1510,11 @@ export default function Forum() {
                   setModalCatId(e.target.value);
                   setModalSubCatId("");
                 }}
-                sx={{ borderRadius: "12px", fontFamily: fontBody, bgcolor: "#f8fafc" }}
+                sx={{
+                  borderRadius: "12px",
+                  fontFamily: fontBody,
+                  bgcolor: "#f8fafc",
+                }}
               >
                 {categories.map((cat) => (
                   <MenuItem
@@ -1516,7 +1575,9 @@ export default function Forum() {
               }}
             >
               <FormControl fullWidth>
-                <InputLabel sx={{ fontFamily: fontBody }}>Країна (опційно)</InputLabel>
+                <InputLabel sx={{ fontFamily: fontBody }}>
+                  Країна (опційно)
+                </InputLabel>
                 <Select
                   name="country"
                   label="Країна (опційно)"
@@ -1525,7 +1586,11 @@ export default function Forum() {
                     setModalCountry(e.target.value);
                     setModalCity("");
                   }}
-                  sx={{ borderRadius: "12px", fontFamily: fontBody, bgcolor: "#f8fafc" }}
+                  sx={{
+                    borderRadius: "12px",
+                    fontFamily: fontBody,
+                    bgcolor: "#f8fafc",
+                  }}
                 >
                   <MenuItem value="">Не вказано / Вся Європа</MenuItem>
                   {EUROPE_COUNTRIES.map((c) => (

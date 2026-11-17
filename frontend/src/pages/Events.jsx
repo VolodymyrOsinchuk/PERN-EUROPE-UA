@@ -94,7 +94,7 @@ export default function Events() {
               boxShadow: "0 2px 16px rgba(0,87,184,.05)",
             }}
           >
-            <Grid container spacing={2} alignItems="center">
+            <Grid container spacing={2} sx={{ alignItems: "center" }}>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
@@ -102,16 +102,18 @@ export default function Events() {
                   placeholder="Пошук за назвою..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon sx={{ fontSize: 18, color: "#94a3b8" }} />
-                      </InputAdornment>
-                    ),
-                    sx: {
-                      borderRadius: "12px",
-                      fontFamily: fontBody,
-                      bgcolor: "#f8fafc",
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon sx={{ fontSize: 18, color: "#94a3b8" }} />
+                        </InputAdornment>
+                      ),
+                      sx: {
+                        borderRadius: "12px",
+                        fontFamily: fontBody,
+                        bgcolor: "#f8fafc",
+                      },
                     },
                   }}
                 />

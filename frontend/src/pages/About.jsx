@@ -269,7 +269,7 @@ const About = () => {
               xs: 5,
               md: 9,
             }}
-            alignItems="center"
+            sx={{ alignItems: "center" }}
           >
             {/* LEFT SIDE */}
 

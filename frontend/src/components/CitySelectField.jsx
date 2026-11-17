@@ -79,7 +79,7 @@ export default function CitySelectField({
       (opt) =>
         opt.name.toLowerCase() === norm ||
         opt.local.toLowerCase() === norm ||
-        opt.label.toLowerCase() === norm
+        opt.label.toLowerCase() === norm,
     );
     if (found) return found;
     // Якщо це кастомне місто, створюємо псевдо-опцію для Autocomplete
@@ -219,7 +219,10 @@ export default function CitySelectField({
                   minWidth: "auto",
                   color: BLUE,
                   fontWeight: 600,
-                  "&:hover": { bgcolor: "transparent", textDecoration: "underline" },
+                  "&:hover": {
+                    bgcolor: "transparent",
+                    textDecoration: "underline",
+                  },
                 }}
               >
                 Обрати зі списку
@@ -245,7 +248,7 @@ export default function CitySelectField({
                 .filter(
                   (o) =>
                     o.name.toLowerCase().includes(q) ||
-                    (o.local && o.local.toLowerCase().includes(q))
+                    (o.local && o.local.toLowerCase().includes(q)),
                 )
                 .slice(0, 30);
             }}
@@ -265,16 +268,21 @@ export default function CitySelectField({
                 fullWidth={fullWidth}
                 helperText={helperText}
                 sx={defaultInputSx}
-                InputProps={{
-                  ...(params.InputProps || {}),
-                  startAdornment: (
-                    <>
-                      <InputAdornment position="start">
-                        <PlaceOutlinedIcon sx={{ fontSize: 18, color: BLUE }} />
-                      </InputAdornment>
-                      {params.InputProps?.startAdornment}
-                    </>
-                  ),
+                slotProps={{
+                  ...params.slotProps,
+                  input: {
+                    ...params.InputProps,
+                    startAdornment: (
+                      <>
+                        <InputAdornment position="start">
+                          <PlaceOutlinedIcon
+                            sx={{ fontSize: 18, color: BLUE }}
+                          />
+                        </InputAdornment>
+                        {params.InputProps?.startAdornment}
+                      </>
+                    ),
+                  },
                 }}
               />
             )}
@@ -283,7 +291,10 @@ export default function CitySelectField({
               return (
                 <Box
                   component="li"
-                  key={key || `${option.country || ""}-${option.name}-${option.local || ""}`}
+                  key={
+                    key ||
+                    `${option.country || ""}-${option.name}-${option.local || ""}`
+                  }
                   {...otherProps}
                   sx={{
                     fontFamily: fontBody,
@@ -325,7 +336,11 @@ export default function CitySelectField({
             noOptionsText={
               <Box sx={{ p: 1, textAlign: "center" }}>
                 <Typography
-                  sx={{ fontFamily: fontBody, fontSize: "0.82rem", color: "#64748b" }}
+                  sx={{
+                    fontFamily: fontBody,
+                    fontSize: "0.82rem",
+                    color: "#64748b",
+                  }}
                 >
                   Місто не знайдено в каталозі.
                 </Typography>
@@ -374,7 +389,9 @@ export default function CitySelectField({
                 variant="text"
                 size="small"
                 onClick={handleToggleManual}
-                startIcon={<EditLocationAltOutlinedIcon sx={{ fontSize: 13 }} />}
+                startIcon={
+                  <EditLocationAltOutlinedIcon sx={{ fontSize: 13 }} />
+                }
                 sx={{
                   fontFamily: fontBody,
                   fontSize: "0.72rem",
