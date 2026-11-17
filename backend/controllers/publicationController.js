@@ -1,7 +1,4 @@
 const { Publication } = require("../models/publication");
-const {
-  CATEGORY_LABELS,
-} = require("../../frontend/src/data/publicationCategories"); // ні, див. нижче
 const PUBLICATION_CATEGORIES = require("../config/publicationCategories");
 const { User } = require("../models/user");
 const { sanitizeText, sanitizeRichText } = require("../utils/sanitize");
