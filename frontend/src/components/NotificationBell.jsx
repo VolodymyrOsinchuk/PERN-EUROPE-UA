@@ -62,8 +62,17 @@ export default function NotificationBell() {
       setUnread((c) => Math.max(0, c - 1));
     }
     close();
-    if (n.conversationId) navigate(`/messages/${n.conversationId}`);
-    else if (n.advId) navigate("/profile/my-ads");
+    if (n.publicationId) {
+      if (n.type === "publication_needs_changes") {
+        navigate(`/profile/publications/edit/${n.publicationId}`);
+      } else if (n.type === "publication_published") {
+        navigate(`/publications/${n.publicationId}`);
+      }
+    } else if (n.conversationId) {
+      navigate(`/messages/${n.conversationId}`);
+    } else if (n.advId) {
+      navigate("/profile/my-ads");
+    }
   };
 
   const markAll = async () => {

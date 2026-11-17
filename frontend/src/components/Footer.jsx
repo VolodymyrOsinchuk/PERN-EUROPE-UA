@@ -17,6 +17,7 @@ const FOOTER_LINKS = [
       { label: "Афіша", href: "/events" },
       { label: "Оголошення", href: "/ads" },
       { label: "Публікації", href: "/publications" },
+      { label: "Країни", href: "/countries" },
       { label: "Форум", href: "/forum" },
     ],
   },

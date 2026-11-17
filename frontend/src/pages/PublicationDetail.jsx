@@ -16,6 +16,7 @@ import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { getCategoryColors } from "../data/publicationCategories";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
 import { useAuthContext } from "../context/AuthContext";
@@ -25,16 +26,6 @@ const F_BODY = "'Plus Jakarta Sans', sans-serif";
 const F_DISPLAY = "'Playfair Display', serif";
 const BLUE = "#0057B8";
 const GOLD = "#FFD700";
-
-const CAT_COLORS = {
-  Документи: { bg: "#eff6ff", text: "#1d4ed8" },
-  Робота: { bg: "#ecfdf5", text: "#065f46" },
-  Житло: { bg: "#fff7ed", text: "#9a3412" },
-  Освіта: { bg: "#f5f3ff", text: "#6d28d9" },
-  Медицина: { bg: "#fff1f2", text: "#be123c" },
-  Культура: { bg: "#fdf4ff", text: "#7e22ce" },
-  Інтеграція: { bg: "#f0fdf4", text: "#166534" },
-};
 
 /* ── Loader ── */
 export async function loader({ params }) {
@@ -93,7 +84,7 @@ export default function PublicationDetail() {
     );
   }
 
-  const clr = CAT_COLORS[article.category] || {
+  const clr = getCategoryColors(article.category) || {
     bg: "#f1f5f9",
     text: "#64748b",
   };

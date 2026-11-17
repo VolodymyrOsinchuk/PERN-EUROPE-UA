@@ -1,0 +1,164 @@
+{
+  "version": 1,
+  "countries": [
+    {
+      "code": "PL",
+      "name": "Польща",
+      "nameEn": "Poland",
+      "flag": "🇵🇱",
+      "lastVerifiedAt": "2026-11-16T00:00:00Z",
+      "verifiedBy": "admin",
+      "links": [
+        {
+          "category": "government",
+          "title": "Портал уряду Польщі",
+          "description": "Загальна інформація для іноземців",
+          "url": "https://www.gov.pl",
+          "lastCheckedAt": "admin"
+        },
+        {
+          "category": "residence",
+          "title": "Посвідки на проживання та тимчасовий захист",
+          "description": "Документи, строки, підтвердження статусу",
+          "url": "https://www.gov.pl",
+          "lastCheckedAt": "admin"
+        },
+        {
+          "category": "benefits",
+          "title": "Соціальні виплати та допомога на дітей",
+          "description": "Виплати, умови, куди звертатися",
+          "url": "https://www.gov.pl",
+          "lastCheckedAt": "admin"
+        },
+        {
+          "category": "work",
+          "title": "Працевлаштування та трудові права",
+          "description": "Реєстрація на роботу, права працівника",
+          "url": "https://www.gov.pl",
+          "lastCheckedAt": "admin"
+        },
+        {
+          "category": "health",
+          "title": "Медичне страхування та доступ до лікарів",
+          "description": "Як отримати допомогу, куди звертатися",
+          "url": "https://www.gov.pl",
+          "lastCheckedAt": "admin"
+        },
+        {
+          "category": "consulate",
+          "title": "Посольство та консульства України в Польщі",
+          "description": "Контакти та консульські послуги",
+          "url": "https://www.gov.pl",
+          "lastCheckedAt": "admin"
+        }
+      ],
+      "disclaimer": "Інформація має довідковий характер і не є юридичною консультацією."
+    },
+    {
+      "code": "DE",
+      "name": "Німеччина",
+      "nameEn": "Germany",
+      "flag": "🇩🇪",
+      "lastVerifiedAt": null,
+      "verifiedBy": null,
+      "links": [
+        {
+          "category": "government",
+          "title": "Портал для іноземців (Make it in Germany)",
+          "description": "Загальна інформація, працевлаштування, документи",
+          "url": null,
+          "lastCheckedAt": null
+        },
+        {
+          "category": "residence",
+          "title": "Тимчасовий захист та посвідки",
+          "description": "Статус, продовження, відділення міграційної служби",
+          "url": null,
+          "lastCheckedAt": null
+        },
+        {
+          "category": "benefits",
+          "title": "Громадянська допомога (Bürgergeld) та житлова допомога",
+          "description": "Умови, документи, куди звертатися",
+          "url": null,
+          "lastCheckedAt": null
+        },
+        {
+          "category": "work",
+          "title": "Служба зайнятості (Arbeitsagentur)",
+          "description": "Пошук роботи, визнання кваліфікації",
+          "url": null,
+          "lastCheckedAt": null
+        },
+        {
+          "category": "health",
+          "title": "Страхова каса (Krankenkasse) та медичні послуги",
+          "description": "Обов'язкове страхування, запис до лікаря",
+          "url": null,
+          "lastCheckedAt": null
+        },
+        {
+          "category": "consulate",
+          "title": "Посольство та генеральні консульства України в Німеччині",
+          "description": "Контакти та консульські послуги",
+          "url": null,
+          "lastCheckedAt": null
+        }
+      ],
+      "disclaimer": "Інформація має довідковий характер і не є юридичною консультацією."
+    },
+    {
+      "code": "FR",
+      "name": "Франція",
+      "nameEn": "France",
+      "flag": "🇫🇷",
+      "lastVerifiedAt": null,
+      "verifiedBy": null,
+      "links": [
+        {
+          "category": "government",
+          "title": "Service-Public.fr",
+          "description": "Офіційний портал адміністративних послуг",
+          "url": null,
+          "lastCheckedAt": null
+        },
+        {
+          "category": "residence",
+          "title": "Тимчасовий захист та посвідки на проживання",
+          "description": "Документи, префектура, строки",
+          "url": null,
+          "lastCheckedAt": null
+        },
+        {
+          "category": "benefits",
+          "title": "Соціальні виплати (CAF)",
+          "description": "Сімейні та соціальні виплати, умови",
+          "url": null,
+          "lastCheckedAt": null
+        },
+        {
+          "category": "work",
+          "title": "France Travail (колишній Pôle emploi)",
+          "description": "Пошук роботи, реєстрація, права",
+          "url": null,
+          "lastCheckedAt": null
+        },
+        {
+          "category": "health",
+          "title": "Система охорони здоров'я та Assurance Maladie",
+          "description": "Страхування, запис до лікаря",
+          "url": null,
+          "lastCheckedAt": null
+        },
+        {
+          "category": "consulate",
+          "title": "Посольство та консульства України у Франції",
+          "description": "Контакти та консульські послуги",
+          "url": null,
+          "lastCheckedAt": null
+        }
+      ],
+      "disclaimer": "Інформація має довідковий характер і не є юридичною консультацією."
+    }
+  ]
+}

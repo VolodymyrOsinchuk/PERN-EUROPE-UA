@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Form, useLoaderData, redirect } from "react-router-dom";
+import { Form, useLoaderData, redirect, useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -27,6 +27,10 @@ import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
 import { DataTable, PageHeader } from "../../components";
+import {
+  CATEGORY_LABELS,
+  getCategoryColors,
+} from "../../data/publicationCategories";
 
 export const loader = async () => {
   try {
@@ -61,6 +65,9 @@ export const action = async ({ request }) => {
         category: formData.get("category"),
         author: formData.get("author"),
         readTime: formData.get("readTime"),
+        countryCode: formData.get("countryCode"),
+        sourceUrl: formData.get("sourceUrl"),
+        sourceName: formData.get("sourceName"),
       });
       toast.success("Публікацію оновлено");
     }
@@ -70,37 +77,26 @@ export const action = async ({ request }) => {
   return redirect("/dashboard/posts");
 };
 
-const CATEGORIES = [
-  "Документи",
-  "Робота",
-  "Житло",
-  "Освіта",
-  "Медицина",
-  "Культура",
-  "Інтеграція",
-  "Інше",
-];
+const CATEGORIES = [...CATEGORY_LABELS, "Інше"];
 
-const categoryColor = (cat) => {
-  const map = {
-    Документи: { bg: "#EFF6FF", color: "#1D4ED8" },
-    Робота: { bg: "#ECFDF5", color: "#065F46" },
-    Житло: { bg: "#FFF7ED", color: "#9A3412" },
-    Освіта: { bg: "#F5F3FF", color: "#6D28D9" },
-    Медицина: { bg: "#FFF1F2", color: "#BE123C" },
-    Культура: { bg: "#FDF4FF", color: "#7E22CE" },
-    Інтеграція: { bg: "#F0FDF4", color: "#166534" },
-  };
-  return map[cat] || { bg: "#F1F5F9", color: "#475569" };
-};
+const categoryColor = (cat) => getCategoryColors(cat);
 
 const Posts = () => {
+  const navigate = useNavigate();
   const publications = useLoaderData() || [];
   const [search, setSearch] = useState("");
-  const [openDialog, setOpenDialog] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [editData, setEditData] = useState({ title: "", content: "", category: "", author: "", readTime: "" });
+  const [editData, setEditData] = useState({
+    title: "",
+    content: "",
+    category: "",
+    author: "",
+    readTime: "",
+    countryCode: "",
+    sourceUrl: "",
+    sourceName: "",
+  });
 
   const filtered = publications.filter(
     (p) =>
@@ -144,7 +140,7 @@ const Posts = () => {
             size="small"
             sx={{
               bgcolor: c.bg,
-              color: c.color,
+              color: c.text,
               fontWeight: 600,
               fontSize: "0.72rem",
             }}
@@ -203,6 +199,9 @@ const Posts = () => {
                     category: rowData.category || "",
                     author: rowData.author || "",
                     readTime: rowData.readTime || "",
+                    countryCode: rowData.countryCode || "",
+                    sourceUrl: rowData.sourceUrl || "",
+                    sourceName: rowData.sourceName || "",
                   });
                   setEditOpen(true);
                 }
@@ -242,7 +241,7 @@ const Posts = () => {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={() => setOpenDialog(true)}
+            onClick={() => navigate("/dashboard/publications/new")}
           >
             Нова публікація
           </Button>
@@ -261,13 +260,22 @@ const Posts = () => {
           placeholder="Пошук за назвою, категорією або автором..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          sx={{ width: { xs: "100%", sm: 380 } }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" sx={{ color: "#94A3B8" }} />
-              </InputAdornment>
-            ),
+          size="small"
+          sx={{
+            width: { xs: "100%", sm: 380 },
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "12px",
+              bgcolor: "#fff",
+            },
+          }}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" sx={{ color: "#94A3B8" }} />
+                </InputAdornment>
+              ),
+            },
           }}
         />
       </Box>
@@ -278,62 +286,8 @@ const Posts = () => {
         emptyMessage="Публікацій не знайдено"
       />
 
-      {/* Dialog nouvelle publication */}
-      <Dialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Нова публікація</DialogTitle>
-        <Form method="post" onSubmit={() => setOpenDialog(false)}>
-          <input type="hidden" name="intent" value="create" />
-          <DialogContent
-            sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}
-          >
-            <TextField name="title" label="Заголовок" fullWidth required />
-            <FormControl fullWidth size="small">
-              <InputLabel>Категорія</InputLabel>
-              <Select name="category" label="Категорія" defaultValue="">
-                {CATEGORIES.map((c) => (
-                  <MenuItem key={c} value={c}>
-                    {c}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField name="author" label="Автор" fullWidth />
-            <TextField
-              name="readTime"
-              label="Час читання (напр. 10 хв)"
-              fullWidth
-            />
-            <TextField
-              name="content"
-              label="Контент"
-              fullWidth
-              multiline
-              rows={4}
-              required
-            />
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2.5 }}>
-            <Button
-              onClick={() => setOpenDialog(false)}
-              variant="outlined"
-              color="inherit"
-            >
-              Скасувати
-            </Button>
-            <Button type="submit" variant="contained">
-              Опублікувати
-            </Button>
-          </DialogActions>
-        </Form>
-      </Dialog>
-
       {/* Edit publication dialog */}
-      <Dialog
+      {/* <Dialog
         open={editOpen}
         onClose={() => setEditOpen(false)}
         maxWidth="sm"
@@ -346,10 +300,20 @@ const Posts = () => {
           <DialogContent
             sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}
           >
-            <TextField name="title" label="Заголовок" fullWidth required defaultValue={editData.title} />
+            <TextField
+              name="title"
+              label="Заголовок"
+              fullWidth
+              required
+              defaultValue={editData.title}
+            />
             <FormControl fullWidth size="small">
               <InputLabel>Категорія</InputLabel>
-              <Select name="category" label="Категорія" defaultValue={editData.category}>
+              <Select
+                name="category"
+                label="Категорія"
+                defaultValue={editData.category}
+              >
                 {CATEGORIES.map((c) => (
                   <MenuItem key={c} value={c}>
                     {c}
@@ -357,12 +321,35 @@ const Posts = () => {
                 ))}
               </Select>
             </FormControl>
-            <TextField name="author" label="Автор" fullWidth defaultValue={editData.author} />
+            <TextField
+              name="author"
+              label="Автор"
+              fullWidth
+              defaultValue={editData.author}
+            />
             <TextField
               name="readTime"
               label="Час читання (напр. 10 хв)"
               fullWidth
               defaultValue={editData.readTime}
+            />
+            <TextField
+              name="countryCode"
+              label="Код країни (напр. PL, DE)"
+              fullWidth
+              defaultValue={editData.countryCode}
+            />
+            <TextField
+              name="sourceUrl"
+              label="Посилання на джерело"
+              fullWidth
+              defaultValue={editData.sourceUrl}
+            />
+            <TextField
+              name="sourceName"
+              label="Назва джерела"
+              fullWidth
+              defaultValue={editData.sourceName}
             />
             <TextField
               name="content"
@@ -387,7 +374,15 @@ const Posts = () => {
             </Button>
           </DialogActions>
         </Form>
-      </Dialog>
+      </Dialog> */}
+      <Tooltip title="Редагувати">
+        <IconButton
+          size="small"
+          onClick={() => navigate(`/dashboard/publications/${row.id}/edit`)}
+        >
+          <EditOutlinedIcon fontSize="small" sx={{ color: "#64748B" }} />
+        </IconButton>
+      </Tooltip>
     </Box>
   );
 };

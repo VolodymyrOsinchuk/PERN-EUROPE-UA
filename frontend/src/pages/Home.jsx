@@ -19,6 +19,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import SearchIcon from "@mui/icons-material/Search";
 import ExternalNews from "../components/ExternalNews";
 import customFetch from "../utils/customFetch";
+import CountriesGrid from "../components/CountriesGrid";
 
 // ── Stats (завантажуються з публічного API) ─────────────────
 const STATS_DEF = [
@@ -388,6 +389,22 @@ export default function Home() {
             />
           </Box>
           <SectionsGrid />
+        </Container>
+      </Box>
+
+      <Box sx={{ py: { xs: 6, md: 8 } }}>
+        <Container maxWidth="lg">
+          <Typography
+            sx={{
+              fontFamily: fontDisplay,
+              fontWeight: 700,
+              fontSize: { xs: "1.8rem", md: "2.2rem" },
+              mb: 4,
+            }}
+          >
+            Життя за кордоном по країнах
+          </Typography>
+          <CountriesGrid />
         </Container>
       </Box>
 

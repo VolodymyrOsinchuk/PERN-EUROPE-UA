@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Alert,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -26,22 +27,14 @@ import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
+import { getCategoryColors } from "../../data/publicationCategories";
+import { useAuthContext } from "../../context/AuthContext";
 
 /* ── Design tokens ── */
 const F_BODY = "'Plus Jakarta Sans', sans-serif";
 const F_DISPLAY = "'Playfair Display', serif";
 const BLUE = "#0057B8";
 const GOLD = "#FFD700";
-
-const CAT_COLORS = {
-  Документи: { bg: "#eff6ff", text: "#1d4ed8" },
-  Робота: { bg: "#ecfdf5", text: "#065f46" },
-  Житло: { bg: "#fff7ed", text: "#9a3412" },
-  Освіта: { bg: "#f5f3ff", text: "#6d28d9" },
-  Медицина: { bg: "#fff1f2", text: "#be123c" },
-  Культура: { bg: "#fdf4ff", text: "#7e22ce" },
-  Інтеграція: { bg: "#f0fdf4", text: "#166534" },
-};
 
 /* ── Loader / Action ── */
 export async function loader() {
@@ -76,11 +69,22 @@ export async function action({ request }) {
 }
 
 /* ── Publication card ── */
-function PublicationCard({ publication, onDelete }) {
-  const clr = CAT_COLORS[publication.category] || {
+function PublicationCard({ publication, onDelete, isStaff }) {
+  const clr = getCategoryColors(publication.category) || {
     bg: "#f1f5f9",
     text: "#64748b",
   };
+
+  const STATUS_CHIP = {
+    draft: { label: "Чернетка", bg: "#f1f5f9", color: "#475569" },
+    pending: { label: "На перевірці", bg: "#eff6ff", color: "#1d4ed8" },
+    needs_changes: { label: "Потрібні правки", bg: "#fff7ed", color: "#9a3412" },
+    published: { label: "Опубліковано", bg: "#ecfdf5", color: "#065f46" },
+    archived: { label: "В архіві", bg: "#f8fafc", color: "#94a3b8" },
+  };
+
+  const st = STATUS_CHIP[publication.status];
+  const canEdit = publication.status !== "published" || isStaff;
 
   return (
     <Card
@@ -120,6 +124,13 @@ function PublicationCard({ publication, onDelete }) {
                     bgcolor: clr.bg,
                     color: clr.text,
                   }}
+                />
+              )}
+              {st && (
+                <Chip
+                  size="small"
+                  label={st.label}
+                  sx={{ bgcolor: st.bg, color: st.color, fontWeight: 700 }}
                 />
               )}
               {publication.readTime && (
@@ -184,19 +195,17 @@ function PublicationCard({ publication, onDelete }) {
                 <OpenInNewIcon sx={{ fontSize: 16 }} />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Редагувати">
-              <IconButton
-                size="small"
-                component={Link}
-                to={`/profile/publications/edit/${publication.id}`}
-                sx={{
-                  color: "#94a3b8",
-                  "&:hover": { color: "#0f172a", bgcolor: "#f1f5f9" },
-                }}
-              >
-                <EditOutlinedIcon sx={{ fontSize: 16 }} />
-              </IconButton>
-            </Tooltip>
+            {canEdit && (
+              <Tooltip title="Редагувати">
+                <IconButton
+                  size="small"
+                  component={Link}
+                  to={`/profile/publications/edit/${publication.id}`}
+                >
+                  <EditOutlinedIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Tooltip>
+            )}
             <Tooltip title="Видалити">
               <IconButton
                 size="small"
@@ -211,6 +220,12 @@ function PublicationCard({ publication, onDelete }) {
             </Tooltip>
           </Box>
         </Box>
+
+        {publication.status === "needs_changes" && publication.moderationReason && (
+          <Alert severity="warning" sx={{ mt: 1.5 }}>
+            <strong>Що виправити:</strong> {publication.moderationReason}
+          </Alert>
+        )}
 
         {publication.date && (
           <Box
@@ -231,8 +246,15 @@ function PublicationCard({ publication, onDelete }) {
   );
 }
 
+const STATUS_CHIP = {
+  draft: { label: "Чернетка", bg: "#f1f5f9", color: "#475569" },
+  published: { label: "Опубліковано", bg: "#ecfdf5", color: "#065f46" },
+  archived: { label: "В архіві", bg: "#f8fafc", color: "#94a3b8" },
+};
 /* ── Main Component ── */
 export default function PublicationsProfile() {
+  const { user } = useAuthContext();
+  const isStaff = ["admin", "moderator"].includes(user?.role);
   const { publications } = useLoaderData();
   const fetcher = useFetcher();
   const [selectedPub, setSelectedPub] = useState(null);
@@ -466,7 +488,7 @@ export default function PublicationsProfile() {
                   },
                 }}
               >
-                <PublicationCard publication={pub} onDelete={handleDelete} />
+                <PublicationCard publication={pub} onDelete={handleDelete} isStaff={isStaff} />
               </Box>
             ))}
           </Box>

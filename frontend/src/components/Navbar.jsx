@@ -28,6 +28,7 @@ const NAV_LINKS = [
   { label: "Афіша", href: "/events" },
   { label: "Оголошення", href: "/ads" },
   { label: "Публікації", href: "/publications" },
+  { label: "Країни", href: "/countries" },
   { label: "Форум", href: "/forum" },
   { label: "Про нас", href: "/about" },
   { label: "Контакт", href: "/contact" },
@@ -416,7 +417,7 @@ export default function Navbar() {
                       </span>
                       Мої оголошення
                     </MenuItem>
-                    {user.role === "admin" && (
+                    {["admin", "moderator"].includes(user.role) && (
                       <MenuItem
                         component={Link}
                         to="/dashboard"
@@ -597,11 +598,15 @@ export default function Navbar() {
             >
               <ListItemText
                 primary={link.label}
-                primaryTypographyProps={{
-                  fontFamily: "'Plus Jakarta Sans',sans-serif",
-                  fontWeight: isActive(link.href) ? 700 : 500,
-                  color: isActive(link.href) ? "#0057B8" : "#334155",
-                  fontSize: "0.9rem",
+                slotProps={{
+                  primary: {
+                    sx: {
+                      fontFamily: "'Plus Jakarta Sans', sans-serif",
+                      fontWeight: isActive(link.href) ? 700 : 500,
+                      color: isActive(link.href) ? "#0057B8" : "#334155",
+                      fontSize: "0.9rem",
+                    },
+                  },
                 }}
               />
             </ListItem>
@@ -668,7 +673,7 @@ export default function Navbar() {
                 Мої оголошення
               </Button>
 
-              {user.role === "admin" && (
+              {["admin", "moderator"].includes(user.role) && (
                 <Button
                   component={Link}
                   to="/dashboard"

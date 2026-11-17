@@ -20,6 +20,7 @@ import {
   Tooltip,
   Tab,
   Tabs,
+  Alert,
 } from "@mui/material";
 import {
   Link,
@@ -592,6 +593,15 @@ function ProfileAdCard({ ad, onDelete }) {
 
 /** Publication card in profile */
 function ProfilePublicationCard({ publication, onDelete }) {
+  const STATUS_CHIP = {
+    draft: { label: "Чернетка", bg: "#f1f5f9", color: "#475569" },
+    pending: { label: "На перевірці", bg: "#eff6ff", color: "#1d4ed8" },
+    needs_changes: { label: "Потрібні правки", bg: "#fff7ed", color: "#9a3412" },
+    published: { label: "Опубліковано", bg: "#ecfdf5", color: "#065f46" },
+    archived: { label: "В архіві", bg: "#f8fafc", color: "#94a3b8" },
+  };
+  const st = STATUS_CHIP[publication.status];
+
   return (
     <Card
       sx={{
@@ -616,18 +626,27 @@ function ProfilePublicationCard({ publication, onDelete }) {
           }}
         >
           <Box sx={{ minWidth: 0 }}>
-            <Chip
-              label={publication.category || "Публікація"}
-              size="small"
-              sx={{
-                fontFamily: F_BODY,
-                fontWeight: 700,
-                fontSize: "0.68rem",
-                mb: 1,
-                bgcolor: "#f0fdf4",
-                color: "#16a34a",
-              }}
-            />
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+              <Chip
+                label={publication.category || "Публікація"}
+                size="small"
+                sx={{
+                  fontFamily: F_BODY,
+                  fontWeight: 700,
+                  fontSize: "0.68rem",
+                  mb: 1,
+                  bgcolor: "#f0fdf4",
+                  color: "#16a34a",
+                }}
+              />
+              {st && (
+                <Chip
+                  size="small"
+                  label={st.label}
+                  sx={{ bgcolor: st.bg, color: st.color, fontWeight: 700 }}
+                />
+              )}
+            </Box>
             <Typography
               sx={{
                 fontFamily: F_DISPLAY,
@@ -696,6 +715,12 @@ function ProfilePublicationCard({ publication, onDelete }) {
             </Tooltip>
           </Box>
         </Box>
+
+        {publication.status === "needs_changes" && publication.moderationReason && (
+          <Alert severity="warning" sx={{ mt: 1.5 }}>
+            <strong>Що виправити:</strong> {publication.moderationReason}
+          </Alert>
+        )}
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>

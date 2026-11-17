@@ -20,30 +20,15 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
+import {
+  CATEGORY_LABELS,
+  getCategoryColors,
+} from "../data/publicationCategories";
 
 const fontBody = "'Plus Jakarta Sans', sans-serif";
 const fontDisplay = "'Playfair Display', serif";
 
-const CATEGORIES_LIST = [
-  "Всі публікації",
-  "Документи",
-  "Робота",
-  "Житло",
-  "Освіта",
-  "Медицина",
-  "Культура",
-  "Інтеграція",
-];
-
-const CAT_COLORS = {
-  Документи: { bg: "#eff6ff", text: "#1d4ed8" },
-  Робота: { bg: "#ecfdf5", text: "#065f46" },
-  Житло: { bg: "#fff7ed", text: "#9a3412" },
-  Освіта: { bg: "#f5f3ff", text: "#6d28d9" },
-  Медицина: { bg: "#fff1f2", text: "#be123c" },
-  Культура: { bg: "#fdf4ff", text: "#7e22ce" },
-  Інтеграція: { bg: "#f0fdf4", text: "#166534" },
-};
+const CATEGORIES_LIST = ["Всі публікації", ...CATEGORY_LABELS];
 
 // ── Loader — vraies données API ──
 export async function loader() {
@@ -107,16 +92,22 @@ export default function Publications() {
                   borderRadius: "12px",
                   fontFamily: fontBody,
                   bgcolor: "#f8fafc",
-                  "&:hover fieldset": { borderColor: "#0057B8" },
-                  "&.Mui-focused fieldset": { borderColor: "#0057B8" },
+                  "&:hover fieldset": {
+                    borderColor: "#0057B8",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#0057B8",
+                  },
                 },
               }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon sx={{ fontSize: 18, color: "#94a3b8" }} />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ fontSize: 18, color: "#94a3b8" }} />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
@@ -182,7 +173,7 @@ export default function Publications() {
           {/* Cards grid */}
           <Grid container spacing={3}>
             {visible.map((article, i) => {
-              const clr = CAT_COLORS[article.category] || {
+              const clr = getCategoryColors(article.category) || {
                 bg: "#f1f5f9",
                 text: "#475569",
               };

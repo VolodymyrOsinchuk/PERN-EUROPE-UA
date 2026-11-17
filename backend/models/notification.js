@@ -15,6 +15,7 @@ const Notification = sequelize.define(
     userId: { type: DataTypes.INTEGER, allowNull: false },
     advId: { type: DataTypes.INTEGER, allowNull: true },
     conversationId: { type: DataTypes.INTEGER, allowNull: true },
+
     type: {
       type: DataTypes.STRING(40),
       allowNull: false,
@@ -28,14 +29,32 @@ const Notification = sequelize.define(
               "ad_needs_changes",
               "ad_hidden",
               "message_received",
+
+              // Сповіщення про публікації
+              "publication_published",
+              "publication_needs_changes",
             ],
           ],
           msg: "Невірний тип сповіщення",
         },
       },
     },
-    message: { type: DataTypes.TEXT, allowNull: false },
-    isRead: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+
+    publicationId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+
+    message: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+
+    isRead: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
   },
   {
     tableName: "notifications",
@@ -48,6 +67,7 @@ Notification.belongsTo(User, {
   as: "user",
   onDelete: "CASCADE",
 });
+
 Notification.belongsTo(Adv, {
   foreignKey: "advId",
   as: "ad",
