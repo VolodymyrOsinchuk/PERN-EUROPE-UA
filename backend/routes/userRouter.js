@@ -31,6 +31,7 @@ router.post(
 router.patch("/update-password", authMiddleware, updatePassword);
 router
   .route("/:id")
+  .get(authMiddleware, roleMiddleware(["admin"]), getUserById)
   .put(authMiddleware, checkSelfOrAdmin, updateUser)
   .delete(authMiddleware, checkSelfOrAdmin, deleteUser);
 

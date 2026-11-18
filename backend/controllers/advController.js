@@ -10,6 +10,8 @@ const {
 } = require("../utils/contactSettings");
 const { toPublicAd, isAdPublic } = require("../utils/publicAd");
 const { notifyAdOwner } = require("../services/notificationService");
+const sequelize = require("../config/db");
+const { Op } = require("sequelize");
 
 exports.createAnnonce = async (req, res) => {
   try {
@@ -97,25 +99,135 @@ exports.createAnnonce = async (req, res) => {
     }
     res
       .status(500)
-      .json({ error: "Внутрішня помилка сервера", message: error.message });
+      .json({ error: "Внутрішня помилка сервера", message: "Внутрішня помилка сервера" });
   }
 };
 
 exports.getAllAnnonces = async (req, res) => {
   try {
-    const annonces = await Adv.findAll({
-      where: PUBLIC_WHERE,
+    const pageParam = req.query.page;
+    const limitParam = req.query.limit;
+    const paginated = pageParam !== undefined || limitParam !== undefined;
+    const page = Math.max(1, parseInt(pageParam, 10) || 1);
+    const limit = Math.min(48, Math.max(1, parseInt(limitParam, 10) || 24));
+    const offset = (page - 1) * limit;
+    const minPrice =
+      req.query.minPrice !== undefined
+        ? Number(req.query.minPrice)
+        : null;
+    const maxPrice =
+      req.query.maxPrice !== undefined
+        ? Number(req.query.maxPrice)
+        : null;
+    const sort = ["newest", "oldest", "priceAsc", "priceDesc", "popular"].includes(
+      req.query.sort,
+    )
+      ? req.query.sort
+      : "newest";
+
+    const where = { ...PUBLIC_WHERE };
+    if (
+      Number.isFinite(minPrice) &&
+      minPrice >= 0 &&
+      (!Number.isFinite(maxPrice) || maxPrice < 0 || minPrice <= maxPrice)
+    ) {
+      where.price = {
+        ...(where.price || {}),
+        [Op.gte]: minPrice,
+      };
+    }
+    if (
+      Number.isFinite(maxPrice) &&
+      maxPrice >= 0 &&
+      (!Number.isFinite(minPrice) || minPrice < 0 || minPrice <= maxPrice)
+    ) {
+      where.price = {
+        ...(where.price || {}),
+        [Op.lte]: maxPrice,
+      };
+    }
+
+    const orderBy = {
+      newest: [["datePosted", "DESC"]],
+      oldest: [["datePosted", "ASC"]],
+      priceAsc: [["price", "ASC"]],
+      priceDesc: [["price", "DESC"]],
+      popular: [["views", "DESC"]],
+    }[sort];
+
+    const query = {
+      where,
       include: [
         { model: Category, as: "category", attributes: ["id", "name"] },
         // Раніше тут був email продавця — прибрано.
         { model: User, as: "user", attributes: ["id", "firstName"] },
       ],
-      order: [["datePosted", "DESC"]],
+      order: orderBy,
+    };
+
+    if (!paginated) {
+      const annonces = await Adv.findAll({ ...query, limit });
+      res.set("Cache-Control", "public, max-age=30");
+      return res.status(200).json(annonces.map((a) => toPublicAd(a)));
+    }
+
+    const { rows, count } = await Adv.findAndCountAll({
+      ...query,
+      limit,
+      offset,
+      distinct: true,
     });
-    res.status(200).json(annonces.map((a) => toPublicAd(a)));
+    res.set("Cache-Control", "public, max-age=30");
+    return res.status(200).json({
+      ads: rows.map((a) => toPublicAd(a)),
+      total: count,
+      page,
+      limit,
+      totalPages: Math.max(1, Math.ceil(count / limit)),
+    });
   } catch (error) {
     console.error("Помилка getAllAnnonces:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
+  }
+};
+
+exports.getSellerProfile = async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return res.status(400).json({ message: "Некоректний ідентифікатор" });
+    }
+
+    const seller = await User.findByPk(userId, {
+      attributes: [
+        "id",
+        "firstName",
+        "lastName",
+        "profilePicture",
+        "country",
+        "city",
+        "createdAt",
+        "lastSeen",
+      ],
+    });
+    if (!seller) {
+      return res.status(404).json({ message: "Продавця не знайдено" });
+    }
+
+    const ads = await Adv.findAll({
+      where: { ...PUBLIC_WHERE, userId },
+      include: [{ model: Category, as: "category", attributes: ["id", "name"] }],
+      order: [["datePosted", "DESC"]],
+      limit: 24,
+    });
+
+    res.status(200).json({
+      seller: seller.toJSON(),
+      ads: ads.map((ad) => toPublicAd(ad)),
+    });
+  } catch (error) {
+    console.error("Помилка getSellerProfile:", error);
+    res.status(500).json({ message: "Внутрішня помилка сервера" });
   }
 };
 
@@ -146,7 +258,7 @@ exports.getAnnonceById = async (req, res) => {
     res.status(200).json(toPublicAd(annonce, viewer));
   } catch (error) {
     console.error("Помилка getAnnonceById:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -241,7 +353,7 @@ exports.updateAnnonce = async (req, res) => {
     }
     res
       .status(500)
-      .json({ error: "Помилка оновлення", details: error.message });
+      .json({ error: "Помилка оновлення", details: "Внутрішня помилка сервера" });
   }
 };
 
@@ -258,7 +370,7 @@ exports.deleteAnnonce = async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error("Помилка deleteAnnonce:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -277,7 +389,7 @@ exports.getUserAnnonces = async (req, res) => {
     res.status(200).json(annonces);
   } catch (error) {
     console.error("Помилка getUserAnnonces:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -313,6 +425,40 @@ exports.submitForModeration = async (req, res) => {
     });
   } catch (error) {
     console.error("Помилка submitForModeration:", error);
+    res.status(500).json({ message: "Внутрішня помилка сервера" });
+  }
+};
+
+exports.refreshAnnonce = async (req, res) => {
+  try {
+    const adv = req.adv;
+    if (adv.status !== "Active" || adv.moderationStatus !== "approved") {
+      return res.status(409).json({
+        message: "Оновити можна лише активне опубліковане оголошення",
+      });
+    }
+
+    await adv.update({ datePosted: new Date(), expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) });
+    res.status(200).json({
+      message: "Оголошення піднято в пошуку",
+      data: adv,
+    });
+  } catch (error) {
+    console.error("Помилка refreshAnnonce:", error);
+    res.status(500).json({ message: "Внутрішня помилка сервера" });
+  }
+};
+
+exports.markAnnonceSold = async (req, res) => {
+  try {
+    const adv = req.adv;
+    await adv.update({ status: "Sold" });
+    res.status(200).json({
+      message: "Оголошення позначено як продане",
+      data: adv,
+    });
+  } catch (error) {
+    console.error("Помилка markAnnonceSold:", error);
     res.status(500).json({ message: "Внутрішня помилка сервера" });
   }
 };

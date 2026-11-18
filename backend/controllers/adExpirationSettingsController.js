@@ -10,7 +10,7 @@ exports.getAdExpirationSettings = async (req, res) => {
     res.status(200).json(settings);
   } catch (error) {
     console.error("Помилка getAdExpirationSettings:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -44,7 +44,7 @@ exports.updateAdExpirationSettings = async (req, res) => {
     res.status(200).json(settings);
   } catch (error) {
     console.error("Помилка updateAdExpirationSettings:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -56,6 +56,6 @@ exports.runExpirationNow = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     console.error("Помилка runExpirationNow:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };

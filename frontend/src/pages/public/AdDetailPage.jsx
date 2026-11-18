@@ -1,11 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Button,
   Typography,
   Container,
-  Card,
-  CardContent,
   Chip,
   Paper,
   Divider,
@@ -21,15 +19,15 @@ import {
   Tooltip,
   Breadcrumbs,
   Link as MuiLink,
+  Alert,
 } from "@mui/material";
-import { ImageGallery } from "../../components";
+import { GridView, ImageGallery } from "../../components";
 import PlaceholderImage from "../../components/PlaceholderImage";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
 import {
   useLoaderData,
   Form,
-  useActionData,
   useNavigation,
   Link,
   redirect,
@@ -45,6 +43,10 @@ import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import {
+  getFavoriteIds,
+  toggleFavoriteId,
+} from "../../utils/favorites";
 
 /* ── Loaders / Actions ── */
 export const loader = async ({ params }) => {
@@ -172,16 +174,32 @@ function ContactCard({ ad, onChat, onEmail, onReport }) {
           </Avatar>
           <Box>
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <Typography
-                sx={{
-                  fontFamily: F_BODY,
-                  fontWeight: 700,
-                  fontSize: "1rem",
-                  color: "#0f172a",
-                }}
-              >
-                {authorName}
-              </Typography>
+              {ad.user?.id ? (
+                <MuiLink
+                  component={Link}
+                  to={`/seller/${ad.user.id}`}
+                  underline="hover"
+                  sx={{
+                    fontFamily: F_BODY,
+                    fontWeight: 700,
+                    fontSize: "1rem",
+                    color: "#0f172a",
+                  }}
+                >
+                  {authorName}
+                </MuiLink>
+              ) : (
+                <Typography
+                  sx={{
+                    fontFamily: F_BODY,
+                    fontWeight: 700,
+                    fontSize: "1rem",
+                    color: "#0f172a",
+                  }}
+                >
+                  {authorName}
+                </Typography>
+              )}
               </Box>
             <Typography
               sx={{ fontFamily: F_BODY, fontSize: "0.78rem", color: "#64748b" }}
@@ -192,6 +210,11 @@ function ContactCard({ ad, onChat, onEmail, onReport }) {
         </Box>
 
         <Divider sx={{ mb: 3, borderColor: "#f1f5f9" }} />
+
+        <Alert severity="info" sx={{ mb: 2.5, borderRadius: "12px" }}>
+          Не переказуйте передплату до отримання товару чи послуги. Не
+          розкривайте паролі та повні платіжні реквізити.
+        </Alert>
 
         {/* Contact details */}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 3 }}>
@@ -609,38 +632,74 @@ function ReportDialog({ open, onClose, adTitle, adId, isSubmitting }) {
 /* ── Main Page ── */
 export default function AdDetailPage() {
   const ad = useLoaderData();
-  const actionData = useActionData();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
-  const [messageOpen, setMessageOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
+  const [similarAds, setSimilarAds] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    customFetch
+      .put(`/trust/view-history/${ad.id}`)
+      .catch(() => {});
+    customFetch
+      .get("/adv", { params: { limit: 24 } })
+      .then(({ data }) => {
+        if (cancelled) return;
+        const ads = Array.isArray(data) ? data : data?.ads || [];
+        setSimilarAds(
+          ads
+            .filter(
+              (item) =>
+                item.id !== ad.id &&
+                (item.categoryId === ad.categoryId ||
+                  item.category?.id === ad.category?.id),
+            )
+            .slice(0, 3),
+        );
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [ad.id, ad.categoryId, ad.category?.id]);
 
   /* Saved ads — локальне сховище (localStorage) */
-  const FAV_KEY = "pern_europe_ua_favorites";
   const [saved, setSaved] = useState(() => {
-    if (typeof window === "undefined") return false;
-    try {
-      const favs = JSON.parse(localStorage.getItem(FAV_KEY) || "[]");
-      return Array.isArray(favs) && favs.includes(ad?.id);
-    } catch {
-      return false;
-    }
+    return getFavoriteIds().includes(Number(ad?.id));
   });
+
+  useEffect(() => {
+    let cancelled = false;
+    customFetch
+      .get("/favorites")
+      .then(({ data }) => {
+        if (cancelled) return;
+        const ids = Array.isArray(data)
+          ? data.map((item) => Number(item.id))
+          : [];
+        setSaved(ids.includes(Number(ad?.id)));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [ad?.id]);
 
   const toggleFavorite = () => {
     if (!ad?.id) return;
     try {
-      const favs = JSON.parse(localStorage.getItem(FAV_KEY) || "[]");
-      const next = favs.includes(ad.id)
-        ? favs.filter((id) => id !== ad.id)
-        : [...favs, ad.id];
-      localStorage.setItem(FAV_KEY, JSON.stringify(next));
-      setSaved(!saved);
+      const nextSaved = toggleFavoriteId(ad.id);
+      setSaved(nextSaved);
+      const request = nextSaved
+        ? customFetch.put(`/favorites/${ad.id}`)
+        : customFetch.delete(`/favorites/${ad.id}`);
+      request.catch(() => toast.error("Не вдалося оновити обране"));
       toast.success(
-        !saved ? "Додано до обраних" : "Видалено з обраних"
+        nextSaved ? "Додано до обраних" : "Видалено з обраних"
       );
     } catch {
       toast.error("Не вдалося оновити обране");
@@ -1243,6 +1302,22 @@ export default function AdDetailPage() {
             </Grid>
           </Grid>
         </Container>
+        {similarAds.length > 0 && (
+          <Container maxWidth="lg" sx={{ pb: 5 }}>
+            <Typography
+              sx={{
+                fontFamily: F_DISPLAY,
+                fontWeight: 800,
+                fontSize: { xs: "1.35rem", md: "1.6rem"},
+                color: "#0f172a",
+                mb: 2.5,
+              }}
+            >
+              Схожі оголошення
+            </Typography>
+            <GridView ads={similarAds} />
+          </Container>
+        )}
       </Box>
       {/* ── Dialogs ── */}
       {/* Діалоги: */}

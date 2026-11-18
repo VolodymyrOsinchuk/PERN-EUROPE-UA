@@ -2,7 +2,7 @@ const { Adv } = require("../models/adv");
 const { User } = require("../models/user");
 const { sanitizeText } = require("../utils/sanitize");
 const { isAdPublic } = require("../utils/publicAd");
-const { sendAdContactEmail } = require("../utils/emailService");
+const { sendAdContactEmail } = require("../services/brevo/mailService");
 
 const MAX_LEN = 2000;
 

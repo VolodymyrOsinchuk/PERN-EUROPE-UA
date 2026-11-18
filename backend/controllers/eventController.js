@@ -9,7 +9,7 @@ exports.getAllEvents = async (req, res) => {
     res.status(200).json(events);
   } catch (error) {
     console.error("Помилка getAllEvents:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -37,7 +37,7 @@ exports.getEventById = async (req, res) => {
     });
   } catch (error) {
     console.error("Помилка getEventById:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -75,7 +75,7 @@ exports.registerEvent = async (req, res) => {
         .status(409)
         .json({ message: "Ви вже зареєстровані на цю подію" });
     }
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -103,7 +103,7 @@ exports.unregisterEvent = async (req, res) => {
     });
   } catch (error) {
     console.error("Помилка unregisterEvent:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -128,7 +128,7 @@ exports.getRegistrationStatus = async (req, res) => {
     });
   } catch (error) {
     console.error("Помилка getRegistrationStatus:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -142,7 +142,7 @@ exports.getUserEvents = async (req, res) => {
     res.status(200).json(events);
   } catch (error) {
     console.error("Помилка getUserEvents:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -171,7 +171,7 @@ exports.createEvent = async (req, res) => {
         details: error.errors.map((e) => e.message),
       });
     }
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -190,7 +190,7 @@ exports.updateEvent = async (req, res) => {
     res.status(200).json(event);
   } catch (error) {
     console.error("Помилка updateEvent:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -208,6 +208,6 @@ exports.deleteEvent = async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error("Помилка deleteEvent:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };

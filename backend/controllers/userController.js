@@ -18,13 +18,14 @@ exports.getAllUsers = async (req, res) => {
     res.status(200).json(users);
   } catch (error) {
     console.error("Помилка getAllUsers:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
 exports.getUserById = async (req, res) => {
   try {
-    const user = await User.findByPk(req.user.userId, {
+    const userId = req.params.id || req.user.userId;
+    const user = await User.findByPk(userId, {
       attributes: { exclude: ["password"] },
     });
     if (!user)
@@ -32,7 +33,7 @@ exports.getUserById = async (req, res) => {
     res.status(200).json(user);
   } catch (error) {
     console.error("Помилка getUserById:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -53,7 +54,7 @@ exports.getUserById = async (req, res) => {
 //     if (error.name === "SequelizeUniqueConstraintError") {
 //       return res.status(409).json({ error: "Email вже використовується" });
 //     }
-//     res.status(500).json({ error: error.message });
+//     res.status(500).json({ error: "Внутрішня помилка сервера" });
 //   }
 // };
 
@@ -93,7 +94,7 @@ exports.createUser = async (req, res) => {
     if (error.name === "SequelizeUniqueConstraintError") {
       return res.status(409).json({ error: "Email вже використовується" });
     }
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -151,7 +152,7 @@ exports.updateUser = async (req, res) => {
         details: error.errors.map((e) => e.message),
       });
     }
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -199,7 +200,7 @@ exports.uploadProfilePicture = async (req, res) => {
     res.status(200).json({ profilePicture: req.cloudinaryUrl });
   } catch (error) {
     console.error("Помилка uploadProfilePicture:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -234,7 +235,7 @@ exports.updatePassword = async (req, res) => {
     res.status(200).json({ message: "Пароль успішно оновлено" });
   } catch (error) {
     console.error("Помилка updatePassword:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -280,7 +281,7 @@ exports.deleteUser = async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error("Помилка deleteUser:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -322,6 +323,6 @@ exports.getDashboardStats = async (req, res) => {
     });
   } catch (error) {
     console.error("Помилка getDashboardStats:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };

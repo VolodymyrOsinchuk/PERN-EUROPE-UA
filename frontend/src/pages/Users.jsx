@@ -71,11 +71,46 @@ const roleColor = (role) => {
   return { bgcolor: "#F1F5F9", color: "#475569" };
 };
 
+const formatLastLogin = (value) => {
+  if (!value) return { label: "Ще не заходив", exact: null };
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return { label: "Невідомо", exact: null };
+  }
+
+  const exact = date.toLocaleString("uk-UA", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+  const diffMinutes = Math.floor((Date.now() - date.getTime()) / 60000);
+
+  let label;
+  if (diffMinutes < 1) label = "Зараз";
+  else if (diffMinutes < 60) label = `${diffMinutes} хв тому`;
+  else if (diffMinutes < 24 * 60) {
+    label = `${Math.floor(diffMinutes / 60)} год тому`;
+  } else if (diffMinutes < 30 * 24 * 60) {
+    label = `${Math.floor(diffMinutes / (24 * 60))} дн тому`;
+  } else {
+    label = date.toLocaleDateString("uk-UA", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  }
+
+  return { label, exact };
+};
+
 const Users = () => {
   const users = useLoaderData();
   const [open, setOpen] = useState(false);
   const [dialogData, setDialogData] = useState({ intent: "", user: null });
   const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [verificationFilter, setVerificationFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
 
   const handleOpen = (intent, user = null) => {
     setDialogData({ intent, user });
@@ -83,11 +118,29 @@ const Users = () => {
   };
   const handleClose = () => setOpen(false);
 
-  const filtered = users.filter(
-    (u) =>
-      u.email?.toLowerCase().includes(search.toLowerCase()) ||
-      u.role?.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filtered = users
+    .filter((u) => {
+      const matchesSearch =
+        u.email?.toLowerCase().includes(search.toLowerCase()) ||
+        u.role?.toLowerCase().includes(search.toLowerCase());
+      const matchesRole = roleFilter === "all" || u.role === roleFilter;
+      const matchesVerification =
+        verificationFilter === "all" ||
+        (verificationFilter === "verified" ? u.isVerified : !u.isVerified);
+      return matchesSearch && matchesRole && matchesVerification;
+    })
+    .sort((a, b) => {
+      if (sortBy === "lastSeen") {
+        return (
+          new Date(b.lastSeen || b.lastLogin || 0).getTime() -
+          new Date(a.lastSeen || a.lastLogin || 0).getTime()
+        );
+      }
+      if (sortBy === "oldest") {
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
   // Get initials from email
   const getInitials = (email = "") => email.slice(0, 2).toUpperCase();
@@ -135,6 +188,27 @@ const Users = () => {
           sx={{ ...roleColor(row.role), fontWeight: 600, fontSize: "0.72rem" }}
         />
       ),
+    },
+    {
+      id: "lastLogin",
+      label: "Останній вхід",
+      render: (row) => {
+        const lastLogin = formatLastLogin(row.lastSeen || row.lastLogin);
+        return lastLogin.exact ? (
+          <Tooltip title={lastLogin.exact}>
+            <Typography
+              variant="body2"
+              sx={{ color: "#475569", cursor: "help", whiteSpace: "nowrap" }}
+            >
+              {lastLogin.label}
+            </Typography>
+          </Tooltip>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            {lastLogin.label}
+          </Typography>
+        );
+      },
     },
     {
       id: "actions",
@@ -201,6 +275,52 @@ const Users = () => {
             ),
           }}
         />
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1.5,
+            mt: 1.5,
+            flexWrap: "wrap",
+          }}
+        >
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <InputLabel>Роль</InputLabel>
+            <Select
+              label="Роль"
+              value={roleFilter}
+              onChange={(event) => setRoleFilter(event.target.value)}
+            >
+              <MenuItem value="all">Усі ролі</MenuItem>
+              <MenuItem value="user">Користувач</MenuItem>
+              <MenuItem value="moderator">Модератор</MenuItem>
+              <MenuItem value="admin">Адміністратор</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 170 }}>
+            <InputLabel>Статус</InputLabel>
+            <Select
+              label="Статус"
+              value={verificationFilter}
+              onChange={(event) => setVerificationFilter(event.target.value)}
+            >
+              <MenuItem value="all">Усі статуси</MenuItem>
+              <MenuItem value="verified">Підтверджені</MenuItem>
+              <MenuItem value="unverified">Не підтверджені</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 170 }}>
+            <InputLabel>Сортування</InputLabel>
+            <Select
+              label="Сортування"
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value)}
+            >
+              <MenuItem value="newest">Нові спочатку</MenuItem>
+              <MenuItem value="oldest">Старі спочатку</MenuItem>
+              <MenuItem value="lastSeen">За активністю</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
       </Box>
 
       <DataTable

@@ -31,7 +31,6 @@
     "rss-parser": "^3.13.0",
     "sanitize-html": "^2.18.2",
     "sequelize": "^6.37.8",
-    "sharp": "^0.35.5",
     "streamifier": "^0.1.1",
     "umzug": "^3.8.3"
   },

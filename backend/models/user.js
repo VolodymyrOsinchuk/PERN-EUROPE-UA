@@ -81,6 +81,10 @@ const User = sequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    lastSeen: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     // FIX: OAuth provider tracking — Google / Facebook login
     provider: {
       type: DataTypes.ENUM("local", "google", "facebook"),

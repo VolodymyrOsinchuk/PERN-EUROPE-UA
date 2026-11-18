@@ -7,7 +7,7 @@ exports.getAllNews = async (req, res) => {
     res.status(200).json(news);
   } catch (error) {
     console.error("Помилка getAllNews:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -21,7 +21,7 @@ exports.getNewsById = async (req, res) => {
     }
   } catch (error) {
     console.error("Помилка getNewsById:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -31,7 +31,7 @@ exports.createNews = async (req, res) => {
     res.status(201).json(newNews);
   } catch (error) {
     console.error("Помилка createNews:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -48,7 +48,7 @@ exports.updateNews = async (req, res) => {
     }
   } catch (error) {
     console.error("Помилка updateNews:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -64,6 +64,6 @@ exports.deleteNews = async (req, res) => {
     }
   } catch (error) {
     console.error("Помилка deleteNews:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };

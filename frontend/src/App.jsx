@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 
 // ── Context & global components ───────────────────────────
 import { AuthProvider } from "./context/AuthContext";
@@ -16,9 +16,12 @@ import ErrorPage from "./pages/ErrorPage";
 
 // ── Public pages ──────────────────────────────────────────
 import Home from "./pages/Home";
-import Landing from "./pages/Landing";
 import About from "./pages/About";
 import Policy from "./pages/Policy";
+import Terms from "./pages/Terms";
+import FAQ from "./pages/FAQ";
+import SellerProfile, { loader as sellerLoader } from "./pages/SellerProfile";
+import Changelog from "./pages/Changelog";
 import CountriesIndex from "./pages/CountriesIndex";
 import Country, { loader as countryLoader } from "./pages/Country";
 import Messages, { loader as messagesLoader } from "./pages/Messages";
@@ -72,6 +75,9 @@ import Profile, {
   action as updateProfileAction,
 } from "./pages/profile/Profile";
 import MyAds from "./pages/profile/MyAds";
+import Favorites from "./pages/profile/Favorites";
+import Security from "./pages/profile/Security";
+import ViewHistory from "./pages/profile/ViewHistory";
 import CreateAdPage, {
   loader as catLoader,
   action as createAdAction,
@@ -109,7 +115,10 @@ import Users, {
   loader as usersLoader,
   action as usersAction,
 } from "./pages/Users";
-import EditUser from "./pages/dashboard/EditUser";
+import EditUser, {
+  loader as editUserLoader,
+  action as editUserAction,
+} from "./pages/dashboard/EditUser";
 import PublicationForm from "./pages/dashboard/PublicationForm"; // loader as publicationFormLoader,
 import AdsManager, {
   loader as adsManagerLoader,
@@ -169,9 +178,13 @@ const futureFlags = {
 // ── Route groups ──────────────────────────────────────────
 const publicRoutes = [
   { index: true, element: <Home />, handle: { crossPromotion: true } },
-  { path: "landing", element: <Landing /> },
+  { path: "landing", element: <Navigate to="/" replace /> },
   { path: "about", element: <About />, handle: { crossPromotion: true } },
   { path: "policy", element: <Policy /> },
+  { path: "terms", element: <Terms /> },
+  { path: "faq", element: <FAQ /> },
+  { path: "seller/:id", element: <SellerProfile />, loader: sellerLoader },
+  { path: "changelog", element: <Changelog /> },
 
   // Auth
   { path: "login", element: <Login />, action: loginAction },
@@ -288,6 +301,9 @@ const profileRoutes = [
     action: createAdAction,
   },
   { path: "my-ads", element: <MyAds /> },
+  { path: "favorites", element: <Favorites /> },
+  { path: "security", element: <Security /> },
+  { path: "view-history", element: <ViewHistory /> },
   {
     path: "edit-ad/:id",
     element: <EditAdPage />,
@@ -344,7 +360,12 @@ const dashboardRoutes = [
     loader: usersLoader,
     action: usersAction,
   },
-  { path: "users/:id/edit", element: <EditUser /> },
+  {
+    path: "users/:id/edit",
+    element: <EditUser />,
+    loader: editUserLoader,
+    action: editUserAction,
+  },
 
   // Ads
   {

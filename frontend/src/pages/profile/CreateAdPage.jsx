@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -11,15 +11,9 @@ import {
   Paper,
   Grid,
   CircularProgress,
-  Divider,
   IconButton,
-  Chip,
   Alert,
   InputAdornment,
-  Stepper,
-  Step,
-  StepLabel,
-  StepContent,
   LinearProgress,
 } from "@mui/material";
 import {
@@ -37,7 +31,6 @@ import CloseIcon from "@mui/icons-material/Close";
 import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
 import EuroIcon from "@mui/icons-material/Euro";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import customFetch from "../../utils/customFetch";
 import ContactSettingsFields from "../../components/ContactSettingsFields";
@@ -82,6 +75,7 @@ export const action = async ({ request }) => {
       headers: { "Content-Type": "multipart/form-data" },
     });
     if (response.status === 201) {
+      await customFetch.delete("/trust/draft").catch(() => {});
       toast.success(response.data.message);
       return redirect("/profile");
     }
@@ -95,7 +89,6 @@ export const action = async ({ request }) => {
 const F_BODY = "'Plus Jakarta Sans', sans-serif";
 const F_DISPLAY = "'Playfair Display', serif";
 const BLUE = "#0057B8";
-const GOLD = "#FFD700";
 
 const inputSx = {
   "& .MuiOutlinedInput-root": {
@@ -222,21 +215,68 @@ export default function CreateAdPage() {
   const [previewImages, setPreviewImages] = useState([]);
   const [locationLoading, setLocationLoading] = useState(false);
 
+  useEffect(() => {
+    let cancelled = false;
+    customFetch
+      .get("/trust/draft")
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        if (data.categoryId) setSelectedCategoryId(String(data.categoryId));
+        if (data.subcategoryId) setSelectedSubCatId(String(data.subcategoryId));
+        if (data.country) setSelectedCountry(data.country);
+        if (data.state) setSelectedState(data.state);
+        if (data.city) setSelectedCity(data.city);
+        window.setTimeout(() => {
+          Object.entries(data).forEach(([name, value]) => {
+            if (value == null) return;
+            const element = document.querySelector(`[name="${name}"]`);
+            if (element) element.value = value;
+          });
+        }, 300);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      const form = document.querySelector("form");
+      if (!form) return;
+      const payload = Object.fromEntries(new FormData(form).entries());
+      if (
+        Object.values(payload).some(
+          (value) => typeof value === "string" && value.trim(),
+        )
+      ) {
+        customFetch
+          .put("/trust/draft", { payload })
+          .catch(() => {});
+      }
+    }, 15000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   /* Load European countries */
   useEffect(() => {
-    setLocationLoading(true);
+    const loadingTimer = window.setTimeout(() => setLocationLoading(true), 0);
     GetCountries()
       .then((all) => setCountries(all.filter((c) => c.region === "Europe")))
       .catch(() => toast.error("Помилка завантаження країн"))
       .finally(() => setLocationLoading(false));
+    return () => window.clearTimeout(loadingTimer);
   }, []);
 
   /* Load states when country changes */
   useEffect(() => {
     if (!selectedCountry) return;
-    setLocationLoading(true);
+    const loadingTimer = window.setTimeout(() => setLocationLoading(true), 0);
     const countryObj = countries.find((c) => c.name === selectedCountry);
-    if (!countryObj) return;
+    if (!countryObj) {
+      window.clearTimeout(loadingTimer);
+      return;
+    }
 
     GetState(countryObj.id)
       .then((statesList) => {
@@ -248,15 +288,19 @@ export default function CreateAdPage() {
       })
       .catch(() => toast.error("Помилка завантаження регіонів"))
       .finally(() => setLocationLoading(false));
+    return () => window.clearTimeout(loadingTimer);
   }, [selectedCountry, countries]);
 
   /* Load cities when state changes */
   useEffect(() => {
     if (!selectedCountry || !selectedState) return;
-    setLocationLoading(true);
+    const loadingTimer = window.setTimeout(() => setLocationLoading(true), 0);
     const countryObj = countries.find((c) => c.name === selectedCountry);
     const stateObj = states.find((s) => s.name === selectedState);
-    if (!countryObj || !stateObj) return;
+    if (!countryObj || !stateObj) {
+      window.clearTimeout(loadingTimer);
+      return;
+    }
     GetCity(countryObj.id, stateObj.id)
       .then((list) => {
         setCities(list);
@@ -264,6 +308,7 @@ export default function CreateAdPage() {
       })
       .catch(() => toast.error("Помилка завантаження міст"))
       .finally(() => setLocationLoading(false));
+    return () => window.clearTimeout(loadingTimer);
   }, [selectedState, selectedCountry, countries, states]);
 
   /* Image drop */

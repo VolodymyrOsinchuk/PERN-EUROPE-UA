@@ -146,8 +146,7 @@ function uploadSingleToCloudinary(folder) {
       console.error("Повний об'єкт помилки:", err);
       res.status(500).json({
         error: "Помилка завантаження зображення",
-        message: err.message,
-        details: err.message,
+        message: "Внутрішня помилка сервера",
       });
     }
   };

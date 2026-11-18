@@ -32,6 +32,6 @@ exports.getPublicStats = async (req, res) => {
     });
   } catch (error) {
     console.error("Помилка getPublicStats:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };

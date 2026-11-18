@@ -33,14 +33,24 @@ const settingsRouter = require("./routes/settingsRouter");
 const adminRouter = require("./routes/adminRouter");
 const config = require("./config/config");
 const { authMiddleware } = require("./middleware/authMiddleware");
+const csrfMiddleware = require("./middleware/csrfMiddleware");
 const { getPublicStats } = require("./controllers/publicStatsController");
+const allowedOrigins = [
+  config.client.url,
+  "https://pern-europe-ua-front.onrender.com",
+]
+  .map((origin) => {
+    try {
+      return new URL(origin).origin;
+    } catch {
+      return null;
+    }
+  })
+  .filter(Boolean);
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      const allowedOrigins = [
-        config.client.url,
-        "https://pern-europe-ua-front.onrender.com",
-      ];
       console.log("origin", origin);
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
@@ -62,12 +72,12 @@ app.use(
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
-    contentSecurityPolicy: false,
   }),
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(csrfMiddleware(allowedOrigins));
 console.log("config.client.url:", config.client.url);
 
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
@@ -101,7 +111,10 @@ app.use("/api/v1/moderation", require("./routes/moderationRouter"));
 app.use("/api/v1/notifications", require("./routes/notificationRouter"));
 app.use("/api/v1/conversations", require("./routes/conversationRouter"));
 app.use("/api/v1/ad-email", require("./routes/adEmailRouter"));
-app.use("/api/v1/messages", require("./routes/messageRouter"));
+app.use("/api/v1/favorites", require("./routes/favoriteRouter"));
+app.use("/api/v1/seller-reviews", require("./routes/sellerReviewRouter"));
+app.use("/api/v1/trust", require("./routes/trustRouter"));
+app.use("/api/v1/deals", require("./routes/dealRouter"));
 app.use("/api/v1/admin/ad-expiration-settings", adExpirationSettingsRouter);
 app.use("/api/v1/admin/settings", settingsRouter);
 app.use("/api/v1/admin", adminRouter);

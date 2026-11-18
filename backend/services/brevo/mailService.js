@@ -72,6 +72,9 @@ const sendAdminAlert = ({ title, details }) => {
   return deliver(T.adminAlert({ title, details }), to);
 };
 
+const sendTransactionalEmail = ({ to, subject, html }) =>
+  deliver({ kind: "chat", subject, html }, to);
+
 module.exports = {
   sendWelcomeEmail,
   sendVerificationEmail,
@@ -82,4 +85,5 @@ module.exports = {
   sendContactAcknowledgement,
   sendAdContactEmail,
   sendAdminAlert,
+  sendTransactionalEmail,
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useAuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import {
@@ -26,6 +26,17 @@ const DashboardLayout = () => {
 
   const handleDrawerToggle = () => setMobileOpen((prev) => !prev);
 
+  useEffect(() => {
+    if (!user) {
+      navigate("/login", { replace: true });
+      return;
+    }
+    if (!STAFF_ROLES.includes(user.role)) {
+      toast.error("У вас немає прав доступу до адмін-панелі");
+      navigate("/profile", { replace: true });
+    }
+  }, [user, navigate]);
+
   if (loading) {
     return (
       <Box
@@ -40,17 +51,6 @@ const DashboardLayout = () => {
       </Box>
     );
   }
-
-  useEffect(() => {
-    if (!user) {
-      navigate("/login", { replace: true });
-      return;
-    }
-    if (!STAFF_ROLES.includes(user.role)) {
-      toast.error("У вас немає прав доступу до адмін-панелі");
-      navigate("/profile", { replace: true });
-    }
-  }, [user, navigate]);
 
   if (!user || !STAFF_ROLES.includes(user.role)) return null;
 

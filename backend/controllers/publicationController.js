@@ -32,7 +32,7 @@ exports.getAllPublications = async (req, res) => {
     res.status(200).json(publications);
   } catch (error) {
     console.error("Помилка getAllPublications:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -46,7 +46,7 @@ exports.getUserPublications = async (req, res) => {
     res.status(200).json(publications);
   } catch (error) {
     console.error("Помилка getUserPublications:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -270,7 +270,7 @@ exports.updatePublication = async (req, res) => {
     console.error("Помилка updatePublication:", error);
 
     return res.status(500).json({
-      error: error.message,
+      error: "Внутрішня помилка сервера",
     });
   }
 };
@@ -290,7 +290,7 @@ exports.deletePublication = async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error("Помилка deletePublication:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 

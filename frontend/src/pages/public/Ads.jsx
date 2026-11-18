@@ -34,21 +34,37 @@ import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import TuneIcon from "@mui/icons-material/Tune";
 import ClearIcon from "@mui/icons-material/Clear";
-import PublicIcon from "@mui/icons-material/Public";
 import {
   EUROPEAN_COUNTRIES,
   normalizeCountry,
 } from "../../data/europeanLocations";
 
 /* ── Loader: завантажує оголошення та динамічні категорії з /dashboard/categories ── */
-export const loader = async () => {
+export const loader = async ({ request }) => {
   try {
+    const url = new URL(request.url);
+    const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+    const sort = url.searchParams.get("sort") || "newest";
+    const minPrice = url.searchParams.get("minPrice") || "";
+    const maxPrice = url.searchParams.get("maxPrice") || "";
     const [adsRes, categoriesRes] = await Promise.allSettled([
-      customFetch.get("/adv"),
+      customFetch.get("/adv", {
+        params: { page, limit: 24, sort, minPrice, maxPrice },
+      }),
       customFetch.get("/categories"),
     ]);
 
-    const ads = adsRes.status === "fulfilled" ? adsRes.value.data : [];
+    const adsPayload =
+      adsRes.status === "fulfilled" ? adsRes.value.data : { ads: [] };
+    const ads = Array.isArray(adsPayload) ? adsPayload : adsPayload.ads || [];
+    const pagination = Array.isArray(adsPayload)
+      ? null
+      : {
+          page: adsPayload.page || page,
+          limit: adsPayload.limit || 24,
+          total: adsPayload.total || 0,
+          totalPages: adsPayload.totalPages || 1,
+        };
     const categories =
       categoriesRes.status === "fulfilled" ? categoriesRes.value.data : [];
 
@@ -57,10 +73,11 @@ export const loader = async () => {
       categories: Array.isArray(categories)
         ? categories
         : categories?.data || [],
+      pagination,
     };
   } catch (error) {
     toast.error(error?.response?.data?.message || "Помилка завантаження даних");
-    return { ads: [], categories: [] };
+    return { ads: [], categories: [], pagination: null };
   }
 };
 
@@ -68,7 +85,6 @@ export const loader = async () => {
 const F_BODY = "'Plus Jakarta Sans', sans-serif";
 const F_DISPLAY = "'Playfair Display', serif";
 const BLUE = "#0057B8";
-const GOLD = "#FFD700";
 
 /* ── Функція призначення іконки та кольору для динамічної категорії ── */
 export function getCategoryMeta(name) {
@@ -273,6 +289,7 @@ function getCityVariants(cityName) {
 
 export default function Ads() {
   const loaderData = useLoaderData();
+  const pagination = loaderData?.pagination;
 
   // Отримуємо масив оголошень (підтримує зворотну сумісність)
   const data = useMemo(() => {
@@ -305,25 +322,38 @@ export default function Ads() {
   const [city, setCity] = useState("");
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
-  const [search, setSearch] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
+  const [search, setSearch] = useState(
+    () => searchParams.get("search") || "",
+  );
+  const [sort, setSort] = useState(
+    () => searchParams.get("sort") || "newest",
+  );
+  const [minPrice, setMinPrice] = useState(
+    () => searchParams.get("minPrice") || "",
+  );
+  const [maxPrice, setMaxPrice] = useState(
+    () => searchParams.get("maxPrice") || "",
+  );
 
   useEffect(() => {
-    const urlSearch = searchParams.get("search") || "";
-    setSearch(urlSearch);
-  }, [searchParams]);
-
-  useEffect(() => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      if (search) {
-        next.set("search", search);
-      } else {
-        next.delete("search");
-      }
-      return next;
-    });
-  }, [search, searchParams]);
+    const timer = window.setTimeout(() => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        if (search) next.set("search", search);
+        else next.delete("search");
+        if (sort !== "newest") next.set("sort", sort);
+        else next.delete("sort");
+        if (minPrice) next.set("minPrice", minPrice);
+        else next.delete("minPrice");
+        if (maxPrice) next.set("maxPrice", maxPrice);
+        else next.delete("maxPrice");
+        next.delete("page");
+        return next;
+      });
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [search, sort, minPrice, maxPrice, setSearchParams]);
   const [viewMode, setViewMode] = useState("grid");
   const [showFilters, setShowFilters] = useState(true);
 
@@ -473,7 +503,7 @@ export default function Ads() {
   }, [data, category, subcategory, country, city, search]);
 
   const hasFilters = Boolean(
-    country || city || category || subcategory || search,
+    country || city || category || subcategory || search || minPrice || maxPrice,
   );
 
   const clearFilters = () => {
@@ -482,6 +512,9 @@ export default function Ads() {
     setCategory("");
     setSubcategory("");
     setSearch("");
+    setMinPrice("");
+    setMaxPrice("");
+    setSort("newest");
   };
 
   // Динамічна статистика
@@ -665,6 +698,38 @@ export default function Ads() {
                 flexShrink: 0,
               }}
             >
+              <FormControl size="small" sx={{ minWidth: 150 }}>
+                <InputLabel>Сортування</InputLabel>
+                <Select
+                  label="Сортування"
+                  value={sort}
+                  onChange={(event) => setSort(event.target.value)}
+                >
+                  <MenuItem value="newest">Нові спочатку</MenuItem>
+                  <MenuItem value="oldest">Старі спочатку</MenuItem>
+                  <MenuItem value="priceAsc">Спочатку дешевші</MenuItem>
+                  <MenuItem value="priceDesc">Спочатку дорожчі</MenuItem>
+                  <MenuItem value="popular">Популярні</MenuItem>
+                </Select>
+              </FormControl>
+              <TextField
+                size="small"
+                label="Ціна від"
+                type="number"
+                value={minPrice}
+                onChange={(event) => setMinPrice(event.target.value)}
+                sx={{ width: 110 }}
+                inputProps={{ min: 0 }}
+              />
+              <TextField
+                size="small"
+                label="Ціна до"
+                type="number"
+                value={maxPrice}
+                onChange={(event) => setMaxPrice(event.target.value)}
+                sx={{ width: 110 }}
+                inputProps={{ min: 0 }}
+              />
               {/* Filter toggle */}
               <Button
                 startIcon={<TuneIcon sx={{ fontSize: 16 }} />}
@@ -1406,6 +1471,50 @@ export default function Ads() {
               ) : (
                 <ListView ads={filtered} />
               )}
+            </Box>
+          )}
+
+          {pagination && pagination.totalPages > 1 && (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 2,
+                mt: 4,
+              }}
+            >
+              <Button
+                variant="outlined"
+                disabled={pagination.page <= 1}
+                onClick={() => {
+                  setSearchParams((prev) => {
+                    const next = new URLSearchParams(prev);
+                    next.set("page", String(pagination.page - 1));
+                    return next;
+                  });
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+              >
+                Попередня
+              </Button>
+              <Typography sx={{ color: "#64748b", fontSize: "0.875rem" }}>
+                {pagination.page} / {pagination.totalPages}
+              </Typography>
+              <Button
+                variant="outlined"
+                disabled={pagination.page >= pagination.totalPages}
+                onClick={() => {
+                  setSearchParams((prev) => {
+                    const next = new URLSearchParams(prev);
+                    next.set("page", String(pagination.page + 1));
+                    return next;
+                  });
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+              >
+                Наступна
+              </Button>
             </Box>
           )}
         </Container>

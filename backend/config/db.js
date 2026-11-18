@@ -1,5 +1,7 @@
 const config = require("./config");
 const { Sequelize } = require("sequelize");
+const fs = require("fs");
+const path = require("path");
 
 // Développement et production utilisent la MÊME base PostgreSQL,
 // définie par DATABASE_URL (obligatoire — voir config/config.js).
@@ -15,9 +17,38 @@ function isLocalUrl(url) {
   }
 }
 
-const useSsl = !isLocalUrl(config.db.url);
+function removeInsecureSslMode(url) {
+  const parsedUrl = new URL(url);
+  if (parsedUrl.searchParams.get("sslmode")?.toLowerCase() === "no-verify") {
+    parsedUrl.searchParams.delete("sslmode");
+  }
+  return parsedUrl.toString();
+}
 
-const sequelize = new Sequelize(config.db.url, {
+const databaseUrl = removeInsecureSslMode(config.db.url);
+const useSsl = !isLocalUrl(databaseUrl);
+
+function resolveCaCertificate() {
+  if (process.env.DB_CA_CERT_BASE64) {
+    return Buffer.from(process.env.DB_CA_CERT_BASE64, "base64").toString(
+      "utf8",
+    );
+  }
+
+  if (process.env.DB_CA_CERT_PATH) {
+    const caPath = path.resolve(process.env.DB_CA_CERT_PATH);
+    if (fs.existsSync(caPath)) return fs.readFileSync(caPath, "utf8");
+  }
+
+  const defaultCaPath = path.join(__dirname, "ca.pem");
+  if (fs.existsSync(defaultCaPath)) {
+    return fs.readFileSync(defaultCaPath, "utf8");
+  }
+
+  return undefined;
+}
+
+const sequelize = new Sequelize(databaseUrl, {
   logging: false,
   protocol: "postgres",
   dialect: config.db.dialect || "postgres",
@@ -25,13 +56,8 @@ const sequelize = new Sequelize(config.db.url, {
     ? {
         ssl: {
           require: true,
-          // Correspond à « sslmode=no-verify » dans DATABASE_URL
-          rejectUnauthorized: false,
-          ca: process.env.DB_CA_CERT_BASE64
-            ? Buffer.from(process.env.DB_CA_CERT_BASE64, "base64").toString(
-                "utf8",
-              )
-            : undefined,
+          rejectUnauthorized: true,
+          ca: resolveCaCertificate(),
         },
       }
     : { ssl: false },

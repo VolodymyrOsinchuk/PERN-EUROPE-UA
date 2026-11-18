@@ -80,7 +80,7 @@
 // export default ImageGallery;
 
 import { useState, useEffect, useCallback } from "react";
-import { Box, IconButton, Fade, useTheme, useMediaQuery } from "@mui/material";
+import { Box, IconButton, Fade } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import CloseIcon from "@mui/icons-material/Close";
@@ -100,8 +100,6 @@ const resolveUrl = (photo) => {
 };
 
 const ImageGallery = ({ photos = [] }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -172,6 +170,7 @@ const ImageGallery = ({ photos = [] }) => {
           <Box
             component="img"
             src={urls[currentIndex]}
+            loading="eager"
             aria-hidden
             sx={{
               position: "absolute",
@@ -191,6 +190,7 @@ const ImageGallery = ({ photos = [] }) => {
             component="img"
             src={urls[currentIndex]}
             alt={`Фото ${currentIndex + 1}`}
+            loading="eager"
             onLoad={() => setLoaded(true)}
             sx={{
               position: "relative",
@@ -305,6 +305,7 @@ const ImageGallery = ({ photos = [] }) => {
                 component="img"
                 src={url}
                 alt={`Мініатюра ${i + 1}`}
+                loading="lazy"
                 onClick={() => {
                   setCurrentIndex(i);
                   setLoaded(false);

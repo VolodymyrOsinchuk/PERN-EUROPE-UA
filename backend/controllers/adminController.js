@@ -12,7 +12,7 @@ exports.getAdmins = async (req, res) => {
       id: u.id,
       name: `${u.firstName} ${u.lastName}`.trim(),
       email: u.email,
-      role: u.role === "admin" ? "super-admin" : "moderator",
+      role: u.role,
       active: u.isVerified,
       lastLogin: u.lastLogin
         ? formatRelativeTime(u.lastLogin)
@@ -21,7 +21,7 @@ exports.getAdmins = async (req, res) => {
     res.status(200).json(mapped);
   } catch (error) {
     console.error("Помилка getAdmins:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -43,7 +43,41 @@ exports.updateAdminRole = async (req, res) => {
     res.status(200).json({ message: "Роль оновлено" });
   } catch (error) {
     console.error("Помилка updateAdminRole:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
+  }
+};
+
+exports.updateAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const allowed = {};
+    for (const key of ["firstName", "lastName", "email", "role"]) {
+      if (req.body[key] !== undefined) allowed[key] = req.body[key];
+    }
+    if (allowed.role && !["admin", "moderator", "user"].includes(allowed.role)) {
+      return res.status(400).json({ error: "Невірна роль" });
+    }
+    if (
+      req.user.userId === Number(id) &&
+      allowed.role &&
+      allowed.role !== "admin"
+    ) {
+      return res.status(400).json({
+        error: "Не можна зняти з себе роль адміністратора",
+      });
+    }
+    const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ error: "Користувача не знайдено" });
+    await user.update(allowed);
+    res.status(200).json({
+      id: user.id,
+      name: `${user.firstName} ${user.lastName}`.trim(),
+      email: user.email,
+      role: user.role,
+    });
+  } catch (error) {
+    console.error("Помилка updateAdmin:", error);
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -81,7 +115,7 @@ exports.createAdmin = async (req, res) => {
     });
   } catch (error) {
     console.error("Помилка createAdmin:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -97,7 +131,7 @@ exports.deleteAdmin = async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error("Помилка deleteAdmin:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -115,46 +149,10 @@ exports.getSystemInfo = async (req, res) => {
     });
   } catch (error) {
     console.error("Помилка getSystemInfo:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
-exports.toggleMaintenance = async (req, res) => {
-  try {
-    // Функціонал не реалізовано — немає сховища для режиму обслуговування
-    return res.status(501).json({
-      error: "Не реалізовано",
-      message: "Режим обслуговування ще не підтримується",
-    });
-  } catch (error) {
-    console.error("Помилка toggleMaintenance:", error);
-    res.status(500).json({ error: error.message });
-  }
-};
-
-exports.clearCache = async (req, res) => {
-  try {
-    return res.status(501).json({
-      error: "Не реалізовано",
-      message: "Очищення кешу ще не підтримується",
-    });
-  } catch (error) {
-    console.error("Помилка clearCache:", error);
-    res.status(500).json({ error: error.message });
-  }
-};
-
-exports.backupDb = async (req, res) => {
-  try {
-    return res.status(501).json({
-      error: "Не реалізовано",
-      message: "Резервне копіювання ще не підтримується",
-    });
-  } catch (error) {
-    console.error("Помилка backupDb:", error);
-    res.status(500).json({ error: error.message });
-  }
-};
 
 function formatRelativeTime(date) {
   const now = new Date();

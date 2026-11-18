@@ -14,17 +14,18 @@ exports.createCategory = async (req, res) => {
         details: error.errors.map((e) => e.message),
       });
     }
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
 exports.getAllCategories = async (req, res) => {
   try {
     const categories = await Category.findAll({ include: SubCategory });
+    res.set("Cache-Control", "public, max-age=300");
     res.status(200).json(categories);
   } catch (error) {
     console.error("Помилка getAllCategories:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -41,7 +42,7 @@ exports.getCategoryById = async (req, res) => {
     }
   } catch (error) {
     console.error("Помилка getCategoryById:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -58,7 +59,7 @@ exports.updateCategory = async (req, res) => {
     }
   } catch (error) {
     console.error("Помилка updateCategory:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -74,7 +75,7 @@ exports.deleteCategory = async (req, res) => {
     }
   } catch (error) {
     console.error("Помилка deleteCategory:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -99,7 +100,7 @@ exports.addSubCategory = async (req, res) => {
     res.status(201).json(newCategory);
   } catch (error) {
     console.error("Помилка addSubCategory:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -112,7 +113,7 @@ exports.getSubCategories = async (req, res) => {
     res.status(200).json(sousCategories);
   } catch (error) {
     console.error("Помилка getSubCategories:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -130,7 +131,7 @@ exports.getSubCategoryById = async (req, res) => {
     res.status(200).json(sousCategories);
   } catch (error) {
     console.error("Помилка getSubCategoryById:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -164,7 +165,7 @@ exports.updateSubCategory = async (req, res) => {
     res.status(200).json(sousCategorie);
   } catch (error) {
     console.error("Помилка updateSubCategory:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -183,6 +184,6 @@ exports.deleteSubCategory = async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error("Помилка deleteSubCategory:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };

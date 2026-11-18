@@ -17,8 +17,10 @@ import {
   Avatar,
   Fade,
   Badge,
+  BottomNavigation,
+  BottomNavigationAction,
 } from "@mui/material";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuthContext } from "../context/AuthContext";
 import customFetch from "../utils/customFetch";
 import NotificationBell from "./NotificationBell";
@@ -32,6 +34,7 @@ const NAV_LINKS = [
   { label: "Форум", href: "/forum" },
   { label: "Про нас", href: "/about" },
   { label: "Контакт", href: "/contact" },
+  { label: "FAQ", href: "/faq" },
 ];
 
 // const LANGUAGES = [
@@ -47,21 +50,14 @@ export default function Navbar() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const location = useLocation();
-  const navigate = useNavigate();
-
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [langAnchor, setLangAnchor] = useState(null);
   const [userAnchor, setUserAnchor] = useState(null);
-  const [lang, setLang] = useState("uk");
   const [unread, setUnread] = useState(0);
 
   /* Nombre de messages non lus */
   useEffect(() => {
-    if (!user) {
-      setUnread(0);
-      return;
-    }
+    if (!user) return;
     let cancelled = false;
     customFetch
       .get("/messages/unread-count")
@@ -417,6 +413,24 @@ export default function Navbar() {
                       </span>
                       Мої оголошення
                     </MenuItem>
+                    <MenuItem
+                      component={Link}
+                      to="/profile/favorites"
+                      onClick={() => setUserAnchor(null)}
+                      sx={{
+                        gap: 1.5,
+                        fontFamily: "'Plus Jakarta Sans',sans-serif",
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      <span
+                        className="material-icons"
+                        style={{ fontSize: 18, color: "#64748b" }}
+                      >
+                        bookmark
+                      </span>
+                      Обрані оголошення
+                    </MenuItem>
                     {["admin", "moderator"].includes(user.role) && (
                       <MenuItem
                         component={Link}
@@ -470,6 +484,42 @@ export default function Navbar() {
                           {unread}
                         </Typography>
                       )}
+                    </MenuItem>
+                    <MenuItem
+                      component={Link}
+                      to="/profile/security"
+                      onClick={() => setUserAnchor(null)}
+                      sx={{
+                        gap: 1.5,
+                        fontFamily: "'Plus Jakarta Sans',sans-serif",
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      <span
+                        className="material-icons"
+                        style={{ fontSize: 18, color: "#64748b" }}
+                      >
+                        security
+                      </span>
+                      Безпека акаунта
+                    </MenuItem>
+                    <MenuItem
+                      component={Link}
+                      to="/profile/view-history"
+                      onClick={() => setUserAnchor(null)}
+                      sx={{
+                        gap: 1.5,
+                        fontFamily: "'Plus Jakarta Sans',sans-serif",
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      <span
+                        className="material-icons"
+                        style={{ fontSize: 18, color: "#64748b" }}
+                      >
+                        history
+                      </span>
+                      Нещодавно переглянуті
                     </MenuItem>
                     <Box sx={{ my: 0.5, borderTop: "1px solid #f1f5f9" }} />
                     <MenuItem
@@ -535,6 +585,76 @@ export default function Navbar() {
           )}
         </Toolbar>
       </AppBar>
+
+      {isMobile && (
+        <BottomNavigation
+          showLabels
+          value={
+            location.pathname === "/"
+              ? "home"
+              : location.pathname.startsWith("/ads")
+                ? "ads"
+                : location.pathname.startsWith("/profile/favorites")
+                  ? "favorites"
+                  : location.pathname.startsWith("/profile")
+                    ? "profile"
+                    : ""
+          }
+          sx={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1200,
+            height: 64,
+            borderTop: "1px solid #e2e8f0",
+            boxShadow: "0 -4px 20px rgba(15,23,42,.08)",
+            bgcolor: "#fff",
+          }}
+        >
+          <BottomNavigationAction
+            value="home"
+            label="Головна"
+            icon={<span className="material-icons">home</span>}
+            component={Link}
+            to="/"
+          />
+          <BottomNavigationAction
+            value="ads"
+            label="Пошук"
+            icon={<span className="material-icons">search</span>}
+            component={Link}
+            to="/ads"
+          />
+          <BottomNavigationAction
+            value="create"
+            label="Створити"
+            icon={<span className="material-icons">add_circle</span>}
+            component={Link}
+            to="/profile/create-ad"
+          />
+          {user && (
+            <BottomNavigationAction
+              value="favorites"
+              label="Обране"
+              icon={<span className="material-icons">bookmark</span>}
+              component={Link}
+              to="/profile/favorites"
+            />
+          )}
+          <BottomNavigationAction
+            value="profile"
+            label={user ? "Профіль" : "Вхід"}
+            icon={
+              <span className="material-icons">
+                {user ? "person" : "login"}
+              </span>
+            }
+            component={Link}
+            to={user ? "/profile" : "/login"}
+          />
+        </BottomNavigation>
+      )}
 
       {/* Spacer */}
       <Toolbar sx={{ minHeight: "68px !important" }} />
@@ -671,6 +791,21 @@ export default function Navbar() {
                 }}
               >
                 Мої оголошення
+              </Button>
+
+              <Button
+                component={Link}
+                to="/profile/favorites"
+                onClick={() => setMobileOpen(false)}
+                variant="outlined"
+                fullWidth
+                sx={{
+                  textTransform: "none",
+                  fontFamily: "'Plus Jakarta Sans',sans-serif",
+                  borderRadius: "10px",
+                }}
+              >
+                Обрані оголошення
               </Button>
 
               {["admin", "moderator"].includes(user.role) && (

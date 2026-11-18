@@ -1,6 +1,5 @@
 const { User } = require("../models/user");
 const crypto = require("crypto");
-const { sendVerificationEmail } = require("../utils/emailService");
 const { createJWT, verifyJWT } = require("../utils/tokenUtils");
 const bcrypt = require("bcryptjs");
 const config = require("../config/config");
@@ -8,6 +7,7 @@ const { normalizePhone } = require("../utils/normalizePhone");
 const { Op } = require("sequelize");
 const {
   sendWelcomeEmail,
+  sendVerificationEmail,
   sendPasswordResetEmail,
   sendPasswordChangedEmail,
 } = require("../services/brevo/mailService");
@@ -118,7 +118,7 @@ exports.register = async (req, res) => {
     res.status(500).json({
       message: "Помилка під час реєстрації",
       // Ne pas exposer le message interne en production
-      ...(process.env.NODE_ENV !== "production" && { error: error.message }),
+      ...(process.env.NODE_ENV !== "production" && { error: "Внутрішня помилка сервера" }),
     });
   }
 };
@@ -187,7 +187,7 @@ exports.login = async (req, res) => {
     console.error("Помилка під час входу:", error);
     res
       .status(500)
-      .json({ message: "Помилка під час входу", error: error.message });
+      .json({ message: "Помилка під час входу", error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -228,7 +228,7 @@ exports.verifyEmail = async (req, res) => {
     console.error("Помилка під час підтвердження:", error);
     res
       .status(500)
-      .json({ message: "Помилка під час підтвердження", error: error.message });
+      .json({ message: "Помилка під час підтвердження", error: "Внутрішня помилка сервера" });
   }
 };
 

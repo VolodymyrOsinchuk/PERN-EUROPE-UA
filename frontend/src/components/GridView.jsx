@@ -14,8 +14,15 @@ import PlaceholderImage from "./PlaceholderImage";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
+import {
+  isFavorite,
+  toggleFavoriteId,
+} from "../utils/favorites";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { useState } from "react";
+import customFetch from "../utils/customFetch";
+import { toast } from "react-toastify";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
@@ -33,7 +40,7 @@ const CAT_COLORS = {
 };
 
 function AdCard({ ad }) {
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState(() => isFavorite(ad.id));
   const [imgLoaded, setImgLoaded] = useState(false);
 
   const serverPath = ad.photos?.[0];
@@ -111,6 +118,7 @@ function AdCard({ ad }) {
             className="ad-img"
             image={imageUrl}
             alt={ad.title}
+            loading="lazy"
             onLoad={() => setImgLoaded(true)}
             sx={{
               height: "100%",
@@ -152,7 +160,12 @@ function AdCard({ ad }) {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              setSaved((v) => !v);
+              const next = toggleFavoriteId(ad.id);
+              setSaved(next);
+              const request = next
+                ? customFetch.put(`/favorites/${ad.id}`)
+                : customFetch.delete(`/favorites/${ad.id}`);
+              request.catch(() => toast.error("Не вдалося оновити обране"));
             }}
             sx={{
               position: "absolute",
@@ -169,7 +182,11 @@ function AdCard({ ad }) {
               "&:hover": { bgcolor: "#fff", color: BLUE, borderColor: BLUE },
             }}
           >
-            <BookmarkBorderIcon sx={{ fontSize: 15 }} />
+            {saved ? (
+              <BookmarkIcon sx={{ fontSize: 15 }} />
+            ) : (
+              <BookmarkBorderIcon sx={{ fontSize: 15 }} />
+            )}
           </IconButton>
         </Tooltip>
 

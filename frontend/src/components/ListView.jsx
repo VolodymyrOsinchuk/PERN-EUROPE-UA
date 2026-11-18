@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   Typography,
-  Chip,
   Box,
   Divider,
   IconButton,
@@ -11,9 +10,13 @@ import {
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
+import { isFavorite, toggleFavoriteId } from "../utils/favorites";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Link } from "react-router-dom";
 import PlaceholderImage from "./PlaceholderImage";
+import customFetch from "../utils/customFetch";
+import { toast } from "react-toastify";
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 
@@ -31,7 +34,7 @@ const CAT_COLORS = {
 };
 
 function ListCard({ ad, isLast, index }) {
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState(() => isFavorite(ad.id));
   const [imgLoaded, setImgLoaded] = useState(false);
 
   const serverPath = ad.photos?.[0];
@@ -116,6 +119,7 @@ function ListCard({ ad, isLast, index }) {
               component="img"
               src={imageUrl}
               alt={ad.title}
+              loading="lazy"
               onLoad={() => setImgLoaded(true)}
               sx={{
                 width: "100%",
@@ -189,7 +193,14 @@ function ListCard({ ad, isLast, index }) {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    setSaved((v) => !v);
+                    const next = toggleFavoriteId(ad.id);
+                    setSaved(next);
+                    const request = next
+                      ? customFetch.put(`/favorites/${ad.id}`)
+                      : customFetch.delete(`/favorites/${ad.id}`);
+                    request.catch(() =>
+                      toast.error("Не вдалося оновити обране"),
+                    );
                   }}
                   sx={{
                     color: saved ? BLUE : "#94a3b8",
@@ -205,7 +216,11 @@ function ListCard({ ad, isLast, index }) {
                     transition: "all 0.2s",
                   }}
                 >
-                  <BookmarkBorderIcon sx={{ fontSize: 14 }} />
+                  {saved ? (
+                    <BookmarkIcon sx={{ fontSize: 14 }} />
+                  ) : (
+                    <BookmarkBorderIcon sx={{ fontSize: 14 }} />
+                  )}
                 </IconButton>
               </Tooltip>
               <Tooltip title="Відкрити">

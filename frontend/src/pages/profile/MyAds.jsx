@@ -5,7 +5,7 @@ import {
   Box,
   Button,
   Chip,
-  CircularProgress,
+  Skeleton,
   Dialog,
   DialogActions,
   DialogContent,
@@ -43,7 +43,8 @@ export default function MyAds() {
   };
 
   useEffect(() => {
-    load();
+    const timer = window.setTimeout(load, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const submit = async (ad) => {
@@ -83,11 +84,44 @@ export default function MyAds() {
     }
   };
 
+  const refresh = async (ad) => {
+    setBusyId(ad.id);
+    try {
+      await customFetch.patch(`/adv/${ad.id}/refresh`);
+      toast.success("Оголошення піднято в пошуку");
+      await load();
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Не вдалося оновити оголошення");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const markSold = async (ad) => {
+    if (!window.confirm(`Позначити оголошення «${ad.title}» як продане?`)) return;
+    setBusyId(ad.id);
+    try {
+      await customFetch.patch(`/adv/${ad.id}/sold`);
+      toast.success("Оголошення позначено як продане");
+      await load();
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Не вдалося змінити статус");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
-        <CircularProgress />
-      </Box>
+      <Stack spacing={2} sx={{ maxWidth: 900, mx: "auto", px: 2, py: 4 }}>
+        {[1, 2, 3].map((item) => (
+          <Paper key={item} sx={{ p: 3, borderRadius: 3 }}>
+            <Skeleton width="45%" height={28} />
+            <Skeleton width="70%" height={22} sx={{ mt: 1 }} />
+            <Skeleton width="35%" height={36} sx={{ mt: 2 }} />
+          </Paper>
+        ))}
+      </Stack>
     );
   }
 
@@ -160,9 +194,30 @@ export default function MyAds() {
 
               <Stack direction="row" gap={1} flexWrap="wrap" mt={2}>
                 {ad.moderationStatus === "approved" && (
-                  <Button size="small" component={Link} to={`/ads/${ad.id}`}>
-                    Переглянути
-                  </Button>
+                  <>
+                    <Button size="small" component={Link} to={`/ads/${ad.id}`}>
+                      Переглянути
+                    </Button>
+                    {ad.status !== "Sold" && (
+                      <>
+                        <Button
+                          size="small"
+                          onClick={() => refresh(ad)}
+                          disabled={busy}
+                        >
+                          Підняти в пошуку
+                        </Button>
+                        <Button
+                          size="small"
+                          color="warning"
+                          onClick={() => markSold(ad)}
+                          disabled={busy}
+                        >
+                          Позначити проданим
+                        </Button>
+                      </>
+                    )}
+                  </>
                 )}
 
                 {canEdit && (

@@ -9,7 +9,7 @@ exports.getSettings = async (req, res) => {
     res.status(200).json(settings);
   } catch (error) {
     console.error("Помилка getSettings:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -33,6 +33,6 @@ exports.updateSettings = async (req, res) => {
     res.status(200).json(settings);
   } catch (error) {
     console.error("Помилка updateSettings:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };

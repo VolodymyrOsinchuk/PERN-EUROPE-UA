@@ -22,6 +22,10 @@ const authMiddleware = async (req, res, next) => {
   try {
     const { userId, email, role } = await verifyJWT(token);
     req.user = { userId, email, role };
+    User.update(
+      { lastSeen: new Date() },
+      { where: { id: userId }, silent: true },
+    ).catch(() => {});
     next();
   } catch (error) {
     console.error("Помилка автентифікації:", error);

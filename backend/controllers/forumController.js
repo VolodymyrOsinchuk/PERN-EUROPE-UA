@@ -90,7 +90,7 @@ exports.getAllTopics = async (req, res) => {
     res.status(200).json(topics);
   } catch (error) {
     console.error("Помилка getAllTopics:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -122,7 +122,7 @@ exports.getTopicById = async (req, res) => {
     res.status(200).json(topic);
   } catch (error) {
     console.error("Помилка getTopicById:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -178,7 +178,7 @@ exports.createTopic = async (req, res) => {
     res.status(201).json(newTopic);
   } catch (error) {
     console.error("Помилка createTopic:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -219,7 +219,7 @@ exports.updateTopic = async (req, res) => {
     res.status(200).json(topic);
   } catch (error) {
     console.error("Помилка updateTopic:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -239,7 +239,7 @@ exports.deleteTopic = async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error("Помилка deleteTopic:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -252,7 +252,7 @@ exports.togglePinTopic = async (req, res) => {
     res.status(200).json(topic);
   } catch (error) {
     console.error("Помилка togglePinTopic:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -265,7 +265,7 @@ exports.toggleCloseTopic = async (req, res) => {
     res.status(200).json(topic);
   } catch (error) {
     console.error("Помилка toggleCloseTopic:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -295,7 +295,7 @@ exports.moveTopic = async (req, res) => {
     res.status(200).json(topic);
   } catch (error) {
     console.error("Помилка moveTopic:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -317,7 +317,7 @@ exports.getReplies = async (req, res) => {
     res.status(200).json(replies);
   } catch (error) {
     console.error("Помилка getReplies:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -376,7 +376,7 @@ exports.createReply = async (req, res) => {
     res.status(201).json(reloaded);
   } catch (error) {
     console.error("Помилка createReply:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -396,7 +396,7 @@ exports.updateReply = async (req, res) => {
     res.status(200).json(reply);
   } catch (error) {
     console.error("Помилка updateReply:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -421,7 +421,7 @@ exports.deleteReply = async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error("Помилка deleteReply:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -446,7 +446,7 @@ exports.getForumStats = async (req, res) => {
     });
   } catch (error) {
     console.error("Помилка getForumStats:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -501,7 +501,7 @@ exports.getAllForumCategories = async (req, res) => {
     res.status(200).json(enriched);
   } catch (error) {
     console.error("Помилка getAllForumCategories:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -547,7 +547,7 @@ exports.getAllForumCategoriesAdmin = async (req, res) => {
     res.status(200).json(enriched);
   } catch (error) {
     console.error("Помилка getAllForumCategoriesAdmin:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -586,7 +586,7 @@ exports.createForumCategory = async (req, res) => {
         .status(409)
         .json({ message: "Категорія з такою назвою вже існує" });
     }
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -613,7 +613,7 @@ exports.updateForumCategory = async (req, res) => {
     res.status(200).json(category);
   } catch (error) {
     console.error("Помилка updateForumCategory:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -686,7 +686,7 @@ exports.deleteForumCategory = async (req, res) => {
     });
   } catch (error) {
     console.error("Помилка deleteForumCategory:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -701,7 +701,7 @@ exports.toggleForumCategory = async (req, res) => {
     res.status(200).json(category);
   } catch (error) {
     console.error("Помилка toggleForumCategory:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -725,7 +725,7 @@ exports.suggestCategory = async (req, res) => {
     res.status(201).json(suggestion);
   } catch (error) {
     console.error("Помилка suggestCategory:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -744,7 +744,7 @@ exports.getAllCategorySuggestions = async (req, res) => {
     res.status(200).json(suggestions);
   } catch (error) {
     console.error("Помилка getAllCategorySuggestions:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -783,7 +783,7 @@ exports.updateCategorySuggestion = async (req, res) => {
     res.status(200).json({ suggestion, createdCategory });
   } catch (error) {
     console.error("Помилка updateCategorySuggestion:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -811,7 +811,7 @@ exports.createForumReport = async (req, res) => {
     res.status(201).json(report);
   } catch (error) {
     console.error("Помилка createForumReport:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -840,7 +840,7 @@ exports.getAllForumReports = async (req, res) => {
     res.status(200).json(reports);
   } catch (error) {
     console.error("Помилка getAllForumReports:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };
 
@@ -858,6 +858,6 @@ exports.updateForumReport = async (req, res) => {
     res.status(200).json(report);
   } catch (error) {
     console.error("Помилка updateForumReport:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Внутрішня помилка сервера" });
   }
 };

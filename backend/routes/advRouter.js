@@ -13,6 +13,9 @@ const {
   updateAnnonce,
   getUserAnnonces,
   submitForModeration,
+  getSellerProfile,
+  refreshAnnonce,
+  markAnnonceSold,
 } = require("../controllers/advController");
 const { upload, uploadToCloudinary } = require("../middleware/multer");
 const checkOwnership = require("../middleware/checkOwnership");
@@ -30,6 +33,7 @@ router
   .get(getAllAnnonces);
 
 router.route("/user-ads").get(authMiddleware, getUserAnnonces);
+router.get("/seller/:id", getSellerProfile);
 
 router
   .route("/:id")
@@ -50,6 +54,9 @@ router.patch(
   checkOwnership,
   submitForModeration,
 );
+
+router.patch("/:id/refresh", authMiddleware, checkOwnership, refreshAnnonce);
+router.patch("/:id/sold", authMiddleware, checkOwnership, markAnnonceSold);
 
 router.get("/:id/logs", authMiddleware, checkOwnership, getOwnAdLogs);
 

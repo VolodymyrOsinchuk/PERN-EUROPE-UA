@@ -17,6 +17,10 @@ import {
   Stack,
   TextField,
   Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
@@ -46,6 +50,7 @@ export default function Messages() {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [reportFor, setReportFor] = useState(null);
+  const [deal, setDeal] = useState(null);
   const endRef = useRef(null);
   const activeId = Number(conversationId) || null;
 
@@ -71,17 +76,42 @@ export default function Messages() {
 
   useEffect(() => {
     if (!activeId) {
-      setMessages([]);
       return;
     }
-    loadThread(activeId);
-    const timer = setInterval(() => loadThread(activeId), POLL_MS);
-    return () => clearInterval(timer);
+    const initialTimer = window.setTimeout(() => loadThread(activeId), 0);
+    const timer = setInterval(() => {
+      if (!document.hidden) loadThread(activeId);
+    }, POLL_MS);
+    return () => {
+      window.clearTimeout(initialTimer);
+      clearInterval(timer);
+    };
   }, [activeId]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (!activeId) {
+      const timer = window.setTimeout(() => setDeal(null), 0);
+      return () => window.clearTimeout(timer);
+    }
+    customFetch
+      .get(`/deals/${activeId}`)
+      .then(({ data }) => setDeal(data))
+      .catch(() => setDeal(null));
+  }, [activeId]);
+
+  const updateDeal = async (status) => {
+    try {
+      const { data } = await customFetch.put(`/deals/${activeId}`, { status });
+      setDeal(data);
+      toast.success("Статус угоди оновлено");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Не вдалося оновити угоду");
+    }
+  };
 
   const send = async (e) => {
     e.preventDefault();
@@ -218,6 +248,35 @@ export default function Messages() {
                 <div ref={endRef} />
               </Box>
               <Divider />
+              <Box
+                sx={{
+                  px: 2,
+                  py: 1.5,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 2,
+                  flexWrap: "wrap",
+                  bgcolor: "#f8fafc",
+                }}
+              >
+                <Typography variant="body2" fontWeight={700}>
+                  Статус угоди
+                </Typography>
+                <FormControl size="small" sx={{ minWidth: 180 }}>
+                  <InputLabel>Статус</InputLabel>
+                  <Select
+                    label="Статус"
+                    value={deal?.status || "planned"}
+                    onChange={(event) => updateDeal(event.target.value)}
+                  >
+                    <MenuItem value="planned">Заплановано</MenuItem>
+                    <MenuItem value="contacted">Зв'язалися</MenuItem>
+                    <MenuItem value="completed">Завершено</MenuItem>
+                    <MenuItem value="cancelled">Скасовано</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
               <Box
                 component="form"
                 onSubmit={send}

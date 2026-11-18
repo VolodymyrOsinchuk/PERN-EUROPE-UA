@@ -41,9 +41,14 @@ export default function NotificationBell() {
   };
 
   useEffect(() => {
-    loadCount();
-    const timer = setInterval(loadCount, POLL_MS);
-    return () => clearInterval(timer);
+    const initialTimer = window.setTimeout(loadCount, 0);
+    const timer = setInterval(() => {
+      if (!document.hidden) loadCount();
+    }, POLL_MS);
+    return () => {
+      window.clearTimeout(initialTimer);
+      clearInterval(timer);
+    };
   }, []);
 
   const open = (e) => {

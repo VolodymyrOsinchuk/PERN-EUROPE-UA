@@ -12,9 +12,7 @@ import {
   Button,
   Grid,
   Chip,
-  Switch,
   Avatar,
-  Divider,
   Alert,
   Table,
   TableHead,
@@ -39,8 +37,6 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import StorageIcon from "@mui/icons-material/Storage";
-import BuildOutlinedIcon from "@mui/icons-material/BuildOutlined";
-import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { PageHeader } from "../../components";
 
 // ── Routes ────────────────────────────────────────────────
@@ -54,7 +50,7 @@ export const loader = async () => {
       admins: adminsRes.data || [],
       systemInfo: sysRes.data || null,
     };
-  } catch (error) {
+  } catch {
     toast.error("Помилка завантаження адмін-панелі");
     return { admins: [], systemInfo: null };
   }
@@ -194,8 +190,7 @@ const Admin = () => {
   const { admins: initialAdmins, systemInfo } = useLoaderData();
   const fetcher = useFetcher();
 
-  const [admins, setAdmins] = useState(initialAdmins || []);
-  const [maintenance, setMaintenance] = useState(false);
+  const [admins] = useState(initialAdmins || []);
   const [snackbar, setSnackbar] = useState({ open: false, message: "" });
   const [dialog, setDialog] = useState({ open: false, mode: "", data: null });
 
@@ -205,8 +200,6 @@ const Admin = () => {
     }
   }, [fetcher.data]);
 
-  const showmessage = (message) =>
-    setSnackbar({ open: true, message: message });
 
   const openDialog = (mode, data = null) =>
     setDialog({ open: true, mode, data });
@@ -223,25 +216,6 @@ const Admin = () => {
         ]}
       />
 
-      {maintenance && (
-        <Alert
-          severity="warning"
-          icon={<WarningAmberIcon />}
-          sx={{ mb: 3, borderRadius: 2 }}
-          action={
-            <Button
-              size="small"
-              color="inherit"
-              onClick={() => setMaintenance(false)}
-            >
-              Вимкнути
-            </Button>
-          }
-        >
-          Режим технічного обслуговування активний — сайт недоступний для
-          користувачів.
-        </Alert>
-      )}
 
       <Grid container spacing={3}>
         {/* Left column */}
@@ -517,64 +491,6 @@ const Admin = () => {
             </Box>
           </SectionCard>
 
-          {/* Danger zone */}
-          <SectionCard
-            icon={<BuildOutlinedIcon sx={{ fontSize: 18, color: "#EF4444" }} />}
-            title="Небезпечна зона"
-            subtitle="Дії з незворотніми наслідками (ще не реалізовано)"
-          >
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <Box
-                sx={{
-                  p: 1.5,
-                  borderRadius: 2,
-                  border: "1px solid rgba(239,68,68,0.2)",
-                  bgcolor: "#FFF5F5",
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  fontWeight={600}
-                  sx={{ color: "#991B1B" }}
-                >
-                  Режим обслуговування
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Функціонал ще не реалізовано на бекенді
-                </Typography>
-              </Box>
-
-              <Button
-                fullWidth
-                variant="outlined"
-                color="error"
-                size="small"
-                disabled
-                startIcon={
-                  <span className="material-icons" style={{ fontSize: 16 }}>
-                    delete_sweep
-                  </span>
-                }
-              >
-                Очистити кеш (недоступно)
-              </Button>
-
-              <Button
-                fullWidth
-                variant="outlined"
-                color="error"
-                size="small"
-                disabled
-                startIcon={
-                  <span className="material-icons" style={{ fontSize: 16 }}>
-                    backup
-                  </span>
-                }
-              >
-                Резервна копія БД (недоступно)
-              </Button>
-            </Box>
-          </SectionCard>
         </Grid>
       </Grid>
 

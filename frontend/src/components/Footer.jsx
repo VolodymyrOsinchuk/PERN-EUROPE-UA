@@ -27,6 +27,8 @@ const FOOTER_LINKS = [
       { label: "Про нас", href: "/about" },
       { label: "Контакт", href: "/contact" },
       { label: "Конфіденційність", href: "/policy" },
+      { label: "FAQ", href: "/faq" },
+      { label: "Що нового", href: "/changelog" },
     ],
   },
   {
@@ -214,7 +216,7 @@ export default function Footer() {
           <Box sx={{ display: "flex", gap: 3 }}>
             {[
               { label: "Конфіденційність", href: "/policy" },
-              { label: "Умови використання", href: "/policy" },
+              { label: "Умови використання", href: "/terms" },
             ].map((l) => (
               <MuiLink
                 key={l.label}
