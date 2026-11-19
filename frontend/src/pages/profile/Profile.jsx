@@ -31,6 +31,9 @@ import {
   useNavigate,
   redirect,
 } from "react-router-dom";
+import { InputAdornment } from "@mui/material";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import AddIcon from "@mui/icons-material/Add";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
@@ -90,7 +93,6 @@ export async function action({ request }) {
         const profileData = {
           firstName: formData.get("firstName"),
           lastName: formData.get("lastName"),
-          email: formData.get("email"),
           phoneNumber: formData.get("phoneNumber"),
           country: formData.get("country"),
           state: formData.get("state"),
@@ -298,7 +300,9 @@ function ProfileHero({ user, onImageChange }) {
                       color: "rgba(255,255,255,.6)",
                     }}
                   >
-                    {[user?.city, user?.state, user?.country].filter(Boolean).join(", ")}
+                    {[user?.city, user?.state, user?.country]
+                      .filter(Boolean)
+                      .join(", ")}
                   </Typography>
                 </Box>
               )}
@@ -596,7 +600,11 @@ function ProfilePublicationCard({ publication, onDelete }) {
   const STATUS_CHIP = {
     draft: { label: "Чернетка", bg: "#f1f5f9", color: "#475569" },
     pending: { label: "На перевірці", bg: "#eff6ff", color: "#1d4ed8" },
-    needs_changes: { label: "Потрібні правки", bg: "#fff7ed", color: "#9a3412" },
+    needs_changes: {
+      label: "Потрібні правки",
+      bg: "#fff7ed",
+      color: "#9a3412",
+    },
     published: { label: "Опубліковано", bg: "#ecfdf5", color: "#065f46" },
     archived: { label: "В архіві", bg: "#f8fafc", color: "#94a3b8" },
   };
@@ -716,11 +724,12 @@ function ProfilePublicationCard({ publication, onDelete }) {
           </Box>
         </Box>
 
-        {publication.status === "needs_changes" && publication.moderationReason && (
-          <Alert severity="warning" sx={{ mt: 1.5 }}>
-            <strong>Що виправити:</strong> {publication.moderationReason}
-          </Alert>
-        )}
+        {publication.status === "needs_changes" &&
+          publication.moderationReason && (
+            <Alert severity="warning" sx={{ mt: 1.5 }}>
+              <strong>Що виправити:</strong> {publication.moderationReason}
+            </Alert>
+          )}
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -907,9 +916,13 @@ export default function Profile() {
   const fetcher = useFetcher();
   const navigate = useNavigate();
 
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [tab, setTab] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
   const [pwdOpen, setPwdOpen] = useState(false);
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [emailSaving, setEmailSaving] = useState(false);
   const [deleteAccOpen, setDeleteAccOpen] = useState(false);
   const [deleteAdOpen, setDeleteAdOpen] = useState(false);
   const [deletePubOpen, setDeletePubOpen] = useState(false);
@@ -922,7 +935,7 @@ export default function Profile() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-    email: "",
+
     phoneNumber: "",
     country: "",
     state: "",
@@ -937,7 +950,6 @@ export default function Profile() {
       setFormData({
         firstName: user.firstName || "",
         lastName: user.lastName || "",
-        email: user.email || "",
         phoneNumber: user.phoneNumber || "",
         country: user.country || "",
         state: user.state || "",
@@ -1020,6 +1032,37 @@ export default function Profile() {
       { actionType: "deleteEvent", eventId: selectedEvent.id },
       { method: "post" },
     );
+  };
+
+  const requestEmailChange = async (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setEmailSaving(true);
+    try {
+      const { data } = await customFetch.post("/users/change-email", {
+        newEmail: form.get("newEmail"),
+        password: form.get("password"),
+      });
+      toast.success(data.message);
+      setEmailOpen(false);
+      await fetchUser();
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || "Не вдалося надіслати лист",
+      );
+    } finally {
+      setEmailSaving(false);
+    }
+  };
+
+  const cancelEmailChange = async () => {
+    try {
+      await customFetch.delete("/users/change-email");
+      toast.success("Зміну адреси скасовано");
+      await fetchUser();
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Не вдалося скасувати");
+    }
   };
 
   const inputSx = {
@@ -1687,6 +1730,102 @@ export default function Profile() {
                       justifyContent: "center",
                     }}
                   >
+                    <span
+                      className="material-icons"
+                      style={{ fontSize: 18, color: BLUE }}
+                    >
+                      alternate_email
+                    </span>
+                  </Box>
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontWeight: 700,
+                        fontSize: "1rem",
+                        color: "#0f172a",
+                      }}
+                    >
+                      Електронна пошта
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontSize: "0.78rem",
+                        color: "#64748b",
+                      }}
+                    >
+                      {user?.email}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {user?.pendingEmail && (
+                  <Alert
+                    severity="info"
+                    sx={{ mb: 2, borderRadius: "12px" }}
+                    action={
+                      <Button
+                        color="inherit"
+                        size="small"
+                        onClick={cancelEmailChange}
+                      >
+                        Скасувати
+                      </Button>
+                    }
+                  >
+                    Очікує підтвердження: <strong>{user.pendingEmail}</strong>.
+                    Перейдіть за посиланням у листі.
+                  </Alert>
+                )}
+
+                <Button
+                  fullWidth
+                  onClick={() => setEmailOpen(true)}
+                  sx={{
+                    fontFamily: F_BODY,
+                    fontWeight: 700,
+                    textTransform: "none",
+                    borderRadius: "12px",
+                    py: 1.3,
+                    border: `1.5px solid ${BLUE}`,
+                    color: BLUE,
+                    bgcolor: "#eff6ff",
+                    "&:hover": { bgcolor: "#dbeafe" },
+                  }}
+                >
+                  Змінити email
+                </Button>
+              </Paper>
+              <Paper
+                elevation={0}
+                sx={{
+                  borderRadius: "20px",
+                  border: "1.5px solid #e2e8f0",
+                  p: { xs: 3, md: 4 },
+                  mb: 3,
+                  boxShadow: "0 4px 24px rgba(0,87,184,.06)",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    mb: 3,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "10px",
+                      bgcolor: "#eff6ff",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
                     <LockOutlinedIcon sx={{ fontSize: 18, color: BLUE }} />
                   </Box>
                   <Box>
@@ -1837,7 +1976,7 @@ export default function Profile() {
               {[
                 { name: "firstName", label: "Ім'я", type: "text" },
                 { name: "lastName", label: "Прізвище", type: "text" },
-                { name: "email", label: "Email", type: "email" },
+
                 { name: "phoneNumber", label: "Телефон", type: "tel" },
                 { name: "country", label: "Країна", type: "text" },
                 { name: "state", label: "Регіон", type: "text" },
@@ -1876,6 +2015,17 @@ export default function Profile() {
                   sx={inputSx}
                 />
               </Grid>
+              <Grid size={12}>
+                <Typography
+                  sx={{
+                    fontFamily: F_BODY,
+                    fontSize: "0.8rem",
+                    color: "#64748b",
+                  }}
+                >
+                  Щоб змінити email, скористайтеся розділом «Налаштування».
+                </Typography>
+              </Grid>
             </Grid>
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
@@ -1910,14 +2060,138 @@ export default function Profile() {
           </DialogActions>
         </Form>
       </Dialog>
+      {/* Change Email Dialog */}
+      <Dialog
+        open={emailOpen}
+        onClose={() => setEmailOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: "20px",
+              p: 1,
+            },
+          },
+        }}
+      >
+        <Box component="form" onSubmit={requestEmailChange}>
+          <DialogTitle
+            sx={{
+              fontFamily: F_DISPLAY,
+              fontWeight: 700,
+              fontSize: "1.3rem",
+              pb: 1,
+            }}
+          >
+            Змінити email
+          </DialogTitle>
+          <DialogContent>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                pt: 1,
+              }}
+            >
+              <TextField
+                name="oldPassword"
+                label="Поточний пароль"
+                type={showOldPassword ? "text" : "password"}
+                fullWidth
+                size="small"
+                required
+                sx={inputSx}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowOldPassword(!showOldPassword)}
+                          edge="end"
+                        >
+                          {showOldPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
 
+              <TextField
+                name="newPassword"
+                label="Новий пароль"
+                type={showNewPassword ? "text" : "password"}
+                fullWidth
+                size="small"
+                required
+                helperText="Мінімум 8 символів"
+                sx={inputSx}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          edge="end"
+                        >
+                          {showNewPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+            <Button
+              onClick={() => setEmailOpen(false)}
+              sx={{
+                fontFamily: F_BODY,
+                fontWeight: 600,
+                textTransform: "none",
+                color: "#64748b",
+                borderRadius: "10px",
+                border: "1px solid #e2e8f0",
+              }}
+            >
+              Скасувати
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={emailSaving}
+              sx={{
+                fontFamily: F_BODY,
+                fontWeight: 700,
+                textTransform: "none",
+                bgcolor: BLUE,
+                borderRadius: "10px",
+                px: 3,
+                "&:hover": { bgcolor: "#003d82" },
+              }}
+            >
+              {emailSaving ? "Надсилання..." : "Надіслати лист"}
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
       {/* Change Password Dialog */}
       <Dialog
         open={pwdOpen}
         onClose={() => setPwdOpen(false)}
         maxWidth="xs"
         fullWidth
-        PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: "20px",
+              p: 1,
+            },
+          },
+        }}
       >
         <Form method="post">
           <input type="hidden" name="actionType" value="updatePassword" />

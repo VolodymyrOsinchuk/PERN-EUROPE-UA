@@ -35,10 +35,18 @@ const PUBLIC_USER_ATTRIBUTES = [
   "updatedAt",
 ];
 
+const SENSITIVE_FIELDS = [
+  "password",
+  "emailChangeTokenHash",
+  "verificationToken",
+  "resetPasswordToken",
+  "resetPasswordExpires",
+];
+
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll({
-      attributes: PUBLIC_USER_ATTRIBUTES,
+      attributes: { exclude: SENSITIVE_FIELDS },
       order: [["createdAt", "DESC"]],
     });
     res.status(200).json(users);
@@ -52,7 +60,7 @@ exports.getUserById = async (req, res) => {
   try {
     const userId = req.params.id || req.user.userId;
     const user = await User.findByPk(userId, {
-      attributes: PUBLIC_USER_ATTRIBUTES,
+      attributes: { exclude: SENSITIVE_FIELDS },
     });
     if (!user)
       return res.status(404).json({ message: "Користувача не знайдено" });
@@ -161,7 +169,7 @@ exports.updateUser = async (req, res) => {
     // Зміна email вимагає підтвердження нової адреси.
     // Email не змінюється одразу: ставимо pendingEmail + токен верифікації,
     // список на нову адресу. Після переходу за посиланням email оновлюється.
-    if (email && email !== user.email) {
+    if (email && req.user.role === "admin" ? email : user.email) {
       const verificationToken = crypto.randomBytes(32).toString("hex");
       updateData.pendingEmail = email;
       updateData.verificationToken = verificationToken;
@@ -172,11 +180,7 @@ exports.updateUser = async (req, res) => {
       // Після підтвердження pendingEmail стає основним і isVerified = true.
 
       try {
-        await sendVerificationEmail(
-          email,
-          user.firstName,
-          verificationToken,
-        );
+        await sendVerificationEmail(email, user.firstName, verificationToken);
       } catch (mailErr) {
         console.error("Помилка надсилання листа верифікації:", mailErr);
       }
@@ -190,7 +194,7 @@ exports.updateUser = async (req, res) => {
     await user.update(updateData);
 
     const updatedUser = await User.findByPk(id, {
-      attributes: PUBLIC_USER_ATTRIBUTES,
+      attributes: { exclude: SENSITIVE_FIELDS },
     });
     res.status(200).json(updatedUser);
   } catch (error) {
@@ -342,15 +346,21 @@ exports.getDashboardStats = async (req, res) => {
     const prevMonth = new Date();
     prevMonth.setMonth(prevMonth.getMonth() - 2);
 
-    const [userCount, adCount, categoryCount, prevUsers, prevAds, prevCategories] =
-      await Promise.all([
-        User.count(),
-        Adv.count(),
-        Category.count(),
-        User.count({ where: { createdAt: { [Op.lt]: lastMonth } } }),
-        Adv.count({ where: { createdAt: { [Op.lt]: lastMonth } } }),
-        Category.count({ where: { createdAt: { [Op.lt]: lastMonth } } }),
-      ]);
+    const [
+      userCount,
+      adCount,
+      categoryCount,
+      prevUsers,
+      prevAds,
+      prevCategories,
+    ] = await Promise.all([
+      User.count(),
+      Adv.count(),
+      Category.count(),
+      User.count({ where: { createdAt: { [Op.lt]: lastMonth } } }),
+      Adv.count({ where: { createdAt: { [Op.lt]: lastMonth } } }),
+      Category.count({ where: { createdAt: { [Op.lt]: lastMonth } } }),
+    ]);
 
     const calcTrend = (current, previous) => {
       if (previous === 0) return current > 0 ? "+100%" : "0%";

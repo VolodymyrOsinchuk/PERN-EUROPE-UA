@@ -24,6 +24,7 @@ import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
 import { PageHeader } from "../../components";
 import customFetch from "../../utils/customFetch";
+import { invalidatePublishedCountries } from "../../hooks/usePublishedCountries";
 import { toast } from "react-toastify";
 
 const STALE_DAYS = 180;
@@ -438,6 +439,7 @@ export default function Countries() {
   const [newName, setNewName] = useState("");
 
   const load = async () => {
+    invalidatePublishedCountries();
     try {
       const { data } = await customFetch.get("/countries/admin/all");
       setCountries(data.countries);

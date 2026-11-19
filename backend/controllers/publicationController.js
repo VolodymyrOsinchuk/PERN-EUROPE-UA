@@ -1,5 +1,5 @@
 const { Publication } = require("../models/publication");
-const PUBLICATION_CATEGORIES = require("../config/publicationCategories");
+const { getActiveCategoryNames } = require("./publicationCategoryController");
 const { User } = require("../models/user");
 const { sanitizeText, sanitizeRichText } = require("../utils/sanitize");
 const {
@@ -87,7 +87,8 @@ exports.createPublication = async (req, res) => {
     } = req.body;
 
     // Категорія: лише зі списку
-    if (!PUBLICATION_CATEGORIES.includes(category)) {
+    const allowedCategories = await getActiveCategoryNames();
+    if (!allowedCategories.includes(category)) {
       return res.status(400).json({ message: "Невідома категорія" });
     }
 
@@ -183,7 +184,13 @@ exports.updatePublication = async (req, res) => {
     }
 
     // Перевірка та нормалізація даних
-    const parsed = normalizePublicationInput(req.body);
+    const allowedCategories = await getActiveCategoryNames();
+    // Поточна категорія статті лишається дійсною, навіть якщо її вимкнули.
+    // Перенести статтю в іншу вимкнену категорію не можна.
+    if (pub.category && !allowedCategories.includes(pub.category)) {
+      allowedCategories.push(pub.category);
+    }
+    const parsed = normalizePublicationInput(req.body, allowedCategories);
 
     if (parsed.error) {
       return res.status(400).json({
@@ -193,7 +200,7 @@ exports.updatePublication = async (req, res) => {
 
     const d = parsed.data;
 
-    if (d.category && !PUBLICATION_CATEGORIES.includes(d.category)) {
+    if (d.category && !allowedCategories.includes(d.category)) {
       return res.status(400).json({
         message: "Невідома категорія",
       });

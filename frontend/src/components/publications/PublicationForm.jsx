@@ -21,9 +21,8 @@ import {
 import { PageHeader } from "../../components";
 import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
-import COUNTRIES_DATA from "../../data/countries.json";
-import { getPublishableCountries } from "../../data/validateCountries";
-import { CATEGORY_LABELS } from "../../data/publicationCategories";
+import usePublicationCategories from "../../hooks/usePublicationCategories";
+import usePublishedCountries from "../../hooks/usePublishedCountries";
 
 const INITIAL = {
   title: "",
@@ -66,16 +65,27 @@ export default function PublicationForm({
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
-  const publishable = new Set(
-    getPublishableCountries(COUNTRIES_DATA).map((c) => c.code),
-  );
-  const countries = COUNTRIES_DATA.countries;
+  const { names: categoryNames } = usePublicationCategories();
+  // Статтю у вимкненій категорії треба показати, інакше поле стане порожнім
+  const categoryOptions =
+    form.category && !categoryNames.includes(form.category)
+      ? [...categoryNames, form.category]
+      : categoryNames;
+
+  const { countries: countryList } = usePublishedCountries();
+  // Країна, яку сховали після прив'язки статті, лишається в списку
+  const countryOptions =
+    form.countryCode &&
+    !countryList.some((c) => c.code === form.countryCode)
+      ? [
+          ...countryList,
+          { code: form.countryCode, name: form.countryCode, flag: "" },
+        ]
+      : countryList;
 
   const set = (field) => (e) => {
     const value =
-      e.target.type === "checkbox"
-        ? e.target.checked
-        : e.target.value;
+      e.target.type === "checkbox" ? e.target.checked : e.target.value;
     setForm((f) => ({ ...f, [field]: value }));
     setErrors((er) => ({ ...er, [field]: undefined }));
   };
@@ -148,9 +158,6 @@ export default function PublicationForm({
     setForm(toFormState(publication));
   }, [publication]);
 
-  const selectedCountry = countries.find((c) => c.code === form.countryCode);
-  const countryReady = selectedCountry && publishable.has(selectedCountry.code);
-
   return (
     <Box>
       <PageHeader
@@ -187,7 +194,7 @@ export default function PublicationForm({
                 value={form.category}
                 onChange={set("category")}
               >
-                {CATEGORY_LABELS.map((c) => (
+                {categoryOptions.map((c) => (
                   <MenuItem key={c} value={c}>
                     {c}
                   </MenuItem>
@@ -208,18 +215,16 @@ export default function PublicationForm({
                 <MenuItem value="">
                   <em>Загальна стаття (без країни)</em>
                 </MenuItem>
-                {countries.map((c) => (
+                {countryOptions.map((c) => (
                   <MenuItem key={c.code} value={c.code}>
                     {c.flag} {c.name}
                   </MenuItem>
                 ))}
               </Select>
               <FormHelperText>
-                {!form.countryCode
-                  ? "Стаття з'явиться лише в загальному списку"
-                  : countryReady
-                    ? "Сторінка країни відкрита, стаття з'явиться на ній"
-                    : "Сторінка країни ще не перевірена, тому на ній стаття поки не видна"}
+                {form.countryCode
+                  ? "Стаття з'явиться також на сторінці країни"
+                  : "Стаття з'явиться лише в загальному списку"}
               </FormHelperText>
             </FormControl>
           </Stack>

@@ -2,7 +2,9 @@ const { Op } = require("sequelize");
 const { ForumTopic } = require("../models/forumTopic");
 const { ForumReply } = require("../models/forumReply");
 const { ForumCategory } = require("../models/forumCategory");
-const { ForumCategorySuggestion } = require("../models/forumCategorySuggestion");
+const {
+  ForumCategorySuggestion,
+} = require("../models/forumCategorySuggestion");
 const { ForumReport } = require("../models/forumReport");
 const { User } = require("../models/user");
 const { pick } = require("../utils/pick");
@@ -19,6 +21,15 @@ async function resolveForumCategory(category) {
 
 // ─── Topics ───────────────────────────────────────────────
 
+const PAGE_LIMIT_DEFAULT = 20;
+const PAGE_LIMIT_MAX = 50;
+
+const SORT_ORDERS = {
+  latest: [["createdAt", "DESC"]],
+  popular: [["views", "DESC"]],
+  replies: [["replies", "DESC"]],
+};
+
 exports.getAllTopics = async (req, res) => {
   try {
     const {
@@ -30,14 +41,18 @@ exports.getAllTopics = async (req, res) => {
       sort = "latest",
     } = req.query;
 
+    const paginated =
+      req.query.page !== undefined || req.query.limit !== undefined;
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(
+      PAGE_LIMIT_MAX,
+      Math.max(1, parseInt(req.query.limit, 10) || PAGE_LIMIT_DEFAULT),
+    );
+
     const where = {};
 
-    if (categoryId) {
-      where.forumCategoryId = categoryId;
-    }
-    if (subcategoryId) {
-      where.forumSubcategoryId = subcategoryId;
-    }
+    if (categoryId) where.forumCategoryId = categoryId;
+    if (subcategoryId) where.forumSubcategoryId = subcategoryId;
     if (country && country.trim() !== "") {
       where.country = { [Op.iLike]: `%${country.trim()}%` };
     }
@@ -52,42 +67,53 @@ exports.getAllTopics = async (req, res) => {
       ];
     }
 
-    // Determine sort order
-    let sortOrder = [["lastUpdate", "DESC"]];
-    if (sort === "popular") {
-      sortOrder = [["views", "DESC"]];
-    } else if (sort === "replies") {
-      sortOrder = [["replies", "DESC"]];
-    } else if (sort === "latest") {
-      sortOrder = [["createdAt", "DESC"]];
+    // Закріплені завжди першими; id DESC — стабільний порядок між сторінками
+    const order = [
+      ["isPinned", "DESC"],
+      ...(SORT_ORDERS[sort] || SORT_ORDERS.latest),
+      ["id", "DESC"],
+    ];
+
+    const include = [
+      {
+        model: ForumCategory,
+        as: "forumCategory",
+        attributes: ["id", "title", "icon", "color", "bgColor"],
+      },
+      {
+        model: ForumCategory,
+        as: "forumSubcategory",
+        attributes: ["id", "title", "icon", "color", "bgColor"],
+      },
+      {
+        model: User,
+        as: "user",
+        attributes: ["id", "firstName", "lastName", "profilePicture", "role"],
+      },
+    ];
+
+    // Без page/limit — повний масив, як раніше
+    if (!paginated) {
+      const topics = await ForumTopic.findAll({ where, include, order });
+      return res.status(200).json(topics);
     }
 
-    // Pinned topics always come first
-    const order = [["isPinned", "DESC"], ...sortOrder];
-
-    const topics = await ForumTopic.findAll({
+    const { rows, count } = await ForumTopic.findAndCountAll({
       where,
-      include: [
-        {
-          model: ForumCategory,
-          as: "forumCategory",
-          attributes: ["id", "title", "icon", "color", "bgColor"],
-        },
-        {
-          model: ForumCategory,
-          as: "forumSubcategory",
-          attributes: ["id", "title", "icon", "color", "bgColor"],
-        },
-        {
-          model: User,
-          as: "user",
-          attributes: ["id", "firstName", "lastName", "profilePicture", "role"],
-        },
-      ],
+      include,
       order,
+      limit,
+      offset: (page - 1) * limit,
+      distinct: true,
     });
 
-    res.status(200).json(topics);
+    res.status(200).json({
+      topics: rows,
+      total: count,
+      page,
+      limit,
+      totalPages: Math.max(1, Math.ceil(count / limit)),
+    });
   } catch (error) {
     console.error("Помилка getAllTopics:", error);
     res.status(500).json({ error: "Внутрішня помилка сервера" });
@@ -150,7 +176,9 @@ exports.createTopic = async (req, res) => {
     } = req.body;
 
     if (!title || !content) {
-      return res.status(400).json({ message: "Заголовок та текст обов'язкові" });
+      return res
+        .status(400)
+        .json({ message: "Заголовок та текст обов'язкові" });
     }
 
     let resolvedCatId = forumCategoryId;
@@ -383,7 +411,8 @@ exports.createReply = async (req, res) => {
 exports.updateReply = async (req, res) => {
   try {
     const reply = await ForumReply.findByPk(req.params.id);
-    if (!reply) return res.status(404).json({ message: "Відповідь не знайдено" });
+    if (!reply)
+      return res.status(404).json({ message: "Відповідь не знайдено" });
 
     const isModeratorOrAdmin = ["admin", "moderator"].includes(req.user?.role);
     if (reply.userId !== req.user.userId && !isModeratorOrAdmin) {
@@ -403,7 +432,8 @@ exports.updateReply = async (req, res) => {
 exports.deleteReply = async (req, res) => {
   try {
     const reply = await ForumReply.findByPk(req.params.id);
-    if (!reply) return res.status(404).json({ message: "Відповідь не знайдено" });
+    if (!reply)
+      return res.status(404).json({ message: "Відповідь не знайдено" });
 
     const isModeratorOrAdmin = ["admin", "moderator"].includes(req.user?.role);
     if (reply.userId !== req.user.userId && !isModeratorOrAdmin) {
@@ -476,7 +506,14 @@ exports.getAllForumCategories = async (req, res) => {
       attributes: [
         "forumCategoryId",
         [sequelize.fn("COUNT", sequelize.col("id")), "topicsCount"],
-        [sequelize.fn("COALESCE", sequelize.fn("SUM", sequelize.col("replies")), 0), "postsCount"],
+        [
+          sequelize.fn(
+            "COALESCE",
+            sequelize.fn("SUM", sequelize.col("replies")),
+            0,
+          ),
+          "postsCount",
+        ],
       ],
       group: ["forumCategoryId"],
       raw: true,
@@ -553,7 +590,8 @@ exports.getAllForumCategoriesAdmin = async (req, res) => {
 
 exports.createForumCategory = async (req, res) => {
   try {
-    const { title, description, icon, color, bgColor, sortOrder, parentId } = req.body;
+    const { title, description, icon, color, bgColor, sortOrder, parentId } =
+      req.body;
 
     if (!title || !title.trim()) {
       return res.status(400).json({ message: "Назва категорії обов'язкова" });
@@ -563,7 +601,9 @@ exports.createForumCategory = async (req, res) => {
     if (parentId) {
       const parent = await ForumCategory.findByPk(parentId);
       if (!parent) {
-        return res.status(404).json({ message: "Батьківську категорію не знайдено" });
+        return res
+          .status(404)
+          .json({ message: "Батьківську категорію не знайдено" });
       }
     }
 
@@ -751,7 +791,8 @@ exports.getAllCategorySuggestions = async (req, res) => {
 exports.updateCategorySuggestion = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, adminComment, createCategoryNow, icon, color, bgColor } = req.body;
+    const { status, adminComment, createCategoryNow, icon, color, bgColor } =
+      req.body;
 
     const suggestion = await ForumCategorySuggestion.findByPk(id);
     if (!suggestion) {
@@ -796,7 +837,9 @@ exports.createForumReport = async (req, res) => {
       return res.status(400).json({ message: "Вкажіть причину скарги" });
     }
     if (!topicId && !replyId) {
-      return res.status(400).json({ message: "Вкажіть тему або повідомлення для скарги" });
+      return res
+        .status(400)
+        .json({ message: "Вкажіть тему або повідомлення для скарги" });
     }
 
     const report = await ForumReport.create({

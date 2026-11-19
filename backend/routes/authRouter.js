@@ -19,6 +19,7 @@ const {
   verifyEmailLimiter,
   passwordResetLimiter,
 } = require("../middleware/rateLimiters");
+const { confirmEmailChange } = require("../controllers/emailChangeController");
 
 router.post("/logout", logout);
 // FIX P1-2: rate limiting sur les routes sensibles à l'abus
@@ -30,6 +31,12 @@ router.get("/verify-email/:token", verifyEmailLimiter, verifyEmail);
 router.post("/forgot-password", passwordResetLimiter, forgotPassword);
 router.post("/reset-password/:token", passwordResetLimiter, resetPassword);
 router.post("/resend-verification", verifyEmailLimiter, resendVerification);
+
+router.post(
+  "/confirm-email-change/:token",
+  passwordResetLimiter,
+  confirmEmailChange,
+);
 
 // OAuth social — Google
 router.get("/google", googleLogin);

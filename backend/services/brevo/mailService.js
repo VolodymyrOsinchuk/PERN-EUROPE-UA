@@ -3,6 +3,8 @@
 // Усі функції повертають boolean і не кидають помилок назовні,
 // щоб збій пошти не ламав основний запит (сумісно з попереднім emailService).
 const { sendTransactional } = require("./brevoClient");
+const config = require("../../config/config");
+
 const T = require("./templates");
 
 const adminEmail = () =>
@@ -64,6 +66,45 @@ const sendAdContactEmail = ({
     senderEmail,
   );
 
+// Додати в backend/services/brevo/mailService.js і до module.exports
+const escapeHtml = (value) =>
+  String(value ?? "").replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ],
+  );
+const sendEmailChangeConfirmation = (to, name, token) => {
+  const url = `${config.client.url}/confirm-email-change/${token}`;
+  return deliver(
+    {
+      kind: "emailChange",
+      subject: "Підтвердіть нову адресу електронної пошти",
+      html: `
+        <p>Вітаємо, ${escapeHtml(name)}!</p>
+        <p>Ви запросили зміну адреси електронної пошти на цю.</p>
+        <p><a href="${url}">Підтвердити нову адресу</a></p>
+        <p>Посилання дійсне 1 годину. Якщо це були не ви, просто проігноруйте лист.</p>
+      `,
+    },
+    to,
+  );
+};
+
+const sendEmailChangedNotice = (to, name) =>
+  deliver(
+    {
+      kind: "emailChangedNotice",
+      subject: "Адресу вашого акаунта змінено",
+      html: `
+        <p>Вітаємо, ${escapeHtml(name)}!</p>
+        <p>Адреса електронної пошти вашого акаунта щойно змінена.</p>
+        <p>Якщо це були не ви, негайно зверніться до підтримки.</p>
+      `,
+    },
+    to,
+  );
 /* ───────── Адміністративні ───────── */
 
 const sendAdminAlert = ({ title, details }) => {
@@ -86,4 +127,6 @@ module.exports = {
   sendAdContactEmail,
   sendAdminAlert,
   sendTransactionalEmail,
+  sendEmailChangeConfirmation,
+  sendEmailChangedNotice,
 };

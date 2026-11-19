@@ -20,15 +20,11 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
-import {
-  CATEGORY_LABELS,
-  getCategoryColors,
-} from "../data/publicationCategories";
+import { getCategoryColors } from "../data/publicationCategories";
+import usePublicationCategories from "../hooks/usePublicationCategories";
 
 const fontBody = "'Plus Jakarta Sans', sans-serif";
 const fontDisplay = "'Playfair Display', serif";
-
-const CATEGORIES_LIST = ["Всі публікації", ...CATEGORY_LABELS];
 
 // ── Loader — vraies données API ──
 export async function loader() {
@@ -46,6 +42,8 @@ export default function Publications() {
   const [selectedCat, setSelectedCat] = useState("Всі публікації");
   const [search, setSearch] = useState("");
   const [visibleCount, setVisibleCount] = useState(6);
+  const { names: categoryNames } = usePublicationCategories();
+  const CATEGORIES_LIST = ["Всі публікації", ...categoryNames];
 
   const filtered = allPublications.filter((a) => {
     const matchCat =

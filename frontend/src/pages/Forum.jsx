@@ -1,4 +1,4 @@
-import { Fragment, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { HeroSection } from "../components";
 import {
   Box,
@@ -44,7 +44,13 @@ import SortIcon from "@mui/icons-material/Sort";
 import GridViewIcon from "@mui/icons-material/GridView";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import ClearIcon from "@mui/icons-material/Clear";
-import { Form, useLoaderData, useNavigation, Link } from "react-router-dom";
+import {
+  Form,
+  useLoaderData,
+  useNavigation,
+  Link,
+  useActionData,
+} from "react-router-dom";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
 import { useAuthContext } from "../context/AuthContext";
@@ -61,21 +67,19 @@ const EUROPE_COUNTRIES = EUROPEAN_COUNTRIES.map((c) => c.name);
 // ── Loader ────────────────────────────────────────────────
 export async function loader() {
   try {
-    const [topicsRes, categoriesRes, statsRes] = await Promise.allSettled([
-      customFetch.get("/forum"),
+    const [categoriesRes, statsRes] = await Promise.allSettled([
       customFetch.get("/forum/categories"),
       customFetch.get("/forum/stats"),
     ]);
 
     return {
-      topics: topicsRes.status === "fulfilled" ? topicsRes.value.data : [],
       categories:
         categoriesRes.status === "fulfilled" ? categoriesRes.value.data : [],
       stats: statsRes.status === "fulfilled" ? statsRes.value.data : null,
     };
   } catch (error) {
     toast.error("Не вдалося завантажити форум");
-    return { topics: [], categories: [], stats: null };
+    return { categories: [], stats: null };
   }
 }
 
@@ -594,7 +598,8 @@ function TopicCard({ topic, categories, index }) {
 
 // ── Main Forum Component ──────────────────────────────────
 export default function Forum() {
-  const { topics, categories, stats } = useLoaderData();
+  const { categories, stats } = useLoaderData();
+  const actionData = useActionData();
   const navigation = useNavigation();
   const { user } = useAuthContext();
   const isSubmitting = navigation.state === "submitting";
@@ -620,6 +625,90 @@ export default function Forum() {
   const [suggestDesc, setSuggestDesc] = useState("");
   const [suggestReason, setSuggestReason] = useState("");
   const [isSuggesting, setIsSuggesting] = useState(false);
+
+  const PAGE_SIZE = 20;
+
+  const [topics, setTopics] = useState([]);
+  const [topicsLoading, setTopicsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalTopics, setTotalTopics] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Пошук і місто debounce-имо, щоб не слати запит на кожну літеру
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [debouncedCity, setDebouncedCity] = useState("");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 350);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedCity(cityFilter.trim()), 350);
+    return () => clearTimeout(t);
+  }, [cityFilter]);
+
+  // Зміна будь-якого фільтра повертає на першу сторінку
+  useEffect(() => {
+    setPage(1);
+  }, [
+    debouncedSearch,
+    debouncedCity,
+    selectedCategoryId,
+    selectedSubcategoryId,
+    countryFilter,
+    sortBy,
+  ]);
+
+  // Після створення теми список оновлюємо
+  useEffect(() => {
+    if (actionData?.success) setRefreshKey((k) => k + 1);
+  }, [actionData]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setTopicsLoading(true);
+
+    customFetch
+      .get("/forum", {
+        params: {
+          page,
+          limit: PAGE_SIZE,
+          search: debouncedSearch || undefined,
+          categoryId: selectedCategoryId || undefined,
+          subcategoryId: selectedSubcategoryId || undefined,
+          country: countryFilter || undefined,
+          city: debouncedCity || undefined,
+          sort: sortBy,
+        },
+      })
+      .then(({ data }) => {
+        if (cancelled) return;
+        setTopics(data.topics);
+        setTotalTopics(data.total);
+        setTotalPages(data.totalPages);
+      })
+      .catch(() => {
+        if (!cancelled) toast.error("Не вдалося завантажити теми");
+      })
+      .finally(() => {
+        if (!cancelled) setTopicsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    page,
+    debouncedSearch,
+    debouncedCity,
+    selectedCategoryId,
+    selectedSubcategoryId,
+    countryFilter,
+    sortBy,
+    refreshKey,
+  ]);
 
   const selectedCategoryObj = useMemo(() => {
     return categories.find((c) => String(c.id) === String(selectedCategoryId));
@@ -674,72 +763,6 @@ export default function Forum() {
       setIsSuggesting(false);
     }
   };
-
-  // Filter and sort topics locally
-  const filteredTopics = useMemo(() => {
-    let result = [...topics];
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (t) =>
-          t.title?.toLowerCase().includes(q) ||
-          t.content?.toLowerCase().includes(q) ||
-          t.category?.toLowerCase().includes(q),
-      );
-    }
-
-    if (selectedCategoryId) {
-      result = result.filter(
-        (t) =>
-          String(t.forumCategoryId) === String(selectedCategoryId) ||
-          (selectedCategoryObj && t.category === selectedCategoryObj.title),
-      );
-    }
-
-    if (selectedSubcategoryId) {
-      result = result.filter(
-        (t) => String(t.forumSubcategoryId) === String(selectedSubcategoryId),
-      );
-    }
-
-    if (countryFilter) {
-      result = result.filter(
-        (t) => t.country?.toLowerCase() === countryFilter.toLowerCase(),
-      );
-    }
-
-    if (cityFilter.trim()) {
-      const qCity = cityFilter.toLowerCase();
-      result = result.filter((t) => t.city?.toLowerCase().includes(qCity));
-    }
-
-    // Sort: pinned topics always float to the top
-    result.sort((a, b) => {
-      if (a.isPinned !== b.isPinned) {
-        return a.isPinned ? -1 : 1;
-      }
-      if (sortBy === "popular") {
-        return (b.views || 0) - (a.views || 0);
-      }
-      if (sortBy === "replies") {
-        return (b.replies || 0) - (a.replies || 0);
-      }
-      // latest
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    });
-
-    return result;
-  }, [
-    topics,
-    searchQuery,
-    selectedCategoryId,
-    selectedSubcategoryId,
-    countryFilter,
-    cityFilter,
-    sortBy,
-    selectedCategoryObj,
-  ]);
 
   const clearAllFilters = () => {
     setSearchQuery("");
@@ -1396,7 +1419,16 @@ export default function Forum() {
               </Box>
 
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                {filteredTopics.length === 0 ? (
+                {topicsLoading ? (
+                  [0, 1, 2, 3].map((i) => (
+                    <Skeleton
+                      key={i}
+                      variant="rounded"
+                      height={120}
+                      sx={{ borderRadius: "16px" }}
+                    />
+                  ))
+                ) : topics.length === 0 ? (
                   <Paper
                     elevation={0}
                     sx={{
@@ -1443,7 +1475,7 @@ export default function Forum() {
                     )}
                   </Paper>
                 ) : (
-                  filteredTopics.map((topic, i) => (
+                  topics.map((topic, i) => (
                     <TopicCard
                       key={topic.id}
                       topic={topic}
@@ -1453,6 +1485,21 @@ export default function Forum() {
                   ))
                 )}
               </Box>
+
+              {!topicsLoading && totalPages > 1 && (
+                <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+                  <Pagination
+                    count={totalPages}
+                    page={page}
+                    onChange={(_, value) => {
+                      setPage(value);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    color="primary"
+                    shape="rounded"
+                  />
+                </Box>
+              )}
             </Grid>
           </Grid>
         </Container>

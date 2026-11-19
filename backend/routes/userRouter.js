@@ -17,6 +17,10 @@ const {
   roleMiddleware,
 } = require("../middleware/authMiddleware");
 const checkSelfOrAdmin = require("../middleware/checkSelfOrAdmin");
+const {
+  requestEmailChange,
+  cancelEmailChange,
+} = require("../controllers/emailChangeController");
 
 router.get("/", authMiddleware, roleMiddleware(["admin"]), getAllUsers);
 router.get("/current-user", authMiddleware, getUserById);
@@ -34,6 +38,10 @@ router
   .get(authMiddleware, roleMiddleware(["admin"]), getUserById)
   .put(authMiddleware, checkSelfOrAdmin, updateUser)
   .delete(authMiddleware, checkSelfOrAdmin, deleteUser);
+
+// Має стояти ДО router.route("/:id")
+router.post("/change-email", authMiddleware, requestEmailChange);
+router.delete("/change-email", authMiddleware, cancelEmailChange);
 
 router.post("/", authMiddleware, roleMiddleware(["admin"]), createUser);
 

@@ -55,23 +55,11 @@ export async function loader({ params }) {
     });
   }
 
-  const [publicationsResult] = await Promise.allSettled([
-    customFetch.get("/publications", {
-      params: { countryCode: country.code },
-    }),
-  ]);
-
-  const publications =
-    publicationsResult.status === "fulfilled"
-      ? publicationsResult.value.data
-      : [];
-  console.log("🚀 ~ loader ~ publications:", publications);
-
-  return { country, publications };
+  return { country };
 }
 
 export default function Country() {
-  const { country, publications } = useLoaderData();
+  const { country } = useLoaderData();
   const links = country.links || [];
 
   // Групування посилань за категорією у порядку CATEGORY_TITLES
@@ -227,64 +215,6 @@ export default function Country() {
             </Box>
           );
         })}
-
-        {publications.length > 0 && (
-          <Box sx={{ mt: 2 }}>
-            <Typography
-              sx={{
-                fontFamily: F_DISPLAY,
-                fontWeight: 700,
-                fontSize: "1.3rem",
-                color: "#0f172a",
-                mb: 1.5,
-              }}
-            >
-              Публікації про {country.name}
-            </Typography>
-
-            <Stack spacing={1.5}>
-              {publications.map((p) => (
-                <Paper
-                  key={p.id}
-                  component={Link}
-                  to={`/publications/${p.id}`}
-                  elevation={0}
-                  sx={{
-                    p: 2.5,
-                    borderRadius: 3,
-                    border: "1px solid #e2e8f0",
-                    textDecoration: "none",
-                    display: "block",
-                    transition: "all 0.2s",
-                    "&:hover": { borderColor: BLUE, bgcolor: "#f8fafc" },
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontFamily: F_BODY,
-                      fontWeight: 700,
-                      color: "#0f172a",
-                    }}
-                  >
-                    {p.title}
-                  </Typography>
-                  {p.lastVerifiedAt && (
-                    <Typography
-                      sx={{
-                        fontFamily: F_BODY,
-                        fontSize: "0.75rem",
-                        color: "#065f46",
-                        mt: 0.5,
-                      }}
-                    >
-                      ✓ Джерело перевірено
-                    </Typography>
-                  )}
-                </Paper>
-              ))}
-            </Stack>
-          </Box>
-        )}
       </Container>
     </Box>
   );

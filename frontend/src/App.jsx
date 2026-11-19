@@ -36,6 +36,7 @@ import Register, { action as registerAction } from "./pages/Register";
 import VerifyAccount, { loader as accountLoader } from "./pages/VerifyAccount";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import ConfirmEmailChange from "./pages/ConfirmEmailChange";
 
 // News
 import News, { loader as newsLoader } from "./pages/News";
@@ -205,6 +206,7 @@ const publicRoutes = [
   },
   { path: "forgot-password", element: <ForgotPassword /> },
   { path: "reset-password/:token", element: <ResetPassword /> },
+  { path: "confirm-email-change/:token", element: <ConfirmEmailChange /> },
 
   // Contact
   {

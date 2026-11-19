@@ -5,11 +5,15 @@ const {
   authMiddleware,
   roleMiddleware,
 } = require("../middleware/authMiddleware");
-const PUBLICATION_CATEGORIES = require("../config/publicationCategories");
 const staffOnly = [authMiddleware, roleMiddleware(["admin", "moderator"])];
 const { optionalAuth } = require("../middleware/authMiddleware");
+const categories = require("../controllers/publicationCategoryController");
 
-router.get("/categories", (req, res) => res.json(PUBLICATION_CATEGORIES));
+router.get("/categories", categories.getPublicCategories);
+router.get("/categories/admin", ...staffOnly, categories.getAllCategoriesAdmin);
+router.post("/categories", ...staffOnly, categories.createCategory);
+router.put("/categories/:id", ...staffOnly, categories.updateCategory);
+router.delete("/categories/:id", ...staffOnly, categories.deleteCategory);
 
 router.get("/", publicationController.getAllPublications);
 router.get(

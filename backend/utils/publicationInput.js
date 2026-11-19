@@ -1,11 +1,10 @@
 // backend/utils/publicationInput.js
-const PUBLICATION_CATEGORIES = require("../config/publicationCategories");
 const { sanitizeText, sanitizeRichText } = require("./sanitize");
 
 const toBool = (v) => v === true || v === "true" || v === "on";
 
-// Повертає { error } або { data } з нормалізованими полями.
-function normalizePublicationInput(body) {
+// allowedCategories — список активних категорій з БД (передає контролер)
+function normalizePublicationInput(body, allowedCategories) {
   const {
     title,
     content,
@@ -16,7 +15,7 @@ function normalizePublicationInput(body) {
     sourceUrl,
   } = body;
 
-  if (!PUBLICATION_CATEGORIES.includes(category)) {
+  if (!allowedCategories.includes(category)) {
     return { error: "Невідома категорія" };
   }
 
@@ -50,9 +49,7 @@ function normalizePublicationInput(body) {
 }
 
 function resolveStatus({ isStaff, currentStatus, body }) {
-  // Автор лише зберігає чернетку або надсилає на перевірку.
   if (!isStaff) return toBool(body.submit) ? "pending" : "draft";
-  // Адмін/модератор може явно опублікувати або зберегти чернетку.
   if (body.publish !== undefined)
     return toBool(body.publish) ? "published" : "draft";
   return currentStatus || "draft";

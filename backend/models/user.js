@@ -115,6 +115,18 @@ const User = sequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    pendingEmail: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+    },
+    emailChangeTokenHash: {
+      type: DataTypes.STRING(64),
+      allowNull: true,
+    },
+    emailChangeExpires: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     tableName: "users",
