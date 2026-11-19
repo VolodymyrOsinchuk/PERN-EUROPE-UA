@@ -153,6 +153,7 @@ exports.login = async (req, res) => {
       userId: user.id,
       email: user.email,
       role: user.role,
+      tokenVersion: user.tokenVersion,
     });
     await user.update({ lastLogin: new Date() });
 
@@ -545,6 +546,39 @@ exports.resetPassword = async (req, res) => {
     return res.status(200).json({ message: "Пароль успішно змінено" });
   } catch (error) {
     console.error("Помилка resetPassword:", error.name);
+    return res.status(500).json({ message: "Помилка сервера" });
+  }
+};
+
+// POST /auth/resend-reset  { token }
+// Повторно надсилає лист із новим посиланням скидання пароля,
+// якщо попередній токен закінчився або його більше не можна перевірити.
+exports.resendReset = async (req, res) => {
+  try {
+    const token =
+      typeof req.body?.token === "string" ? req.body.token.trim() : "";
+    if (!token || !/^[a-f0-9]{64}$/.test(token)) {
+      return res.status(400).json({ message: "Посилання недійсне" });
+    }
+
+    const user = await User.findOne({
+      where: { resetPasswordToken: hashToken(token) },
+    });
+    if (user) {
+      const rawToken = crypto.randomBytes(32).toString("hex");
+      await user.update({
+        resetPasswordToken: hashToken(rawToken),
+        resetPasswordExpires: new Date(Date.now() + RESET_TOKEN_TTL_MS),
+      });
+      await sendPasswordResetEmail(user.email, user.firstName, rawToken);
+    }
+
+    return res.status(200).json({
+      message:
+        "Якщо ви запросили скидання пароля, нове посилання надіслано на вашу електронну пошту.",
+    });
+  } catch (error) {
+    console.error("Помилка resendReset:", error.name);
     return res.status(500).json({ message: "Помилка сервера" });
   }
 };

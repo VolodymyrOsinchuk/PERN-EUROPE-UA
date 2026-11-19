@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const { User } = require("../models/user");
 const { Adv } = require("../models/adv");
 const { Category } = require("../models/category");
+const { Report } = require("../models/report");
 const { deleteCloudinaryFile } = require("../config/cloudinary");
 const path = require("path");
 const fs = require("fs");
@@ -45,11 +46,15 @@ const SENSITIVE_FIELDS = [
 
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.findAll({
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(200, Math.max(1, parseInt(req.query.limit, 10) || 50));
+    const { rows, count } = await User.findAndCountAll({
       attributes: { exclude: SENSITIVE_FIELDS },
-      order: [["createdAt", "DESC"]],
+      order: [["lastSeen", "DESC"], ["lastLogin", "DESC"], ["id", "DESC"]],
+      limit,
+      offset: (page - 1) * limit,
     });
-    res.status(200).json(users);
+    res.status(200).json({ users: rows, total: count, page, limit });
   } catch (error) {
     console.error("Помилка getAllUsers:", error);
     res.status(500).json({ error: "Внутрішня помилка сервера" });
@@ -179,6 +184,9 @@ exports.updateUser = async (req, res) => {
       // Не змінюємо isVerified тут — користувач ще ввіряє старий email.
       // Після підтвердження pendingEmail стає основним і isVerified = true.
 
+      // Зміна email скидає інші сесії.
+      updateData.tokenVersion = (user.tokenVersion || 0) + 1;
+
       try {
         await sendVerificationEmail(email, user.firstName, verificationToken);
       } catch (mailErr) {
@@ -281,7 +289,9 @@ exports.updatePassword = async (req, res) => {
       return res.status(401).json({ message: "Невірний поточний пароль" });
     }
 
+    // Зміна пароля скидає інші сесії (JWT-revocation через tokenVersion).
     user.password = newPassword;
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
     await user.save();
     await sendPasswordChangedEmail(user.email, user.firstName);
 
@@ -329,6 +339,10 @@ exports.deleteUser = async (req, res) => {
       where: { userId: user.id },
       individualHooks: true,
     });
+
+    // Повідомлення про скарги, написані іншими користувачами
+    // (userId-cascade не діює на reportedUserId)
+    await Report.destroy({ where: { reportedUserId: user.id } });
 
     await user.destroy();
     res.status(204).send();

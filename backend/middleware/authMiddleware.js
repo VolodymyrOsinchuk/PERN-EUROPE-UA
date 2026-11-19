@@ -23,7 +23,16 @@ const authMiddleware = async (req, res, next) => {
   }
 
   try {
-    const { userId, email, role } = await verifyJWT(token);
+    const { userId, email, role, tokenVersion } = await verifyJWT(token);
+    const user = await User.findByPk(userId, {
+      attributes: ["tokenVersion"],
+    });
+    if (!user || user.tokenVersion !== tokenVersion) {
+      return res.status(401).json({
+        error: "Сесію завершено",
+        message: "Після зміни пароля або email всі сесії було завершено",
+      });
+    }
     req.user = { userId, email, role };
     // Оновлюємо lastSeen не частіше ніж раз на 5 хвилин, щоб уникнути
     // запису в БД при кожному запиті (кешування/прайс-чеки тощо).

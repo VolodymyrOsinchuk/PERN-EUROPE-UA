@@ -104,13 +104,13 @@ const formatLastLogin = (value) => {
 };
 
 const Users = () => {
-  const users = useLoaderData();
+  const { users } = useLoaderData();
   const [open, setOpen] = useState(false);
   const [dialogData, setDialogData] = useState({ intent: "", user: null });
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [verificationFilter, setVerificationFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState("lastSeen");
 
   const handleOpen = (intent, user = null) => {
     setDialogData({ intent, user });
