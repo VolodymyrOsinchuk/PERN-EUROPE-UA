@@ -1,14 +1,48 @@
 // frontend/src/components/CountriesGrid.jsx
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Box, Grid, Paper, Typography } from "@mui/material";
-import COUNTRIES_DATA from "../data/countries.json";
-import { getPublishableCountries } from "../data/validateCountries";
+import { Box, Grid, Paper, Skeleton, Typography } from "@mui/material";
+import customFetch from "../utils/customFetch";
 
 const F_BODY = "'Plus Jakarta Sans', sans-serif";
 const F_DISPLAY = "'Playfair Display', serif";
 
 export default function CountriesGrid() {
-  const countries = getPublishableCountries(COUNTRIES_DATA);
+  const [countries, setCountries] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    customFetch
+      .get("/countries")
+      .then(({ data }) => {
+        if (!cancelled) setCountries(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setCountries([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <Grid container spacing={2}>
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Grid key={i} size={{ xs: 6, sm: 4, md: 3 }}>
+            <Skeleton variant="rounded" height={140} sx={{ borderRadius: 3 }} />
+          </Grid>
+        ))}
+      </Grid>
+    );
+  }
+
   if (countries.length === 0) return null;
 
   return (
@@ -34,7 +68,7 @@ export default function CountriesGrid() {
             }}
           >
             <Typography sx={{ fontSize: "2rem", lineHeight: 1 }}>
-              {c.flag}
+              {c.flag || "🌍"}
             </Typography>
             <Typography
               sx={{
@@ -46,11 +80,18 @@ export default function CountriesGrid() {
             >
               {c.name}
             </Typography>
-            <Typography
-              sx={{ fontFamily: F_BODY, fontSize: "0.75rem", color: "#64748b" }}
-            >
-              {c.links.length} посилань
-            </Typography>
+            {c.lastVerifiedAt && (
+              <Typography
+                sx={{
+                  fontFamily: F_BODY,
+                  fontSize: "0.75rem",
+                  color: "#64748b",
+                }}
+              >
+                Перевірено{" "}
+                {new Date(c.lastVerifiedAt).toLocaleDateString("uk-UA")}
+              </Typography>
+            )}
           </Paper>
         </Grid>
       ))}

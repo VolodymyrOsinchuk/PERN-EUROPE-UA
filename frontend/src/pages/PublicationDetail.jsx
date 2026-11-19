@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLoaderData, Link } from "react-router-dom";
 import {
   Box,
@@ -45,6 +46,15 @@ export default function PublicationDetail() {
   const { article } = useLoaderData();
   const { user } = useAuthContext();
 
+  const SAVED_KEY = `pern_europe_ua_saved_pub_${article?.id}`;
+  const [saved, setSaved] = useState(() => {
+    try {
+      return localStorage.getItem(SAVED_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+
   if (!article) {
     return (
       <Box
@@ -89,6 +99,37 @@ export default function PublicationDetail() {
     text: "#64748b",
   };
   const isOwner = user && (user.id === article.userId || user.role === "admin");
+
+  const handleSave = () => {
+    const next = !saved;
+    setSaved(next);
+    try {
+      localStorage.setItem(SAVED_KEY, next ? "1" : "");
+    } catch {
+      /* ignore */
+    }
+    toast.success(next ? "Збережено" : "Прибрано з збережених");
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: article.title, url });
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          toast.error("Не вдалося поділитися публікацією");
+        }
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Посилання скопійовано!");
+    } catch {
+      toast.error("Не вдалося скопіювати посилання");
+    }
+  };
 
   const authorInitials = article.author
     ? article.author
@@ -315,19 +356,20 @@ export default function PublicationDetail() {
                 <Button
                   size="small"
                   startIcon={<BookmarkBorderIcon sx={{ fontSize: 15 }} />}
+                  onClick={handleSave}
                   sx={{
                     fontFamily: F_BODY,
                     fontWeight: 600,
                     textTransform: "none",
-                    color: "#64748b",
+                    color: saved ? BLUE : "#64748b",
                     fontSize: "0.8rem",
-                    border: "1px solid #e2e8f0",
+                    border: `1px solid ${saved ? BLUE : "#e2e8f0"}`,
                     borderRadius: "10px",
                     px: 1.5,
                     "&:hover": { color: BLUE, borderColor: BLUE },
                   }}
                 >
-                  Зберегти
+                  {saved ? "Прибрати з збережених" : "Зберегти"}
                 </Button>
                 <Button
                   size="small"
@@ -336,6 +378,7 @@ export default function PublicationDetail() {
                       share
                     </span>
                   }
+                  onClick={handleShare}
                   sx={{
                     fontFamily: F_BODY,
                     fontWeight: 600,

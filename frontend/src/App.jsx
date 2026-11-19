@@ -1,4 +1,8 @@
-import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
+} from "react-router-dom";
 
 // ── Context & global components ───────────────────────────
 import { AuthProvider } from "./context/AuthContext";
@@ -168,6 +172,8 @@ import Admin, {
 import ForumManager, {
   loader as forumManagerLoader,
 } from "./pages/dashboard/ForumManager";
+import Countries from "./pages/dashboard/Countries";
+import DashboardFaq from "./pages/dashboard/Faq";
 
 // ── Shared router options ─────────────────────────────────
 const futureFlags = {
@@ -476,6 +482,8 @@ const dashboardRoutes = [
     action: settingsAction,
   },
   { path: "settings/ad-expiration", element: <AdExpirationSettings /> },
+  { path: "countries", element: <Countries /> },
+  { path: "faq", element: <DashboardFaq /> },
   {
     path: "admin",
     element: <Admin />,

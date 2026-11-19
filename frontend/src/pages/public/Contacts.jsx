@@ -13,6 +13,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 
+import { useEffect, useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router-dom";
 
 import MailOutline from "@mui/icons-material/MailOutlineOutlined";
@@ -150,6 +151,24 @@ export default function Contacts() {
 
   const isSubmitting = navigation.state === "submitting";
 
+  const [values, setValues] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+
+  const handleChange = (e) =>
+    setValues((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  /* Очищуємо поля після успішного надсилання */
+  useEffect(() => {
+    if (actionData?.success) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setValues({ name: "", email: "", subject: "", message: "" });
+    }
+  }, [actionData?.success]);
+
   return (
     <Box
       sx={{
@@ -275,6 +294,8 @@ export default function Contacts() {
                         required
                         fullWidth
                         autoComplete="name"
+                        value={values.name}
+                        onChange={handleChange}
                         sx={fieldSx}
                       />
                     </Grid>
@@ -288,6 +309,8 @@ export default function Contacts() {
                         required
                         fullWidth
                         autoComplete="email"
+                        value={values.email}
+                        onChange={handleChange}
                         sx={fieldSx}
                       />
                     </Grid>
@@ -299,6 +322,8 @@ export default function Contacts() {
                     placeholder="Про що хочете поговорити?"
                     required
                     fullWidth
+                    value={values.subject}
+                    onChange={handleChange}
                     sx={fieldSx}
                   />
 
@@ -310,6 +335,8 @@ export default function Contacts() {
                     minRows={5}
                     required
                     fullWidth
+                    value={values.message}
+                    onChange={handleChange}
                     sx={fieldSx}
                   />
 

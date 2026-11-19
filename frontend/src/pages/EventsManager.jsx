@@ -189,12 +189,14 @@ const EventsManager = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           sx={{ width: { xs: "100%", sm: 320 } }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" sx={{ color: "#94A3B8" }} />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" sx={{ color: "#94A3B8" }} />
+                </InputAdornment>
+              ),
+            },
           }}
         />
       </Box>

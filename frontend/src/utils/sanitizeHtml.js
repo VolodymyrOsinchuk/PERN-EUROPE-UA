@@ -1,7 +1,7 @@
 /* Базова санітизація HTML для безпечного рендерингу контенту публікацій.
    Дозволяє лише безпечні теги та атрибути, прибираючи всі JS-події та <script>. */
 
-const ALLOWED_TAGS = [
+const ALLOWED_TAGS = new Set([
   "p",
   "br",
   "b",
@@ -23,7 +23,7 @@ const ALLOWED_TAGS = [
   "code",
   "a",
   "hr",
-];
+]);
 
 const ALLOWED_ATTRS = {
   a: ["href", "title", "target", "rel"],
@@ -35,9 +35,15 @@ const cleanAttrs = (tag, attrs) => {
   for (const [key, value] of Object.entries(attrs)) {
     const lowerKey = key.toLowerCase();
     if (lowerKey.startsWith("on")) continue; // прибираємо onClick тощо
-    if (lowerKey === "style") continue; // прибираємо inline-стили
-    if (value?.toLowerCase().startsWith("javascript:")) continue;
-    if (value?.toLowerCase().startsWith("data:") && !value.toLowerCase().startsWith("data:image/")) continue;
+    if (lowerKey === "style") continue; // прибираємо inline-стилі
+    if (typeof value === "string" && value.trim() === "") continue;
+    if (value?.toLowerCase?.().startsWith("javascript:")) continue;
+    if (
+      value?.toLowerCase?.().startsWith("data:") &&
+      !value.toLowerCase().startsWith("data:image/")
+    ) {
+      continue;
+    }
     const allowed =
       ALLOWED_ATTRS[tag]?.includes(lowerKey) ||
       ["id", "class", "title"].includes(lowerKey);
@@ -46,54 +52,54 @@ const cleanAttrs = (tag, attrs) => {
   return result;
 };
 
-/* Рекурсивно обходить DOM-подібний рядок через тимчасовий елемент.
-   Потребує DOM (браузер), тому використовується лише в компоненті. */
+/*
+ * Безпечний рекурсивний обхід. Усі маніпуляції з DOM робляться з
+ * захисними перевірками `el.parentNode`, щоб уникнути помилок
+ * `Cannot read properties of null` при розгортанні тегів.
+ */
 export const sanitizeRichText = (html) => {
   if (!html) return "";
   if (typeof html !== "string") return String(html);
+  if (typeof document === "undefined") return html;
 
   const div = document.createElement("div");
   div.innerHTML = html;
 
-  /* Видаляємо всі <script> та події */
+  /* Перед обходом: видаляємо <script> та всі недозволені теги
+     (включаючи ті, що вже вставлені парсером, поза div, якщо можливо). */
   const scripts = div.querySelectorAll("script");
   scripts.forEach((s) => s.remove());
-
-  const walk = (node) => {
-    if (node.nodeType === Node.ELEMENT_NODE) {
-      const el = node;
-      const tag = el.tagName.toLowerCase();
-
-      if (!ALLOWED_TAGS.includes(tag)) {
-        /* Розгортаємо недозволений тег, залишаючи вміст */
-        const parent = el.parentNode;
+  const tagsIn = [
+    ...div.querySelectorAll("*"),
+  ];
+  for (const el of tagsIn) {
+    const tag = (el.tagName || "").toLowerCase();
+    if (!ALLOWED_TAGS.has(tag)) {
+      // Розгортаємо вміст недозволеного тега в його парент
+      const parent = el.parentNode;
+      if (parent) {
         while (el.firstChild) {
           parent.insertBefore(el.firstChild, el);
         }
         parent.removeChild(el);
-        return;
       }
-
-      /* Очищаємо атрибути */
-      const attrs = el.attributes;
-      for (let i = attrs.length - 1; i >= 0; i--) {
-        const attr = attrs[i];
-        const cleaned = cleanAttrs(tag, { [attr.name]: attr.value });
-        if (cleaned[attr.name] === undefined) {
-          el.removeAttribute(attr.name);
-        } else if (cleaned[attr.name] !== attr.value) {
-          el.setAttribute(attr.name, cleaned[attr.name]);
-        }
-      }
-
-      for (let i = 0; i < el.childNodes.length; i++) {
-        walk(el.childNodes[i]);
-      }
-    } else if (node.nodeType === Node.TEXT_NODE) {
-      /* Текстові вузли залишаємо як є (вже в HTML-контексті) */
     }
-  };
+  }
 
-  walk(div);
+  /* Очищаємо атрибути для всіх дозволених елементів */
+  const allowedEls = div.querySelectorAll("*");
+  for (const el of allowedEls) {
+    const attrs = Array.from(el.attributes);
+    for (const attr of attrs) {
+      const cleaned = cleanAttrs(
+        (el.tagName || "").toLowerCase(),
+        { [attr.name]: attr.value },
+      );
+      if (cleaned[attr.name] === undefined) {
+        el.removeAttribute(attr.name);
+      }
+    }
+  }
+
   return div.innerHTML;
 };

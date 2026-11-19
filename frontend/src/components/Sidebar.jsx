@@ -56,6 +56,18 @@ const links = [
     icon: "article",
     group: "Контент",
   },
+  {
+    text: "Країни",
+    path: "/dashboard/countries",
+    icon: "public",
+    group: "Контент",
+  },
+  {
+    text: "FAQ",
+    path: "/dashboard/faq",
+    icon: "help",
+    group: "Контент",
+  },
   { text: "Події", path: "/dashboard/events", icon: "event", group: "Система" },
   {
     text: "Повідомлення",

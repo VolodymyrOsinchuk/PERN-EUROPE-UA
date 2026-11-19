@@ -17,7 +17,9 @@ const app = express();
 
 const sequelize = require("./config/db");
 const { startAdExpirationCron } = require("./cron/adExpirationCron");
-const { startAdExpirationReminderCron } = require("./cron/adExpirationReminderCron");
+const {
+  startAdExpirationReminderCron,
+} = require("./cron/adExpirationReminderCron");
 const advRoutes = require("./routes/advRouter");
 const categoryRoutes = require("./routes/categoryRouter");
 const authRoutes = require("./routes/authRouter");
@@ -37,6 +39,9 @@ const config = require("./config/config");
 const { authMiddleware } = require("./middleware/authMiddleware");
 const csrfMiddleware = require("./middleware/csrfMiddleware");
 const { getPublicStats } = require("./controllers/publicStatsController");
+const countryRouter = require("./routes/countryRouter");
+const faqRouter = require("./routes/faqRouter");
+
 const allowedOrigins = [
   config.client.url,
   "https://pern-europe-ua-front.onrender.com",
@@ -118,6 +123,8 @@ app.use("/api/v1/favorites", require("./routes/favoriteRouter"));
 app.use("/api/v1/seller-reviews", require("./routes/sellerReviewRouter"));
 app.use("/api/v1/trust", require("./routes/trustRouter"));
 app.use("/api/v1/deals", require("./routes/dealRouter"));
+app.use("/api/v1/countries", countryRouter);
+app.use("/api/v1/faq", faqRouter);
 app.use("/api/v1/admin/ad-expiration-settings", adExpirationSettingsRouter);
 app.use("/api/v1/admin/settings", settingsRouter);
 app.use("/api/v1/admin", adminRouter);

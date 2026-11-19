@@ -11,19 +11,14 @@ import {
   Link as MuiLink,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import COUNTRIES_DATA from "../data/countries.json";
-import {
-  validateCountries,
-  getPublishableCountries,
-} from "../data/validateCountries";
 import { getCategoryColors } from "../data/publicationCategories";
 import customFetch from "../utils/customFetch";
-import { toast } from "react-toastify";
 
 const F_BODY = "'Plus Jakarta Sans', sans-serif";
 const F_DISPLAY = "'Playfair Display', serif";
 const BLUE = "#0057B8";
 
+// Порядок і назви категорій (ключі збігаються з бекендом)
 const CATEGORY_TITLES = {
   government: "Офіційна інформація",
   residence: "Проживання та документи",
@@ -36,21 +31,28 @@ const CATEGORY_TITLES = {
   finance: "Фінанси",
   consulate: "Посольство та консульства",
 };
+
+const formatDate = (value) =>
+  value
+    ? new Date(value).toLocaleDateString("uk-UA", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
+    : null;
+
 export async function loader({ params }) {
-  const errors = validateCountries(COUNTRIES_DATA);
+  const code = String(params.code || "").toUpperCase();
 
-  if (errors.length) {
-    console.error("countries.json:", errors);
-  }
-
-  const publishable = getPublishableCountries(COUNTRIES_DATA);
-
-  const country = publishable.find(
-    (c) => c.code === params.code?.toUpperCase(),
-  );
-
-  if (!country) {
-    throw new Response("Not found", { status: 404 });
+  let country;
+  try {
+    const { data } = await customFetch.get(`/countries/${code}`);
+    country = data;
+  } catch (error) {
+    // 404 — країна не існує або не опублікована; інше — помилка сервера
+    throw new Response("Not found", {
+      status: error?.response?.status || 500,
+    });
   }
 
   const [publicationsResult] = await Promise.allSettled([
@@ -63,37 +65,32 @@ export async function loader({ params }) {
     publicationsResult.status === "fulfilled"
       ? publicationsResult.value.data
       : [];
+  console.log("🚀 ~ loader ~ publications:", publications);
 
   return { country, publications };
 }
 
 export default function Country() {
   const { country, publications } = useLoaderData();
+  const links = country.links || [];
 
-  // Групування посилань за категорією, у порядку CATEGORY_TITLES
+  // Групування посилань за категорією у порядку CATEGORY_TITLES
   const groups = Object.keys(CATEGORY_TITLES)
     .map((key) => ({
       key,
       title: CATEGORY_TITLES[key],
-      links: country.links.filter((l) => l.category === key),
+      links: links.filter((l) => l.category === key),
     }))
     .filter((g) => g.links.length > 0);
 
-  const verifiedDate = new Date(country.lastVerifiedAt).toLocaleDateString(
-    "uk-UA",
-    {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    },
-  );
+  const verifiedDate = formatDate(country.lastVerifiedAt);
 
   return (
     <Box sx={{ bgcolor: "#f8fafc", minHeight: "100vh", py: { xs: 4, md: 6 } }}>
       <Container maxWidth="md">
         <Button
           component={Link}
-          to="/"
+          to="/countries"
           startIcon={<ArrowBackIcon />}
           sx={{
             fontFamily: F_BODY,
@@ -114,41 +111,48 @@ export default function Country() {
             mb: 1,
           }}
         >
-          {country.flag} {country.name}
+          {country.flag ? `${country.flag} ` : ""}
+          {country.name}
         </Typography>
 
-        <Stack
-          direction="row"
-          gap={1}
-          mb={3}
-          sx={{
-            alignItems: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          <Chip
-            size="small"
-            label={`Перевірено: ${verifiedDate}`}
-            sx={{ fontFamily: F_BODY, fontWeight: 600 }}
-          />
-        </Stack>
+        {verifiedDate && (
+          <Stack direction="row" gap={1} mb={3} sx={{ flexWrap: "wrap" }}>
+            <Chip
+              size="small"
+              label={`Перевірено: ${verifiedDate}`}
+              sx={{ fontFamily: F_BODY, fontWeight: 600 }}
+            />
+          </Stack>
+        )}
 
-        <Paper
-          elevation={0}
-          sx={{
-            p: 2.5,
-            mb: 4,
-            borderRadius: 3,
-            bgcolor: "#fffbeb",
-            border: "1px solid #fde68a",
-          }}
-        >
-          <Typography
-            sx={{ fontFamily: F_BODY, fontSize: "0.875rem", color: "#92400e" }}
+        {country.disclaimer && (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.5,
+              mb: 4,
+              borderRadius: 3,
+              bgcolor: "#fffbeb",
+              border: "1px solid #fde68a",
+            }}
           >
-            {country.disclaimer}
+            <Typography
+              sx={{
+                fontFamily: F_BODY,
+                fontSize: "0.875rem",
+                color: "#92400e",
+              }}
+            >
+              {country.disclaimer}
+            </Typography>
+          </Paper>
+        )}
+
+        {groups.length === 0 && (
+          <Typography sx={{ fontFamily: F_BODY, color: "#64748b", mb: 4 }}>
+            Корисні посилання для цієї країни ще додаються.
           </Typography>
-        </Paper>
+        )}
 
         {groups.map((g) => {
           const clr = getCategoryColors(g.title);
@@ -166,44 +170,64 @@ export default function Country() {
                 {g.title}
               </Typography>
               <Stack spacing={1.5}>
-                {g.links.map((l) => (
-                  <Paper
-                    key={l.url}
-                    elevation={0}
-                    sx={{
-                      p: 2.5,
-                      borderRadius: 3,
-                      border: "1px solid #e2e8f0",
-                      borderLeft: `4px solid ${clr.text}`,
-                    }}
-                  >
-                    <MuiLink
-                      href={l.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      underline="hover"
-                      sx={{ fontFamily: F_BODY, fontWeight: 700, color: BLUE }}
+                {g.links.map((l) => {
+                  const linkDate = formatDate(l.lastVerifiedAt);
+                  return (
+                    <Paper
+                      key={l.id}
+                      elevation={0}
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 3,
+                        border: "1px solid #e2e8f0",
+                        borderLeft: `4px solid ${clr?.text || BLUE}`,
+                      }}
                     >
-                      {l.title}
-                    </MuiLink>
-                    {l.description && (
-                      <Typography
+                      <MuiLink
+                        href={l.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        underline="hover"
                         sx={{
                           fontFamily: F_BODY,
-                          fontSize: "0.85rem",
-                          color: "#64748b",
-                          mt: 0.5,
+                          fontWeight: 700,
+                          color: BLUE,
                         }}
                       >
-                        {l.description}
-                      </Typography>
-                    )}
-                  </Paper>
-                ))}
+                        {l.title}
+                      </MuiLink>
+                      {l.description && (
+                        <Typography
+                          sx={{
+                            fontFamily: F_BODY,
+                            fontSize: "0.85rem",
+                            color: "#64748b",
+                            mt: 0.5,
+                          }}
+                        >
+                          {l.description}
+                        </Typography>
+                      )}
+                      {linkDate && (
+                        <Typography
+                          sx={{
+                            fontFamily: F_BODY,
+                            fontSize: "0.75rem",
+                            color: "#065f46",
+                            mt: 1,
+                          }}
+                        >
+                          ✓ Джерело перевірено: {linkDate}
+                        </Typography>
+                      )}
+                    </Paper>
+                  );
+                })}
               </Stack>
             </Box>
           );
         })}
+
         {publications.length > 0 && (
           <Box sx={{ mt: 2 }}>
             <Typography
@@ -232,10 +256,7 @@ export default function Country() {
                     textDecoration: "none",
                     display: "block",
                     transition: "all 0.2s",
-                    "&:hover": {
-                      borderColor: BLUE,
-                      bgcolor: "#f8fafc",
-                    },
+                    "&:hover": { borderColor: BLUE, bgcolor: "#f8fafc" },
                   }}
                 >
                   <Typography
@@ -247,7 +268,6 @@ export default function Country() {
                   >
                     {p.title}
                   </Typography>
-
                   {p.lastVerifiedAt && (
                     <Typography
                       sx={{
