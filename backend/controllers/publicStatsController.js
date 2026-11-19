@@ -1,6 +1,7 @@
 const { User } = require("../models/user");
-const { Adv } = require("../models/adv");
+const { Adv, PUBLIC_WHERE } = require("../models/adv");
 const { Event } = require("../models/event");
+const { Op } = require("sequelize");
 
 /**
  * GET /api/v1/public/stats
@@ -8,19 +9,36 @@ const { Event } = require("../models/event");
  */
 exports.getPublicStats = async (req, res) => {
   try {
-    const [userCount, adCount, eventCount, countryCount] =
+    const [
+      userCount,
+      adCount,
+      eventCount,
+      countryCount,
+      adCountryCount,
+      adCityCount,
+    ] =
       await Promise.all([
         User.count(),
-        Adv.count(),
+        Adv.count({ where: PUBLIC_WHERE }),
         Event.count(),
         User.count({
           distinct: true,
           col: "country",
           where: {
             country: {
-              [require("sequelize").Op.ne]: null,
+              [Op.ne]: null,
             },
           },
+        }),
+        Adv.count({
+          distinct: true,
+          col: "country",
+          where: PUBLIC_WHERE,
+        }),
+        Adv.count({
+          distinct: true,
+          col: "city",
+          where: PUBLIC_WHERE,
         }),
       ]);
 
@@ -29,6 +47,8 @@ exports.getPublicStats = async (req, res) => {
       ads: adCount,
       events: eventCount,
       countries: countryCount,
+      adCountries: adCountryCount,
+      adCities: adCityCount,
     });
   } catch (error) {
     console.error("Помилка getPublicStats:", error);

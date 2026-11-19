@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { Link } from "react-router-dom";
 import customFetch from "../../utils/customFetch";
 import { GridView } from "../../components";
@@ -46,7 +52,7 @@ export default function Favorites() {
         </Typography>
       )}
       {ads.length === 0 && !error ? (
-        <Stack alignItems="center" spacing={2} sx={{ py: 8 }}>
+        <Stack spacing={2} sx={{ py: 8, alignItems: "center" }}>
           <Typography color="text.secondary">
             Ви ще не зберегли жодного оголошення.
           </Typography>

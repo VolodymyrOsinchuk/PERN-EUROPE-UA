@@ -15,11 +15,11 @@ import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
-import {
-  isFavorite,
-  toggleFavoriteId,
-} from "../utils/favorites";
+import { isFavorite, toggleFavoriteId } from "../utils/favorites";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import LinkIcon from "@mui/icons-material/Link";
+import CompareIcon from "@mui/icons-material/CompareArrows";
+import CheckIcon from "@mui/icons-material/Check";
 import { useState } from "react";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
@@ -39,9 +39,10 @@ const CAT_COLORS = {
   other: { bg: "#f8fafc", text: "#475569" },
 };
 
-function AdCard({ ad }) {
+function AdCard({ ad, compareIds = [], onToggleCompare }) {
   const [saved, setSaved] = useState(() => isFavorite(ad.id));
   const [imgLoaded, setImgLoaded] = useState(false);
+  const isCompared = Array.isArray(compareIds) && compareIds.includes(String(ad.id));
 
   const serverPath = ad.photos?.[0];
   const imageUrl = serverPath
@@ -311,20 +312,65 @@ function AdCard({ ad }) {
           Переглянути
           <ArrowForwardIconInline />
         </Typography>
-        <IconButton
-          size="small"
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-          component={Link}
-          to={`/ads/${ad.id}`}
-          sx={{
-            color: "#94a3b8",
-            "&:hover": { color: BLUE, bgcolor: "#eff6ff" },
-          }}
-        >
-          <OpenInNewIcon sx={{ fontSize: 15 }} />
-        </IconButton>
+        <Box sx={{ display: "flex", gap: 0.5 }}>
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            component={Link}
+            to={`/ads/${ad.id}`}
+            sx={{
+              color: "#94a3b8",
+              "&:hover": { color: BLUE, bgcolor: "#eff6ff" },
+            }}
+          >
+            <OpenInNewIcon sx={{ fontSize: 15 }} />
+          </IconButton>
+          <Tooltip title="Скопіювати посилання">
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                try {
+                  navigator.clipboard.writeText(window.location.origin + `/ads/${ad.id}`);
+                  toast.success("Посилання скопійовано");
+                } catch {
+                  toast.error("Не вдалося скопіювати");
+                }
+              }}
+              sx={{
+                color: "#94a3b8",
+                "&:hover": { color: BLUE, bgcolor: "#eff6ff" },
+              }}
+            >
+              <LinkIcon sx={{ fontSize: 15 }} />
+            </IconButton>
+          </Tooltip>
+          {onToggleCompare && (
+            <Tooltip title={isCompared ? "Прибрати з порівняння" : "Додати до порівняння"}>
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleCompare(String(ad.id));
+                }}
+                sx={{
+                  color: isCompared ? BLUE : "#94a3b8",
+                  "&:hover": { color: BLUE, bgcolor: "#eff6ff" },
+                }}
+              >
+                {isCompared ? (
+                  <CheckIcon sx={{ fontSize: 15 }} />
+                ) : (
+                  <CompareIcon
+                    sx={{ fontSize: 15, color: isCompared ? undefined : "#94a3b8" }}
+                  />
+                )}
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
       </Box>
     </Card>
   );
@@ -348,7 +394,7 @@ function ArrowForwardIconInline() {
   );
 }
 
-export default function GridView({ ads }) {
+export default function GridView({ ads, compareIds, onToggleCompare }) {
   return (
     <Grid container spacing={3}>
       {ads.map((ad, i) => (
@@ -364,7 +410,7 @@ export default function GridView({ ads }) {
             },
           }}
         >
-          <AdCard ad={ad} />
+          <AdCard ad={ad} compareIds={compareIds} onToggleCompare={onToggleCompare} />
         </Grid>
       ))}
     </Grid>

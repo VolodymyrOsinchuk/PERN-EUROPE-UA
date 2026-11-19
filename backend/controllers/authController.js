@@ -217,11 +217,19 @@ exports.verifyEmail = async (req, res) => {
       return res.status(410).json({ message: "Термін дії токена минув" });
     }
 
-    await user.update({
+    const updateData = {
       isVerified: true,
       verificationToken: null,
       verificationTokenExpires: null,
-    });
+    };
+
+    // Якщо є очікуючий новий email (зміна адреси), підставляємо його.
+    if (user.pendingEmail) {
+      updateData.email = user.pendingEmail;
+      updateData.pendingEmail = null;
+    }
+
+    await user.update(updateData);
 
     res.status(200).json({ message: "Електронну пошту успішно підтверджено" });
   } catch (error) {

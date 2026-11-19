@@ -63,10 +63,40 @@ const passwordResetLimiter = rateLimit({
   },
 });
 
+// 10 тем/відpowiedдей на форумі на годину / користувач
+const forumLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) =>
+    req.user ? String(req.user.userId) : ipKeyGenerator(req.ip),
+  message: {
+    error: "Забагато повідомлень на форумі",
+    message: "Спробуйте знову через годину",
+  },
+});
+
+// 5 скарг на годину / користувач
+const reportLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) =>
+    req.user ? String(req.user.userId) : ipKeyGenerator(req.ip),
+  message: {
+    error: "Забагато скарг",
+    message: "Спробуйте знову через годину",
+  },
+});
+
 module.exports = {
   loginLimiter,
   registerLimiter,
   verifyEmailLimiter,
   contactLimiter,
   passwordResetLimiter,
+  forumLimiter,
+  reportLimiter,
 };

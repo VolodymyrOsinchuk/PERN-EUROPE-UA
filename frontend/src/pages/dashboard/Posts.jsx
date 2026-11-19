@@ -9,18 +9,9 @@ import {
   Typography,
   InputAdornment,
   TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Alert,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import SearchIcon from "@mui/icons-material/Search";
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
@@ -28,7 +19,6 @@ import customFetch from "../../utils/customFetch";
 import { toast } from "react-toastify";
 import { DataTable, PageHeader } from "../../components";
 import {
-  CATEGORY_LABELS,
   getCategoryColors,
 } from "../../data/publicationCategories";
 
@@ -36,7 +26,7 @@ export const loader = async () => {
   try {
     const { data } = await customFetch.get("/publications");
     return data;
-  } catch (error) {
+  } catch {
     toast.error("Помилка завантаження публікацій");
     return [];
   }
@@ -77,26 +67,12 @@ export const action = async ({ request }) => {
   return redirect("/dashboard/posts");
 };
 
-const CATEGORIES = [...CATEGORY_LABELS, "Інше"];
-
 const categoryColor = (cat) => getCategoryColors(cat);
 
 const Posts = () => {
   const navigate = useNavigate();
   const publications = useLoaderData() || [];
   const [search, setSearch] = useState("");
-  const [editOpen, setEditOpen] = useState(false);
-  const [editId, setEditId] = useState(null);
-  const [editData, setEditData] = useState({
-    title: "",
-    content: "",
-    category: "",
-    author: "",
-    readTime: "",
-    countryCode: "",
-    sourceUrl: "",
-    sourceName: "",
-  });
 
   const filtered = publications.filter(
     (p) =>
@@ -186,30 +162,6 @@ const Posts = () => {
       width: 110,
       render: (row) => (
         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
-          <Tooltip title="Редагувати">
-            <IconButton
-              size="small"
-              onClick={() => {
-                const rowData = publications.find((p) => p.id === row.id);
-                if (rowData) {
-                  setEditId(rowData.id);
-                  setEditData({
-                    title: rowData.title || "",
-                    content: rowData.content || "",
-                    category: rowData.category || "",
-                    author: rowData.author || "",
-                    readTime: rowData.readTime || "",
-                    countryCode: rowData.countryCode || "",
-                    sourceUrl: rowData.sourceUrl || "",
-                    sourceName: rowData.sourceName || "",
-                  });
-                  setEditOpen(true);
-                }
-              }}
-            >
-              <EditOutlinedIcon fontSize="small" sx={{ color: "#64748B" }} />
-            </IconButton>
-          </Tooltip>
           <Form method="post" style={{ display: "inline" }}>
             <input type="hidden" name="id" value={row.id} />
             <Tooltip title="Видалити">
@@ -286,103 +238,6 @@ const Posts = () => {
         emptyMessage="Публікацій не знайдено"
       />
 
-      {/* Edit publication dialog */}
-      {/* <Dialog
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Редагувати публікацію</DialogTitle>
-        <Form method="post" onSubmit={() => setEditOpen(false)}>
-          <input type="hidden" name="intent" value="update" />
-          <input type="hidden" name="id" value={editId} />
-          <DialogContent
-            sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}
-          >
-            <TextField
-              name="title"
-              label="Заголовок"
-              fullWidth
-              required
-              defaultValue={editData.title}
-            />
-            <FormControl fullWidth size="small">
-              <InputLabel>Категорія</InputLabel>
-              <Select
-                name="category"
-                label="Категорія"
-                defaultValue={editData.category}
-              >
-                {CATEGORIES.map((c) => (
-                  <MenuItem key={c} value={c}>
-                    {c}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              name="author"
-              label="Автор"
-              fullWidth
-              defaultValue={editData.author}
-            />
-            <TextField
-              name="readTime"
-              label="Час читання (напр. 10 хв)"
-              fullWidth
-              defaultValue={editData.readTime}
-            />
-            <TextField
-              name="countryCode"
-              label="Код країни (напр. PL, DE)"
-              fullWidth
-              defaultValue={editData.countryCode}
-            />
-            <TextField
-              name="sourceUrl"
-              label="Посилання на джерело"
-              fullWidth
-              defaultValue={editData.sourceUrl}
-            />
-            <TextField
-              name="sourceName"
-              label="Назва джерела"
-              fullWidth
-              defaultValue={editData.sourceName}
-            />
-            <TextField
-              name="content"
-              label="Контент"
-              fullWidth
-              multiline
-              rows={4}
-              required
-              defaultValue={editData.content}
-            />
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2.5 }}>
-            <Button
-              onClick={() => setEditOpen(false)}
-              variant="outlined"
-              color="inherit"
-            >
-              Скасувати
-            </Button>
-            <Button type="submit" variant="contained">
-              Зберегти
-            </Button>
-          </DialogActions>
-        </Form>
-      </Dialog> */}
-      <Tooltip title="Редагувати">
-        <IconButton
-          size="small"
-          onClick={() => navigate(`/dashboard/publications/${row.id}/edit`)}
-        >
-          <EditOutlinedIcon fontSize="small" sx={{ color: "#64748B" }} />
-        </IconButton>
-      </Tooltip>
     </Box>
   );
 };

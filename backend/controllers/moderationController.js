@@ -3,6 +3,7 @@ const { Adv } = require("../models/adv");
 const { Category } = require("../models/category");
 const { User } = require("../models/user");
 const { notifyAdOwner } = require("../services/notificationService");
+const { notifyNewAdMatches } = require("../services/savedSearchNotificationService");
 const { ModerationLog } = require("../models/moderationLog");
 
 const LIST_STATUSES = ["pending", "needs_changes", "rejected", "approved"];
@@ -94,6 +95,11 @@ async function changeModerationStatus(adv, newStatus, { moderatorId, reason }) {
       },
       { transaction: t },
     );
+
+    // Сповістити власників збережених пошуків, якщо оголошення схвалено
+    if (newStatus === "approved") {
+      await notifyNewAdMatches({ advId: adv.id, transaction: t });
+    }
 
     await notifyAdOwner({
       userId: adv.userId,

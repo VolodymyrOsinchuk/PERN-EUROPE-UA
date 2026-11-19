@@ -5,6 +5,7 @@ const {
   authMiddleware,
   roleMiddleware,
 } = require("../middleware/authMiddleware");
+const { forumLimiter, reportLimiter } = require("../middleware/rateLimiters");
 
 // ─── Stats publiques ──────────────────────────────────────
 router.get("/stats", forumController.getForumStats);
@@ -29,7 +30,7 @@ router.patch(
 );
 
 // ─── Forum Reports / Complaints ───────────────────────────
-router.post("/reports", authMiddleware, forumController.createForumReport);
+router.post("/reports", authMiddleware, reportLimiter, forumController.createForumReport);
 router.get(
   "/reports",
   authMiddleware,
@@ -84,7 +85,7 @@ router.delete("/replies/:id", authMiddleware, forumController.deleteReply);
 
 // ─── Topics ───────────────────────────────────────────────
 router.get("/", forumController.getAllTopics);
-router.post("/", authMiddleware, forumController.createTopic);
+router.post("/", authMiddleware, forumLimiter, forumController.createTopic);
 router.get("/:id", forumController.getTopicById);
 router.put("/:id", authMiddleware, forumController.updateTopic);
 router.delete("/:id", authMiddleware, forumController.deleteTopic);
@@ -111,6 +112,6 @@ router.patch(
 
 // Topic replies
 router.get("/:id/replies", forumController.getReplies);
-router.post("/:id/replies", authMiddleware, forumController.createReply);
+router.post("/:id/replies", authMiddleware, forumLimiter, forumController.createReply);
 
 module.exports = router;

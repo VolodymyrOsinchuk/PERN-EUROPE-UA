@@ -192,6 +192,18 @@ exports.getMessages = async (req, res) => {
       limit: PAGE_SIZE,
     });
 
+    // Позначаємо вхідні повідомлення як доставлені при відкритті розмови
+    await Message.update(
+      { deliveredAt: new Date() },
+      {
+        where: {
+          conversationId: id,
+          senderId: { [Op.ne]: me },
+          deliveredAt: null,
+        },
+      },
+    );
+
     res.status(200).json(rows.reverse());
   } catch (error) {
     console.error("Помилка getMessages:", error);

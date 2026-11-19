@@ -8,7 +8,6 @@ import {
   Chip,
   Divider,
   Grid,
-  Avatar,
   IconButton,
   Tooltip,
 } from "@mui/material";
@@ -49,7 +48,7 @@ const CAT_COLORS = {
   Культура: { bg: "#f5f3ff", text: "#6d28d9" },
   Робота: { bg: "#ecfdf5", text: "#065f46" },
   Освіта: { bg: "#fff7ed", text: "#9a3412" },
-  Сécurité: { bg: "#fef2f2", text: "#991b1b" },
+  Безпека: { bg: "#fef2f2", text: "#991b1b" },
   Анонс: { bg: "#eff6ff", text: "#1d4ed8" },
 };
 

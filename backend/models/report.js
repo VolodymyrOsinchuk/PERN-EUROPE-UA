@@ -25,6 +25,17 @@ const Report = sequelize.define(
       type: DataTypes.ENUM("pending", "resolved"),
       defaultValue: "pending",
     },
+    action: {
+      type: DataTypes.ENUM(
+        "no_action",
+        "hide_ad",
+        "reject_ad",
+        "warn_user",
+        "ban_user",
+      ),
+      allowNull: false,
+      defaultValue: "no_action",
+    },
   },
   {
     tableName: "reports",
@@ -42,7 +53,13 @@ Report.belongsTo(User, {
   as: "reporter",
   onDelete: "CASCADE",
 });
+Report.belongsTo(User, {
+  foreignKey: "reportedUserId",
+  as: "reportedUser",
+  onDelete: "SET NULL",
+});
 Adv.hasMany(Report, { foreignKey: "advId", as: "reports" });
 User.hasMany(Report, { foreignKey: "userId", as: "reports" });
+User.hasMany(Report, { foreignKey: "reportedUserId", as: "reportsReceived" });
 
 module.exports = { Report };

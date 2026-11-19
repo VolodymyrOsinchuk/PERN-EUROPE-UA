@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { User } = require("../models/user"); // Adjust path as needed
 const { verifyJWT } = require("../utils/tokenUtils");
+const { Op } = require("sequelize");
 
 // Витягує JWT із заголовка Authorization або з cookie (запасний варіант).
 const getTokenFromRequest = (req) => {
@@ -8,6 +9,8 @@ const getTokenFromRequest = (req) => {
   if (header.startsWith("Bearer ")) return header.slice(7);
   return req.cookies?.token || null;
 };
+
+const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
 const authMiddleware = async (req, res, next) => {
   const token = getTokenFromRequest(req);
@@ -22,9 +25,24 @@ const authMiddleware = async (req, res, next) => {
   try {
     const { userId, email, role } = await verifyJWT(token);
     req.user = { userId, email, role };
-    User.update(
+    // Оновлюємо lastSeen не частіше ніж раз на 5 хвилин, щоб уникнути
+    // запису в БД при кожному запиті (кешування/прайс-чеки тощо).
+    await User.update(
       { lastSeen: new Date() },
-      { where: { id: userId }, silent: true },
+      {
+        where: {
+          id: userId,
+          [Op.or]: [
+            { lastSeen: null },
+            {
+              lastSeen: {
+                [Op.lt]: new Date(Date.now() - FIVE_MINUTES_MS),
+              },
+            },
+          ],
+        },
+        silent: true,
+      },
     ).catch(() => {});
     next();
   } catch (error) {

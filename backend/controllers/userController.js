@@ -1,4 +1,5 @@
 const { Op } = require("sequelize");
+const crypto = require("crypto");
 const { User } = require("../models/user");
 const { Adv } = require("../models/adv");
 const { Category } = require("../models/category");
@@ -7,12 +8,37 @@ const path = require("path");
 const fs = require("fs");
 const { pick } = require("../utils/pick");
 const { normalizePhone } = require("../utils/normalizePhone");
-const { sendPasswordChangedEmail } = require("../services/brevo/mailService");
+const {
+  sendPasswordChangedEmail,
+  sendVerificationEmail,
+} = require("../services/brevo/mailService");
+
+const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 години
+
+const PUBLIC_USER_ATTRIBUTES = [
+  "id",
+  "firstName",
+  "lastName",
+  "email",
+  "phoneNumber",
+  "country",
+  "state",
+  "city",
+  "location",
+  "about",
+  "profilePicture",
+  "role",
+  "isVerified",
+  "lastLogin",
+  "lastSeen",
+  "createdAt",
+  "updatedAt",
+];
 
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll({
-      attributes: { exclude: ["password"] },
+      attributes: PUBLIC_USER_ATTRIBUTES,
       order: [["createdAt", "DESC"]],
     });
     res.status(200).json(users);
@@ -26,7 +52,7 @@ exports.getUserById = async (req, res) => {
   try {
     const userId = req.params.id || req.user.userId;
     const user = await User.findByPk(userId, {
-      attributes: { exclude: ["password"] },
+      attributes: PUBLIC_USER_ATTRIBUTES,
     });
     if (!user)
       return res.status(404).json({ message: "Користувача не знайдено" });
@@ -121,7 +147,6 @@ exports.updateUser = async (req, res) => {
     const updateData = {
       firstName: firstName ?? user.firstName,
       lastName: lastName ?? user.lastName,
-      email: email ?? user.email,
       phoneNumber:
         phoneNumber !== undefined
           ? normalizePhone(phoneNumber)
@@ -133,6 +158,30 @@ exports.updateUser = async (req, res) => {
       about: about ?? user.about,
     };
 
+    // Зміна email вимагає підтвердження нової адреси.
+    // Email не змінюється одразу: ставимо pendingEmail + токен верифікації,
+    // список на нову адресу. Після переходу за посиланням email оновлюється.
+    if (email && email !== user.email) {
+      const verificationToken = crypto.randomBytes(32).toString("hex");
+      updateData.pendingEmail = email;
+      updateData.verificationToken = verificationToken;
+      updateData.verificationTokenExpires = new Date(
+        Date.now() + VERIFICATION_TOKEN_TTL_MS,
+      );
+      // Не змінюємо isVerified тут — користувач ще ввіряє старий email.
+      // Після підтвердження pendingEmail стає основним і isVerified = true.
+
+      try {
+        await sendVerificationEmail(
+          email,
+          user.firstName,
+          verificationToken,
+        );
+      } catch (mailErr) {
+        console.error("Помилка надсилання листа верифікації:", mailErr);
+      }
+    }
+
     // Seul un admin peut changer le rôle d'un compte
     if (role !== undefined && req.user.role === "admin") {
       updateData.role = role;
@@ -141,7 +190,7 @@ exports.updateUser = async (req, res) => {
     await user.update(updateData);
 
     const updatedUser = await User.findByPk(id, {
-      attributes: { exclude: ["password"] },
+      attributes: PUBLIC_USER_ATTRIBUTES,
     });
     res.status(200).json(updatedUser);
   } catch (error) {
@@ -293,16 +342,15 @@ exports.getDashboardStats = async (req, res) => {
     const prevMonth = new Date();
     prevMonth.setMonth(prevMonth.getMonth() - 2);
 
-    const [userCount, adCount, categoryCount, prevUsers, prevAds] =
+    const [userCount, adCount, categoryCount, prevUsers, prevAds, prevCategories] =
       await Promise.all([
         User.count(),
         Adv.count(),
         Category.count(),
         User.count({ where: { createdAt: { [Op.lt]: lastMonth } } }),
         Adv.count({ where: { createdAt: { [Op.lt]: lastMonth } } }),
+        Category.count({ where: { createdAt: { [Op.lt]: lastMonth } } }),
       ]);
-
-    const prevCategories = categoryCount;
 
     const calcTrend = (current, previous) => {
       if (previous === 0) return current > 0 ? "+100%" : "0%";

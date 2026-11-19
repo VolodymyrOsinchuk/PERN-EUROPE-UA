@@ -126,6 +126,19 @@ const Adv = sequelize.define(
       defaultValue: 0,
       validate: { min: 0 },
     },
+    contactClicks: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      validate: { min: 0 },
+    },
+    latitude: {
+      type: DataTypes.DECIMAL(10, 7),
+      allowNull: true,
+    },
+    longitude: {
+      type: DataTypes.DECIMAL(10, 7),
+      allowNull: true,
+    },
     isPromoted: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,

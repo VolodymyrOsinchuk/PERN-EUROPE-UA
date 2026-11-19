@@ -97,7 +97,7 @@ export default function DashboardEditEvent() {
       <Paper sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, maxWidth: 700 }}>
         <Form method="post">
           <Grid container spacing={2.5}>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 name="title"
                 label="Назва події"
@@ -117,7 +117,7 @@ export default function DashboardEditEvent() {
               />
             </Grid>
 
-            <Grid item xs={12} sm={5}>
+            <Grid size={{ xs: 12, sm: 5 }}>
               <TextField
                 name="date"
                 label="Дата події"
@@ -134,7 +134,7 @@ export default function DashboardEditEvent() {
               />
             </Grid>
 
-            <Grid item xs={12} sm={7}>
+            <Grid size={{ xs: 12, sm: 7 }}>
               <TextField
                 name="location"
                 label="Місце проведення"

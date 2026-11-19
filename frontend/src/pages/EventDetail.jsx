@@ -6,7 +6,6 @@ import {
   Typography,
   Paper,
   Chip,
-  Divider,
   Grid,
   Avatar,
 } from "@mui/material";
@@ -28,13 +27,6 @@ const F_BODY = "'Plus Jakarta Sans', sans-serif";
 const F_DISPLAY = "'Playfair Display', serif";
 const BLUE = "#0057B8";
 const GOLD = "#FFD700";
-
-const TYPE_COLORS = {
-  "Культурний захід": { bg: "#f5f3ff", text: "#6d28d9" },
-  Мистецтво: { bg: "#fdf4ff", text: "#7e22ce" },
-  Фестиваль: { bg: "#fff7ed", text: "#9a3412" },
-  Концерт: { bg: "#ecfdf5", text: "#065f46" },
-};
 
 /* ── Loader ── */
 export async function loader({ params }) {
@@ -169,10 +161,9 @@ export default function EventDetail() {
     );
   }
 
-  const typeClr = TYPE_COLORS[event.type] || { bg: "#f1f5f9", text: "#64748b" };
   const isPast = new Date(event.date) < new Date();
   const isOwner =
-    user && (user.id === event.createdBy || user.role === "admin");
+    user && (user.id === event.userId || user.role === "admin");
 
   const authorInitials = event.authorName
     ? event.authorName

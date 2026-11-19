@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import CompareIcon from "@mui/icons-material/CompareArrows";
 import {
   Box,
   Button,
@@ -18,67 +19,87 @@ import {
   Tooltip,
   InputAdornment,
   IconButton,
+  Dialog,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  Avatar,
 } from "@mui/material";
+import { toast } from "react-toastify";
 import {
   GridView,
   HeroSection,
   ListView,
   CitySelectField,
 } from "../../components";
-import { useLoaderData, Link, useSearchParams } from "react-router-dom";
+import {
+  useLoaderData,
+  Link,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 import customFetch from "../../utils/customFetch";
-import { toast } from "react-toastify";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import GridViewIcon from "@mui/icons-material/GridView";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import TuneIcon from "@mui/icons-material/Tune";
 import ClearIcon from "@mui/icons-material/Clear";
-import {
-  EUROPEAN_COUNTRIES,
-  normalizeCountry,
-} from "../../data/europeanLocations";
+import { EUROPEAN_COUNTRIES } from "../../data/europeanLocations";
 
-/* ── Loader: завантажує оголошення та динамічні категорії з /dashboard/categories ── */
+/* ── Loader: оголошення, категорії та публічна статистика ── */
 export const loader = async ({ request }) => {
-  try {
-    const url = new URL(request.url);
-    const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
-    const sort = url.searchParams.get("sort") || "newest";
-    const minPrice = url.searchParams.get("minPrice") || "";
-    const maxPrice = url.searchParams.get("maxPrice") || "";
-    const [adsRes, categoriesRes] = await Promise.allSettled([
-      customFetch.get("/adv", {
-        params: { page, limit: 24, sort, minPrice, maxPrice },
-      }),
-      customFetch.get("/categories"),
-    ]);
+  const url = new URL(request.url);
+  const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+  const sort = url.searchParams.get("sort") || "newest";
+  const minPrice = url.searchParams.get("minPrice") || "";
+  const maxPrice = url.searchParams.get("maxPrice") || "";
+  const search = url.searchParams.get("search") || "";
+  const category = url.searchParams.get("category") || "";
+  const city = url.searchParams.get("city") || "";
+  const country = url.searchParams.get("country") || "";
+  const lat = url.searchParams.get("lat") || "";
+  const lng = url.searchParams.get("lng") || "";
+  const radius = url.searchParams.get("radius") || "";
+  const params = { page, limit: 24, sort };
+  if (minPrice !== "") params.minPrice = minPrice;
+  if (maxPrice !== "") params.maxPrice = maxPrice;
+  if (search !== "") params.search = search;
+  if (category !== "") params.category = category;
+  if (city !== "") params.city = city;
+  if (country !== "") params.country = country;
+  if (lat !== "") params.lat = lat;
+  if (lng !== "") params.lng = lng;
+  if (radius !== "") params.radius = radius;
 
-    const adsPayload =
-      adsRes.status === "fulfilled" ? adsRes.value.data : { ads: [] };
-    const ads = Array.isArray(adsPayload) ? adsPayload : adsPayload.ads || [];
-    const pagination = Array.isArray(adsPayload)
-      ? null
-      : {
-          page: adsPayload.page || page,
-          limit: adsPayload.limit || 24,
-          total: adsPayload.total || 0,
-          totalPages: adsPayload.totalPages || 1,
-        };
-    const categories =
-      categoriesRes.status === "fulfilled" ? categoriesRes.value.data : [];
+  const [adsRes, categoriesRes, statsRes] = await Promise.allSettled([
+    customFetch.get("/adv", { params }),
+    customFetch.get("/categories"),
+    customFetch.get("/public/stats"),
+  ]);
+  if (adsRes.status === "rejected") throw adsRes.reason;
 
-    return {
-      ads: Array.isArray(ads) ? ads : [],
-      categories: Array.isArray(categories)
-        ? categories
-        : categories?.data || [],
-      pagination,
-    };
-  } catch (error) {
-    toast.error(error?.response?.data?.message || "Помилка завантаження даних");
-    return { ads: [], categories: [], pagination: null };
-  }
+  const adsPayload = adsRes.value.data;
+  const ads = Array.isArray(adsPayload) ? adsPayload : adsPayload.ads || [];
+  const pagination = Array.isArray(adsPayload)
+    ? null
+    : {
+        page: adsPayload.page || page,
+        limit: adsPayload.limit || 24,
+        total: adsPayload.total ?? 0,
+        totalPages: adsPayload.totalPages || 1,
+      };
+  const categories =
+    categoriesRes.status === "fulfilled" ? categoriesRes.value.data : [];
+  const stats = statsRes.status === "fulfilled" ? statsRes.value.data : null;
+
+  return {
+    ads: Array.isArray(ads) ? ads : [],
+    categories: Array.isArray(categories) ? categories : categories?.data || [],
+    pagination,
+    stats,
+  };
 };
 
 /* ── Design tokens ── */
@@ -218,78 +239,11 @@ const POPULAR_COUNTRIES = [
   { name: "Велика Британія", flag: "🇬🇧" },
 ];
 
-/* ── Словник синонімів назв міст (українська / оригінал / англійська) ── */
-const CITY_SYNONYMS = {
-  варшава: ["warszawa", "warsaw", "варшава"],
-  warszawa: ["warszawa", "warsaw", "варшава"],
-  warsaw: ["warszawa", "warsaw", "варшава"],
-  краків: ["kraków", "krakow", "краків"],
-  kraków: ["kraków", "krakow", "краків"],
-  krakow: ["kraków", "krakow", "краків"],
-  вроцлав: ["wrocław", "wroclaw", "вроцлав"],
-  wrocław: ["wrocław", "wroclaw", "вроцлав"],
-  wroclaw: ["wrocław", "wroclaw", "вроцлав"],
-  познань: ["poznań", "poznan", "познань"],
-  poznań: ["poznań", "poznan", "познань"],
-  гдиня: ["gdynia", "гдиня"],
-  гданськ: ["gdańsk", "gdansk", "гданськ"],
-  gdańsk: ["gdańsk", "gdansk", "гданськ"],
-  щецин: ["szczecin", "щецин"],
-  люблін: ["lublin", "люблін"],
-  катовиці: ["katowice", "катовиці"],
-  лодзь: ["łódź", "lodz", "лодзь"],
-  берлін: ["berlin", "берлін"],
-  berlin: ["berlin", "берлін"],
-  мюнхен: ["münchen", "munich", "munchen", "мюнхен"],
-  münchen: ["münchen", "munich", "munchen", "мюнхен"],
-  munich: ["münchen", "munich", "munchen", "мюнхен"],
-  "франкфурт-на-майні": ["frankfurt", "франкфурт", "frankfurt am main"],
-  frankfurt: ["frankfurt", "франкфурт", "frankfurt am main"],
-  гамбург: ["hamburg", "гамбург"],
-  кельн: ["köln", "cologne", "koln", "кельн"],
-  köln: ["köln", "cologne", "koln", "кельн"],
-  прага: ["praha", "prague", "прага"],
-  praha: ["praha", "prague", "прага"],
-  prague: ["praha", "prague", "прага"],
-  брно: ["brno", "брно"],
-  париж: ["paris", "париж"],
-  paris: ["paris", "париж"],
-  ніцца: ["nice", "ніцца"],
-  nice: ["nice", "ніцца"],
-  ліон: ["lyon", "ліон"],
-  мадрид: ["madrid", "мадрид"],
-  барселона: ["barcelona", "барселона"],
-  валенсія: ["valencia", "валенсія"],
-  рим: ["roma", "rome", "рим"],
-  roma: ["roma", "rome", "рим"],
-  мілан: ["milano", "milan", "мілан"],
-  відень: ["wien", "vienna", "відень"],
-  wien: ["wien", "vienna", "відень"],
-  vienna: ["wien", "vienna", "відень"],
-  амстердам: ["amsterdam", "амстердам"],
-  роттердам: ["rotterdam", "роттердам"],
-  лондон: ["london", "лондон"],
-  манчестер: ["manchester", "манчестер"],
-  братислава: ["bratislava", "братислава"],
-  будапешт: ["budapest", "будапешт"],
-  бухарест: ["bucurești", "bucharest", "бухарест"],
-  варна: ["varna", "варна"],
-  софія: ["sofia", "софія"],
-  київ: ["kyiv", "kiev", "київ"],
-  львів: ["lviv", "lwow", "львів"],
-  одеса: ["odesa", "odessa", "одеса"],
-};
-
-function getCityVariants(cityName) {
-  if (!cityName) return [];
-  const lower = cityName.trim().toLowerCase();
-  if (CITY_SYNONYMS[lower]) return CITY_SYNONYMS[lower];
-  return [lower];
-}
-
 export default function Ads() {
   const loaderData = useLoaderData();
   const pagination = loaderData?.pagination;
+  const stats = loaderData?.stats;
+  const navigate = useNavigate();
 
   // Отримуємо масив оголошень (підтримує зворотну сумісність)
   const data = useMemo(() => {
@@ -323,18 +277,29 @@ export default function Ads() {
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
-  const [search, setSearch] = useState(
-    () => searchParams.get("search") || "",
-  );
-  const [sort, setSort] = useState(
-    () => searchParams.get("sort") || "newest",
-  );
+  const [search, setSearch] = useState(() => searchParams.get("search") || "");
+  const [sort, setSort] = useState(() => searchParams.get("sort") || "newest");
   const [minPrice, setMinPrice] = useState(
     () => searchParams.get("minPrice") || "",
   );
   const [maxPrice, setMaxPrice] = useState(
     () => searchParams.get("maxPrice") || "",
   );
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [radius, setRadius] = useState(() => searchParams.get("radius") || "");
+  const [compareIds, setCompareIds] = useState([]);
+
+  const toggleCompare = (id) => {
+    setCompareIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
+  const navigateToCompare = () => {
+    const ids = compareIds.slice(0, 5);
+    navigate(`/compare?ids=${ids.join(",")}`);
+  };
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -348,12 +313,56 @@ export default function Ads() {
         else next.delete("minPrice");
         if (maxPrice) next.set("maxPrice", maxPrice);
         else next.delete("maxPrice");
+        if (category) next.set("category", category);
+        else next.delete("category");
+        if (city) next.set("city", city);
+        else next.delete("city");
+        if (country) next.set("country", country);
+        else next.delete("country");
+        if (radius) next.set("radius", radius);
+        else next.delete("radius");
         next.delete("page");
         return next;
       });
     }, 350);
     return () => window.clearTimeout(timer);
-  }, [search, sort, minPrice, maxPrice, setSearchParams]);
+  }, [
+    search,
+    sort,
+    minPrice,
+    maxPrice,
+    category,
+    city,
+    country,
+    radius,
+    setSearchParams,
+  ]);
+
+  /* Автопідказки пошуку */
+  useEffect(() => {
+    if (!search || search.length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSuggestions([]);
+       
+      setShowSuggestions(false);
+      return;
+    }
+    let cancelled = false;
+    customFetch
+      .get("/adv/suggestions", { params: { q: search, limit: 5 } })
+      .then(({ data }) => {
+        if (cancelled) return;
+        setSuggestions(data || { ads: [], categories: [] });
+        setShowSuggestions(true);
+      })
+      .catch(() => {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [search]);
   const [viewMode, setViewMode] = useState("grid");
   const [showFilters, setShowFilters] = useState(true);
 
@@ -390,120 +399,37 @@ export default function Ads() {
     );
   }, [selectedCategoryObj]);
 
-  /* Client-side filtering — показуємо тільки Active оголошення */
+  /* Дані вже відфільтровані на сервері (пошук, категорія, місто, країна, ціна).
+     Залишаємо лише клієнтську фільтрацію за підкатегорією. */
   const filtered = useMemo(() => {
+    if (!subcategory) return data || [];
+    const filterSubStr = String(subcategory).trim().toLowerCase();
     return (data || []).filter((ad) => {
       if (!ad) return false;
-      // Приховуємо деактивовані ("Inactive") та продані ("Sold") оголошення
-      if (ad.status && ad.status !== "Active") return false;
-
-      // 1. ДИНАМІЧНИЙ ФІЛЬТР ЗА КАТЕГОРІЄЮ
-      const matchCat =
-        !category ||
-        (() => {
-          const filterCatStr = String(category).trim().toLowerCase();
-          // Перевіряємо за categoryId
-          if (ad.categoryId && String(ad.categoryId) === filterCatStr)
-            return true;
-          // Перевіряємо за ad.category.id
-          if (ad.category?.id && String(ad.category.id) === filterCatStr)
-            return true;
-          // Перевіряємо за назвою категорії
-          const adCatName = (ad.category?.name || "").trim().toLowerCase();
-          if (
-            adCatName &&
-            (adCatName === filterCatStr ||
-              adCatName.includes(filterCatStr) ||
-              filterCatStr.includes(adCatName))
-          ) {
-            return true;
-          }
-          return false;
-        })();
-
-      // 1.1. ДИНАМІЧНИЙ ФІЛЬТР ЗА ПІДКАТЕГОРІЄЮ (якщо обрано)
-      const matchSubCat =
-        !subcategory ||
-        (() => {
-          const filterSubStr = String(subcategory).trim().toLowerCase();
-          if (ad.subcategoryId && String(ad.subcategoryId) === filterSubStr)
-            return true;
-          if (ad.subcategory?.id && String(ad.subcategory.id) === filterSubStr)
-            return true;
-          const adSubName = (ad.subcategory?.name || "").trim().toLowerCase();
-          if (
-            adSubName &&
-            (adSubName === filterSubStr || adSubName.includes(filterSubStr))
-          ) {
-            return true;
-          }
-          return false;
-        })();
-
-      // 2. ФІЛЬТР СПОЧАТКУ ЗА КРАЇНОЮ
-      const matchCountry =
-        !country ||
-        (() => {
-          const normFilterCountry = normalizeCountry(country).toLowerCase();
-          const adCountry = ad.country
-            ? normalizeCountry(ad.country).toLowerCase()
-            : "";
-          if (
-            adCountry &&
-            (adCountry === normFilterCountry ||
-              adCountry.includes(normFilterCountry) ||
-              normFilterCountry.includes(adCountry))
-          ) {
-            return true;
-          }
-          const adLoc =
-            typeof ad.location === "string" ? ad.location.toLowerCase() : "";
-          const adState =
-            typeof ad.state === "string" ? ad.state.toLowerCase() : "";
-          return (
-            adLoc.includes(normFilterCountry) ||
-            adState.includes(normFilterCountry)
-          );
-        })();
-
-      // 3. ФІЛЬТР ПОТІМ ЗА МІСТОМ (враховує українську та латинську назву)
-      const matchCity =
-        !city ||
-        (() => {
-          const filterCity = city.trim().toLowerCase();
-          const adCity = (ad.city || "").trim().toLowerCase();
-          const adLoc =
-            typeof ad.location === "string" ? ad.location.toLowerCase() : "";
-
-          if (
-            adCity &&
-            (adCity === filterCity ||
-              adCity.includes(filterCity) ||
-              filterCity.includes(adCity))
-          ) {
-            return true;
-          }
-          if (adLoc && adLoc.includes(filterCity)) {
-            return true;
-          }
-          const variants = getCityVariants(filterCity);
-          return variants.some((v) => adCity.includes(v) || adLoc.includes(v));
-        })();
-
-      // 4. Пошук за назвою або описом
-      const matchSearch =
-        !search ||
-        ad.title?.toLowerCase().includes(search.toLowerCase()) ||
-        ad.description?.toLowerCase().includes(search.toLowerCase());
-
-      return (
-        matchCat && matchSubCat && matchCountry && matchCity && matchSearch
-      );
+      if (ad.subcategoryId && String(ad.subcategoryId) === filterSubStr)
+        return true;
+      if (ad.subcategory?.id && String(ad.subcategory.id) === filterSubStr)
+        return true;
+      const adSubName = (ad.subcategory?.name || "").trim().toLowerCase();
+      if (
+        adSubName &&
+        (adSubName === filterSubStr || adSubName.includes(filterSubStr))
+      ) {
+        return true;
+      }
+      return false;
     });
-  }, [data, category, subcategory, country, city, search]);
+  }, [data, subcategory]);
 
   const hasFilters = Boolean(
-    country || city || category || subcategory || search || minPrice || maxPrice,
+    country ||
+    city ||
+    category ||
+    subcategory ||
+    search ||
+    minPrice ||
+    maxPrice ||
+    radius,
   );
 
   const clearFilters = () => {
@@ -515,47 +441,29 @@ export default function Ads() {
     setMinPrice("");
     setMaxPrice("");
     setSort("newest");
+    setRadius("");
   };
 
   // Динамічна статистика
-  const totalActiveAds = useMemo(() => {
-    return (data || []).filter((a) => !a.status || a.status === "Active")
-      .length;
-  }, [data]);
-
-  const uniqueCitiesCount = useMemo(() => {
-    return new Set(
-      (data || [])
-        .map((a) => a.city || a.location)
-        .filter(Boolean)
-        .map((c) => String(c).trim().toLowerCase()),
-    ).size;
-  }, [data]);
-
-  const uniqueCountriesCount = useMemo(() => {
-    return new Set(
-      (data || [])
-        .map((a) => a.country)
-        .filter(Boolean)
-        .map((c) => normalizeCountry(c).toLowerCase()),
-    ).size;
-  }, [data]);
-
   const dynamicStats = [
     {
       icon: "campaign",
       label: "Активних оголошень",
-      value: totalActiveAds ? `${totalActiveAds}` : "3 400+",
+      value: stats?.ads == null ? "—" : stats.ads.toLocaleString("uk-UA"),
     },
     {
       icon: "public",
-      label: "Країн Європи",
-      value: uniqueCountriesCount ? `${uniqueCountriesCount}` : "28+",
+      label: "Країн з оголошеннями",
+      value:
+        stats?.adCountries == null
+          ? "—"
+          : stats.adCountries.toLocaleString("uk-UA"),
     },
     {
       icon: "location_on",
-      label: "Міст та регіонів",
-      value: uniqueCitiesCount ? `${uniqueCitiesCount}+` : "120+",
+      label: "Міст з оголошеннями",
+      value:
+        stats?.adCities == null ? "—" : stats.adCities.toLocaleString("uk-UA"),
     },
     {
       icon: "category",
@@ -719,7 +627,11 @@ export default function Ads() {
                 value={minPrice}
                 onChange={(event) => setMinPrice(event.target.value)}
                 sx={{ width: 110 }}
-                inputProps={{ min: 0 }}
+                slotProps={{
+                  htmlInput: {
+                    min: 0,
+                  },
+                }}
               />
               <TextField
                 size="small"
@@ -728,7 +640,11 @@ export default function Ads() {
                 value={maxPrice}
                 onChange={(event) => setMaxPrice(event.target.value)}
                 sx={{ width: 110 }}
-                inputProps={{ min: 0 }}
+                slotProps={{
+                  htmlInput: {
+                    min: 0,
+                  },
+                }}
               />
               {/* Filter toggle */}
               <Button
@@ -755,6 +671,39 @@ export default function Ads() {
                 Фільтри{" "}
                 {hasFilters &&
                   `(${[country, city, category, subcategory, search].filter(Boolean).length})`}
+              </Button>
+
+              {/* Кнопка порівняння */}
+              <Button
+                startIcon={<CompareIcon sx={{ fontSize: 16 }} />}
+                onClick={navigateToCompare}
+                disabled={compareIds.length < 2}
+                sx={{
+                  fontFamily: F_BODY,
+                  fontWeight: 600,
+                  textTransform: "none",
+                  fontSize: "0.85rem",
+                  border: `1.5px solid ${compareIds.length > 0 ? BLUE : "#e2e8f0"}`,
+                  color: compareIds.length > 0 ? BLUE : "#64748b",
+                  borderRadius: "10px",
+                  px: 2,
+                  py: 0.9,
+                  bgcolor:
+                    compareIds.length > 0 ? "rgba(0,87,184,.06)" : "#fff",
+                  "&:hover": {
+                    borderColor: BLUE,
+                    color: BLUE,
+                    bgcolor: "rgba(0,87,184,.06)",
+                  },
+                  "&:disabled": {
+                    borderColor: "#e2e8f0",
+                    color: "#94a3b8",
+                  },
+                }}
+              >
+                {compareIds.length > 0
+                  ? `Порівняти (${compareIds.length})`
+                  : "Порівняти"}
               </Button>
 
               {/* View toggle */}
@@ -816,48 +765,139 @@ export default function Ads() {
               <Grid container spacing={2} sx={{ alignItems: "center" }}>
                 {/* 1. Пошук */}
                 <Grid size={{ xs: 12, md: 3.5 }}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    placeholder="Пошук за назвою або описом..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    slotProps={{
-                      input: {
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <SearchIcon
-                              sx={{ fontSize: 18, color: "#94a3b8" }}
-                            />
-                          </InputAdornment>
-                        ),
-                        endAdornment: search ? (
-                          <InputAdornment position="end">
-                            <IconButton
-                              size="small"
-                              onClick={() => setSearch("")}
-                              sx={{ p: 0.5, color: "#94a3b8" }}
+                  <Box sx={{ position: "relative", width: "100%" }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      placeholder="Пошук за назвою або описом..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      onFocus={() => setShowSuggestions(search.length >= 2)}
+                      onBlur={() =>
+                        setTimeout(() => setShowSuggestions(false), 150)
+                      }
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <SearchIcon
+                                sx={{ fontSize: 18, color: "#94a3b8" }}
+                              />
+                            </InputAdornment>
+                          ),
+                          endAdornment: search ? (
+                            <InputAdornment position="end">
+                              <IconButton
+                                size="small"
+                                onClick={() => setSearch("")}
+                                sx={{ p: 0.5, color: "#94a3b8" }}
+                              >
+                                <ClearIcon fontSize="small" />
+                              </IconButton>
+                            </InputAdornment>
+                          ) : null,
+                        },
+                        htmlInput: {},
+                      }}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "12px",
+                          fontFamily: F_BODY,
+                          bgcolor: "#f8fafc",
+                          "& fieldset": { borderColor: "#e2e8f0" },
+                          "&:hover fieldset": { borderColor: BLUE },
+                          "&.Mui-focused fieldset": { borderColor: BLUE },
+                        },
+                      }}
+                    />
+                    {showSuggestions && suggestions && (
+                      <Dialog
+                        open={showSuggestions}
+                        onClose={() => setShowSuggestions(false)}
+                        maxWidth="sm"
+                        fullWidth
+                        PaperProps={{
+                          sx: {
+                            position: "absolute",
+                            top: "calc(100% + 4px)",
+                            left: 0,
+                            right: 0,
+                            zIndex: 1050,
+                            maxHeight: "420px",
+                            overflowY: "auto",
+                            borderRadius: "12px",
+                            boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                          },
+                        }}
+                      >
+                        <List dense>
+                          {suggestions.ads.slice(0, 3).map((a) => (
+                            <ListItem
+                              key={`ad-${a.id}`}
+                              button
+                              component={Link}
+                              to={`/ads/${a.id}`}
+                              onClick={() => setShowSuggestions(false)}
+                              sx={{ px: 1, py: 1, gap: 1 }}
                             >
-                              <ClearIcon fontSize="small" />
-                            </IconButton>
-                          </InputAdornment>
-                        ) : null,
-                      },
-                      htmlInput: {
-                        // Налаштування звичайного HTML input за потреби
-                      },
-                    }}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: "12px",
-                        fontFamily: F_BODY,
-                        bgcolor: "#f8fafc",
-                        "& fieldset": { borderColor: "#e2e8f0" },
-                        "&:hover fieldset": { borderColor: BLUE },
-                        "&.Mui-focused fieldset": { borderColor: BLUE },
-                      },
-                    }}
-                  />
+                              <ListItemAvatar>
+                                <Avatar
+                                  src={
+                                    a.photo?.startsWith("http")
+                                      ? a.photo
+                                      : a.photo
+                                        ? `${import.meta.env.VITE_APP_API_URL || "http://localhost:5000"}/uploads/adv/${a.photo.replace(/^public\/uploads\/adv\//, "")}`
+                                        : undefined
+                                  }
+                                  sx={{
+                                    width: 32,
+                                    height: 32,
+                                    bgcolor: "#f1f5f9",
+                                  }}
+                                />
+                              </ListItemAvatar>
+                              <ListItemText
+                                primary={a.title}
+                                secondary={
+                                  a.subtitle
+                                    ? `${a.subtitle} · ${a.city || ""}`
+                                    : a.city || ""
+                                }
+                                sx={{ primary: { fontWeight: 600 } }}
+                              />
+                            </ListItem>
+                          ))}
+                          {suggestions.categories.slice(0, 3).map((c) => (
+                            <ListItem
+                              key={`cat-${c.id}`}
+                              button
+                              onClick={() => {
+                                setCategory(String(c.id));
+                                setSearch("");
+                                setShowSuggestions(false);
+                              }}
+                              sx={{ px: 1, py: 1 }}
+                            >
+                              <ListItemText
+                                primary={c.title}
+                                secondary="Категорія"
+                                sx={{ primary: { fontWeight: 600 } }}
+                              />
+                            </ListItem>
+                          ))}
+                          {suggestions.ads.length === 0 &&
+                            suggestions.categories.length === 0 && (
+                              <ListItem
+                                disabled
+                                sx={{ px: 1, py: 1, color: "#94a3b8" }}
+                              >
+                                Нічого не знайдено
+                              </ListItem>
+                            )}
+                        </List>
+                      </Dialog>
+                    )}
+                  </Box>
                 </Grid>
 
                 {/* 2. СПОЧАТКУ ЗА КРАЇНОЮ */}
@@ -957,6 +997,74 @@ export default function Ads() {
                       },
                     }}
                   />
+                </Grid>
+
+                {/* 3.1. Радіус пошуку (км) — працює разом з місцем/геолокацією */}
+                <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
+                  <Box
+                    sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}
+                  >
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Радіус (км)"
+                      type="number"
+                      value={radius}
+                      onChange={(e) => setRadius(e.target.value)}
+                      slotProps={{
+                        htmlInput: {
+                          min: 1,
+                          max: 1000,
+                        },
+                      }}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "12px",
+                          fontFamily: F_BODY,
+                          bgcolor: "#f8fafc",
+                          "& fieldset": { borderColor: "#e2e8f0" },
+                        },
+                      }}
+                    />
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        if (!navigator.geolocation) {
+                          toast.error("Геолокація не підтримується браузером");
+                          return;
+                        }
+                        navigator.geolocation.getCurrentPosition(
+                          (pos) => {
+                            const { latitude, longitude } = pos.coords;
+                            setSearchParams((prev) => {
+                              prev.set("lat", String(latitude));
+                              prev.set("lng", String(longitude));
+                              if (radius) prev.set("radius", radius);
+                              else prev.set("radius", "10");
+                              prev.delete("page");
+                              return prev;
+                            });
+                          },
+                          () =>
+                            toast.error("Не вдалося отримати місцеположення"),
+                        );
+                      }}
+                      sx={{
+                        fontFamily: F_BODY,
+                        fontSize: "0.72rem",
+                        textTransform: "none",
+                        color: BLUE,
+                        p: 0,
+                        minWidth: "auto",
+                        "&:hover": {
+                          bgcolor: "transparent",
+                          textDecoration: "underline",
+                        },
+                      }}
+                    >
+                      Моє місцеположення
+                    </Button>
+                  </Box>
                 </Grid>
 
                 {/* 4. ДИНАМІЧНА КАТЕГОРІЯ (з /dashboard/categories) */}
@@ -1467,9 +1575,17 @@ export default function Ads() {
               }}
             >
               {viewMode === "grid" ? (
-                <GridView ads={filtered} />
+                <GridView
+                  ads={filtered}
+                  compareIds={compareIds}
+                  onToggleCompare={toggleCompare}
+                />
               ) : (
-                <ListView ads={filtered} />
+                <ListView
+                  ads={filtered}
+                  compareIds={compareIds}
+                  onToggleCompare={toggleCompare}
+                />
               )}
             </Box>
           )}

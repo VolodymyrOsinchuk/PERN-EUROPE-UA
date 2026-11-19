@@ -28,8 +28,6 @@ import {
   DialogActions,
   TextField,
   MenuItem,
-  FormControlLabel,
-  Checkbox,
   Snackbar,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -108,15 +106,6 @@ export const action = async ({ request }) => {
     return { ok: false };
   }
 };
-
-const ALL_PERMS = [
-  { key: "users", label: "Користувачі" },
-  { key: "ads", label: "Оголошення" },
-  { key: "categories", label: "Категорії" },
-  { key: "events", label: "Події" },
-  { key: "settings", label: "Налаштування" },
-  { key: "admin", label: "Адмін-панель" },
-];
 
 // ── Sub-components ─────────────────────────────────────────
 const SectionCard = ({ icon, title, subtitle, action, children }) => (
@@ -286,16 +275,6 @@ const Admin = () => {
                       <Typography variant="caption" color="text.secondary">
                         {admin.lastLogin}
                       </Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Tooltip title="Редагувати роль">
-                        <IconButton
-                          size="small"
-                          onClick={() => openDialog("edit-admin", admin)}
-                        >
-                          <EditOutlinedIcon sx={{ fontSize: 14, color: "#64748B" }} />
-                        </IconButton>
-                      </Tooltip>
                     </TableCell>
                     <TableCell align="right">
                       <Tooltip title="Редагувати">
@@ -559,59 +538,6 @@ const Admin = () => {
           </DialogActions>
         </Dialog>
       </Form>
-
-      {/* Edit role dialog */}
-      <Dialog
-        open={dialog.open && dialog.mode === "edit-role"}
-        onClose={closeDialog}
-        maxWidth="xs"
-        fullWidth
-      >
-        <DialogTitle>Дозволи — {dialog.data?.label}</DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          {ALL_PERMS.map((perm) => (
-            <FormControlLabel
-              key={perm.key}
-              control={
-                <Checkbox
-                  defaultChecked={dialog.data?.perms?.includes(perm.key)}
-                  size="small"
-                />
-              }
-              label={<Typography variant="body2">{perm.label}</Typography>}
-              sx={{ display: "flex", mb: 0.5 }}
-            />
-          ))}
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2.5 }}>
-          <Button onClick={closeDialog} variant="outlined" color="inherit">
-            Скасувати
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => {
-              if (!dialog.data?.id) return;
-              const selectedPerms = ALL_PERMS.filter((p) =>
-                document.querySelector(`input[name="${p.key}"]`)?.checked
-              ).map((p) => p.key);
-              customFetch
-                .put(`/admin/admins/${dialog.data.id}/role`, {
-                  role: dialog.data.role || "moderator",
-                  permissions: selectedPerms,
-                })
-                .then(() => {
-                  closeDialog();
-                  toast.success("Дозволи оновлено");
-                })
-                .catch(() => {
-                  toast.error("Помилка оновлення дозволів");
-                });
-            }}
-          >
-            Зберегти
-          </Button>
-        </DialogActions>
-      </Dialog>
 
       <Snackbar
         open={snackbar.open}

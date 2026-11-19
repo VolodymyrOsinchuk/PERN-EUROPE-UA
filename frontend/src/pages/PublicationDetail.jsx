@@ -15,11 +15,11 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { getCategoryColors } from "../data/publicationCategories";
 import customFetch from "../utils/customFetch";
 import { toast } from "react-toastify";
 import { useAuthContext } from "../context/AuthContext";
+import { sanitizeRichText } from "../utils/sanitizeHtml";
 
 /* ── Design tokens ── */
 const F_BODY = "'Plus Jakarta Sans', sans-serif";
@@ -272,19 +272,18 @@ export default function PublicationDetail() {
                 }}
               />
 
-              <Typography
+              <Box
                 component="div"
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeRichText(article.content || ""),
+                }}
                 sx={{
                   fontFamily: F_BODY,
                   fontSize: "1rem",
                   color: "#334155",
                   lineHeight: 1.9,
-                  whiteSpace: "pre-wrap",
-                  "& p": { mb: 2 },
                 }}
-              >
-                {article.content}
-              </Typography>
+              />
             </Paper>
 
             {/* Share / bookmark row */}

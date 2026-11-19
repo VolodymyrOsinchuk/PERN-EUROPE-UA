@@ -102,6 +102,11 @@ const User = sequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    pendingEmail: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      validate: { isEmail: { message: "Невірний формат временного email" } },
+    },
     resetPasswordToken: {
       type: DataTypes.STRING,
       allowNull: true,

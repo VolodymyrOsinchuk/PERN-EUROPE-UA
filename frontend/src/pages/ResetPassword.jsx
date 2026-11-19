@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -28,7 +28,6 @@ const inputSx = {
 
 export default function ResetPassword() {
   const { token } = useParams();
-  const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -61,11 +60,11 @@ export default function ResetPassword() {
       setSuccess(true);
       toast.success("Пароль успішно змінено!");
     } catch (err) {
-      setError(
+      const message =
         err?.response?.data?.message ||
-          "Посилання недійсне або термін його дії минув"
-      );
-      toast.error(error || "Не вдалося змінити пароль");
+        "Посилання недійсне або термін його дії минув";
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

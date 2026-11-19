@@ -13,6 +13,9 @@ import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import { isFavorite, toggleFavoriteId } from "../utils/favorites";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import LinkIcon from "@mui/icons-material/Link";
+import CompareIcon from "@mui/icons-material/CompareArrows";
+import CheckIcon from "@mui/icons-material/Check";
 import { Link } from "react-router-dom";
 import PlaceholderImage from "./PlaceholderImage";
 import customFetch from "../utils/customFetch";
@@ -33,9 +36,10 @@ const CAT_COLORS = {
   other: { bg: "#f8fafc", text: "#475569" },
 };
 
-function ListCard({ ad, isLast, index }) {
+function ListCard({ ad, isLast, index, compareIds, onToggleCompare }) {
   const [saved, setSaved] = useState(() => isFavorite(ad.id));
   const [imgLoaded, setImgLoaded] = useState(false);
+  const isCompared = Array.isArray(compareIds) && compareIds.includes(String(ad.id));
 
   const serverPath = ad.photos?.[0];
   const imageUrl = serverPath
@@ -245,6 +249,57 @@ function ListCard({ ad, isLast, index }) {
                   <OpenInNewIcon sx={{ fontSize: 14 }} />
                 </IconButton>
               </Tooltip>
+              <Tooltip title="Скопіювати посилання">
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    try {
+                      navigator.clipboard.writeText(window.location.origin + `/ads/${ad.id}`);
+                      toast.success("Посилання скопійовано");
+                    } catch {
+                      toast.error("Не вдалося скопіювати");
+                    }
+                  }}
+                  sx={{
+                    color: "#94a3b8",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "8px",
+                    width: 28,
+                    height: 28,
+                    "&:hover": { color: BLUE, borderColor: BLUE, bgcolor: "#eff6ff" },
+                  }}
+                >
+                  <LinkIcon sx={{ fontSize: 14 }} />
+                </IconButton>
+              </Tooltip>
+              {onToggleCompare && (
+                <Tooltip
+                  title={isCompared ? "Прибрати з порівняння" : "Додати до порівняння"}
+                >
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleCompare(String(ad.id));
+                    }}
+                    sx={{
+                      color: isCompared ? BLUE : "#94a3b8",
+                      border: `1px solid ${isCompared ? BLUE : "#e2e8f0"}`,
+                      borderRadius: "8px",
+                      width: 28,
+                      height: 28,
+                      "&:hover": { color: BLUE, borderColor: BLUE, bgcolor: "#eff6ff" },
+                    }}
+                  >
+                    {isCompared ? (
+                      <CheckIcon sx={{ fontSize: 14 }} />
+                    ) : (
+                      <CompareIcon sx={{ fontSize: 14 }} />
+                    )}
+                  </IconButton>
+                </Tooltip>
+              )}
             </Box>
           </Box>
 
@@ -343,7 +398,7 @@ function ListCard({ ad, isLast, index }) {
   );
 }
 
-export default function ListView({ ads }) {
+export default function ListView({ ads, compareIds, onToggleCompare }) {
   return (
     <Paper
       elevation={0}
@@ -361,6 +416,8 @@ export default function ListView({ ads }) {
           ad={ad}
           index={i}
           isLast={i === ads.length - 1}
+          compareIds={compareIds}
+          onToggleCompare={onToggleCompare}
         />
       ))}
     </Paper>

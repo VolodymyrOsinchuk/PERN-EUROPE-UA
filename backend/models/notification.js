@@ -30,6 +30,13 @@ const Notification = sequelize.define(
               "ad_hidden",
               "message_received",
 
+              // Сповіщення про збережений пошук / нові оголошення
+              "new_ad_match",
+
+              // Нагадування про термін дії оголошення
+              "ad_expiring_soon",
+              "ad_expired",
+
               // Сповіщення про публікації
               "publication_published",
               "publication_needs_changes",

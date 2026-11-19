@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import AnalyticsIcon from "@mui/icons-material/Analytics";
 import {
   Alert,
   Box,
@@ -10,6 +11,9 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  List,
+  ListItem,
+  ListItemText,
   Paper,
   Stack,
   Typography,
@@ -22,13 +26,36 @@ const BLUE = "#0057B8";
 
 const formatDate = (v) => (v ? new Date(v).toLocaleDateString("uk-UA") : "—");
 
+// Залишається менше 3 днів до закінчення терміну дії
+const isExpiringSoon = (v) => {
+  if (!v) return false;
+  const exp = new Date(v);
+  const now = new Date();
+  const diffDays = (exp - now) / (1000 * 60 * 60 * 24);
+  return diffDays > 0 && diffDays <= 3;
+};
+
 export default function MyAds() {
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
   const [logsFor, setLogsFor] = useState(null);
   const [logs, setLogs] = useState([]);
+  const [completenessFor, setCompletenessFor] = useState(null);
+  const [completeness, setCompleteness] = useState(null);
   const navigate = useNavigate();
+
+  const openCompleteness = async (ad) => {
+    setCompletenessFor(ad.id);
+    try {
+      const { data } = await customFetch.get(`/adv/${ad.id}/completeness`);
+      setCompleteness(data);
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || "Помилка отримання підказок",
+      );
+    }
+  };
 
   const load = async () => {
     setLoading(true);
@@ -91,21 +118,26 @@ export default function MyAds() {
       toast.success("Оголошення піднято в пошуку");
       await load();
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Не вдалося оновити оголошення");
+      toast.error(
+        error?.response?.data?.message || "Не вдалося оновити оголошення",
+      );
     } finally {
       setBusyId(null);
     }
   };
 
   const markSold = async (ad) => {
-    if (!window.confirm(`Позначити оголошення «${ad.title}» як продане?`)) return;
+    if (!window.confirm(`Позначити оголошення «${ad.title}» як продане?`))
+      return;
     setBusyId(ad.id);
     try {
       await customFetch.patch(`/adv/${ad.id}/sold`);
       toast.success("Оголошення позначено як продане");
       await load();
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Не вдалося змінити статус");
+      toast.error(
+        error?.response?.data?.message || "Не вдалося змінити статус",
+      );
     } finally {
       setBusyId(null);
     }
@@ -127,18 +159,29 @@ export default function MyAds() {
 
   return (
     <Box sx={{ maxWidth: 900, mx: "auto", px: 2, py: 4 }}>
-      <Stack direction="row" justifyContent="space-between" mb={3}>
+      <Stack direction="row" mb={3} sx={{ justifyContent: "space-between" }}>
         <Typography variant="h5" fontWeight={700}>
           Мої оголошення
         </Typography>
-        <Button
-          variant="contained"
-          component={Link}
-          to="/profile/create-ad"
-          sx={{ bgcolor: BLUE }}
-        >
-          Нове оголошення
-        </Button>
+        <Stack direction="row" gap={1}>
+          <Button
+            variant="contained"
+            component={Link}
+            to="/profile/create-ad"
+            sx={{ bgcolor: BLUE }}
+          >
+            Нове оголошення
+          </Button>
+          <Button
+            variant="outlined"
+            component={Link}
+            to="/profile/analytics"
+            startIcon={<AnalyticsIcon sx={{ fontSize: 18 }} />}
+            sx={{ color: BLUE, borderColor: BLUE, textTransform: "none" }}
+          >
+            Аналітика
+          </Button>
+        </Stack>
       </Stack>
 
       {ads.length === 0 && (
@@ -158,13 +201,25 @@ export default function MyAds() {
 
           return (
             <Paper key={ad.id} sx={{ p: 3, borderRadius: 3 }}>
-              <Stack direction="row" justifyContent="space-between" gap={2}>
+              <Stack
+                direction="row"
+                gap={2}
+                sx={{ justifyContent: "space-between" }}
+              >
                 <Box>
                   <Typography fontWeight={700}>{ad.title}</Typography>
                   <Typography variant="caption" color="text.secondary">
                     Створено {formatDate(ad.datePosted)}
                     {ad.publishedAt &&
                       ` · опубліковано ${formatDate(ad.publishedAt)}`}
+                    {ad.expirationDate && (
+                      <>
+                        <br />
+                        Термін дії:{formatDate(ad.expirationDate)}{" "}
+                        {isExpiringSoon(ad.expirationDate) &&
+                          " · закінчується швидко — оновіть"}
+                      </>
+                    )}
                   </Typography>
                 </Box>
                 <Chip
@@ -192,7 +247,7 @@ export default function MyAds() {
                   </Alert>
                 )}
 
-              <Stack direction="row" gap={1} flexWrap="wrap" mt={2}>
+              <Stack direction="row" gap={1} mt={2} sx={{ flexWrap: "wrap" }}>
                 {ad.moderationStatus === "approved" && (
                   <>
                     <Button size="small" component={Link} to={`/ads/${ad.id}`}>
@@ -241,6 +296,10 @@ export default function MyAds() {
                     Надіслати на модерацію
                   </Button>
                 )}
+
+                <Button size="small" onClick={() => openCompleteness(ad)}>
+                  Підказки заповнення
+                </Button>
 
                 <Button size="small" onClick={() => openLogs(ad)}>
                   Історія модерації
@@ -293,6 +352,35 @@ export default function MyAds() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setLogsFor(null)}>Закрити</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={!!completenessFor}
+        onClose={() => setCompletenessFor(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Підказки заповнення оголошення #{completenessFor}
+        </DialogTitle>
+        <DialogContent>
+          {completeness && completeness.score === 100 ? (
+            <Typography color="success" sx={{ pt: 1 }}>
+              Оголошення виглядає відмінно! Всі деталі на місці.
+            </Typography>
+          ) : (
+            <List>
+              {completeness?.tips?.map((tip) => (
+                <ListItem key={tip.field}>
+                  <ListItemText primary={tip.message} />
+                </ListItem>
+              ))}
+            </List>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCompletenessFor(null)}>Закрити</Button>
         </DialogActions>
       </Dialog>
     </Box>

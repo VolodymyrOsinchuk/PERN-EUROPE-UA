@@ -17,6 +17,7 @@ const app = express();
 
 const sequelize = require("./config/db");
 const { startAdExpirationCron } = require("./cron/adExpirationCron");
+const { startAdExpirationReminderCron } = require("./cron/adExpirationReminderCron");
 const advRoutes = require("./routes/advRouter");
 const categoryRoutes = require("./routes/categoryRouter");
 const authRoutes = require("./routes/authRouter");
@@ -27,6 +28,7 @@ const publicationRoutes = require("./routes/publicationRouter");
 const forumRoutes = require("./routes/forumRouter");
 const messageRoutes = require("./routes/messageRouter");
 const reportRoutes = require("./routes/reportRouter");
+const savedSearchRoutes = require("./routes/savedSearchRouter");
 const contactRoutes = require("./routes/contactRouter");
 const adExpirationSettingsRouter = require("./routes/adExpirationSettingsRouter");
 const settingsRouter = require("./routes/settingsRouter");
@@ -105,6 +107,7 @@ app.use("/api/v1/publications", publicationRoutes);
 app.use("/api/v1/forum", forumRoutes);
 app.use("/api/v1/messages", authMiddleware, messageRoutes);
 app.use("/api/v1/reports", reportRoutes);
+app.use("/api/v1/saved-searches", savedSearchRoutes);
 app.use("/api/v1/contact", contactRoutes);
 app.use("/api/v1/external-news", require("./routes/externalNewsRouter"));
 app.use("/api/v1/moderation", require("./routes/moderationRouter"));
@@ -120,6 +123,7 @@ app.use("/api/v1/admin/settings", settingsRouter);
 app.use("/api/v1/admin", adminRouter);
 
 startAdExpirationCron();
+startAdExpirationReminderCron();
 
 app.use((err, req, res, next) => {
   console.error("[ПОМИЛКА]", {

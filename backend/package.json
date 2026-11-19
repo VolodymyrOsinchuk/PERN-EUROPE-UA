@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "NODE_ENV=production node scripts/runMigrations.js && node index.js",
-    "dev": "NODE_ENV=development nodemon index.js",
+    "dev": "NODE_ENV=development node scripts/runMigrations.js && nodemon index.js",
     "keep-alive": "node scripts/keep-alive.js",
     "clean-up": "node scripts/cleanDb.js",
     "migrate": "node scripts/runMigrations.js",

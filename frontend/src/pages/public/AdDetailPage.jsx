@@ -640,6 +640,81 @@ export default function AdDetailPage() {
   const [emailOpen, setEmailOpen] = useState(false);
   const [similarAds, setSimilarAds] = useState([]);
 
+  /* Відлік кліка по контактів (аналітика продавця) */
+  const trackContactClick = async () => {
+    if (!ad?.id) return;
+    try {
+      await customFetch.patch(`/adv/${ad.id}/contact-click`);
+    } catch {
+      /*ignore — не блокуємо дію користувача*/
+    }
+  };
+
+  /* SEO: оновлюємо <title>, meta description, Open Graph, Twitter cards, canonical */
+  useEffect(() => {
+    if (!ad?.title) return;
+
+    const image =
+      ad.photos && ad.photos.length > 0
+        ? ad.photos[0].startsWith("http")
+          ? ad.photos[0]
+          : `${import.meta.env.VITE_APP_API_URL || "http://localhost:5000"}/uploads/adv/${ad.photos[0].replace(/^public\/uploads\/adv\//, "")}`
+        : undefined;
+
+    document.title = `${ad.title} — оголошення на Українці в Європі`;
+
+    const metaDesc =
+      ad.description?.length > 160
+        ? `${ad.description.slice(0, 160)}...`
+        : ad.description || "";
+
+    const setMeta = (name, content) => {
+      if (!content) return;
+      let el = document.querySelector(`meta[name="${name}"]`);
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute("name", name);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+    };
+
+    const setProperty = (property, content) => {
+      if (!content) return;
+      let el = document.querySelector(`meta[property="${property}"]`);
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute("property", property);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+    };
+
+    setMeta("description", metaDesc);
+    setProperty("og:title", ad.title);
+    setProperty("og:description", metaDesc);
+    setProperty("og:type", "product");
+    if (image) setProperty("og:image", image);
+    setProperty("og:url", window.location.href);
+    setProperty("og:site_name", "Українці в Європі");
+    setProperty("twitter:card", "summary_large_image");
+    setProperty("twitter:title", ad.title);
+    setProperty("twitter:description", metaDesc);
+    if (image) setProperty("twitter:image", image);
+
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute("href", window.location.href);
+
+    return () => {
+      // Не видаляємо теги при размонтуванні, щоб уникнути миготіння
+    };
+  }, [ad]);
+
   useEffect(() => {
     let cancelled = false;
     customFetch
@@ -1295,8 +1370,14 @@ export default function AdDetailPage() {
             <Grid size={{ xs: 12, md: 4 }}>
               <ContactCard
                 ad={ad}
-                onChat={() => setChatOpen(true)}
-                onEmail={() => setEmailOpen(true)}
+                onChat={() => {
+                  trackContactClick();
+                  setChatOpen(true);
+                }}
+                onEmail={() => {
+                  trackContactClick();
+                  setEmailOpen(true);
+                }}
                 onReport={() => setReportOpen(true)}
               />
             </Grid>
@@ -1344,6 +1425,56 @@ export default function AdDetailPage() {
         adId={ad.id}
         isSubmitting={isSubmitting}
       />
+
+      {/* JSON-LD structured data для SEO */}
+      {ad && ad.title && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org/",
+              "@type": "Product",
+              name: ad.title,
+              description:
+                ad.description?.length > 300
+                  ? `${ad.description.slice(0, 300)}...`
+                  : ad.description,
+              image:
+                ad.photos && ad.photos.length > 0
+                  ? ad.photos[0].startsWith("http")
+                    ? ad.photos[0]
+                    : `${import.meta.env.VITE_APP_API_URL || "http://localhost:5000"}/uploads/adv/${ad.photos[0].replace(/^public\/uploads\/adv\//, "")}`
+                  : undefined,
+              url: window.location.href,
+              offers: {
+                "@type": "Offer",
+                price: ad.price || 0,
+                priceCurrency: "EUR",
+                availability:
+                  ad.status === "Sold"
+                    ? "https://schema.org/SoldOut"
+                    : "https://schema.org/InStock",
+              },
+              brand: {
+                "@type": "Brand",
+                name: ad.user
+                  ? `${ad.user.firstName} ${ad.user.lastName}`
+                  : "Продавець",
+              },
+              location: {
+                "@type": "Place",
+                address: {
+                  "@type": "PostalAddress",
+                  addressLocality: ad.city || "",
+                  addressRegion: ad.state || "",
+                  addressCountry: ad.country || "",
+                },
+              },
+              datePosted: ad.datePosted || new Date().toISOString(),
+            }),
+          }}
+        />
+      )}
     </>
   );
 }

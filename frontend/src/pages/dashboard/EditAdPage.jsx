@@ -180,7 +180,15 @@ function EditSection({ icon, title, subtitle, completed, children }) {
 }
 
 /* ── Existing photo thumbnail ── */
-function ExistingPhoto({ path, index, isMain, onRemove, onSetMain }) {
+function ExistingPhoto({
+  path,
+  index,
+  isMain,
+  onRemove,
+  onSetMain,
+  onMoveUp,
+  onMoveDown,
+}) {
   const src = path
     ? path.startsWith("http")
       ? path
@@ -267,6 +275,42 @@ function ExistingPhoto({ path, index, isMain, onRemove, onSetMain }) {
             )}
           </IconButton>
         </Tooltip>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.25 }}>
+          {index > 0 && (
+            <IconButton
+              size="small"
+              onClick={() => onMoveUp(index)}
+              sx={{
+                width: 20,
+                height: 20,
+                bgcolor: "rgba(0,0,0,.5)",
+                color: "#fff",
+                "&:hover": { bgcolor: "#0057B8" },
+              }}
+            >
+              <span className="material-icons" style={{ fontSize: 10 }}>
+                arrow_upward
+              </span>
+            </IconButton>
+          )}
+          {index < 4 && (
+            <IconButton
+              size="small"
+              onClick={() => onMoveDown(index)}
+              sx={{
+                width: 20,
+                height: 20,
+                bgcolor: "rgba(0,0,0,.5)",
+                color: "#fff",
+                "&:hover": { bgcolor: "#0057B8" },
+              }}
+            >
+              <span className="material-icons" style={{ fontSize: 10 }}>
+                arrow_downward
+              </span>
+            </IconButton>
+          )}
+        </Box>
         <IconButton
           size="small"
           onClick={() => onRemove(index)}
@@ -487,6 +531,21 @@ export default function EditAdPage() {
 
   const removeNewPhoto = (idx) => {
     setNewPhotoFiles((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  /* Переставлення існуючих фото (вгору / вниз) з persist на бекенд */
+  const movePhoto = async (idx, direction) => {
+    const next = [...existingPhotos];
+    const target = direction === "up" ? idx - 1 : idx + 1;
+    if (target < 0 || target >= next.length) return;
+    [next[idx], next[target]] = [next[target], next[idx]];
+    setExistingPhotos(next);
+    setMainPhotoIndex((prev) => (prev === idx ? target : prev === target ? idx : prev));
+    try {
+      await customFetch.patch(`/adv/${ad.id}/photos/reorder`, { photos: next });
+    } catch {
+      toast.error("Не вдалося зберегти порядок фото");
+    }
   };
 
   const submit = useSubmit();
@@ -1159,6 +1218,8 @@ export default function EditAdPage() {
                         isMain={idx === mainPhotoIndex}
                         onRemove={removeExistingPhoto}
                         onSetMain={setMainPhotoIndex}
+                        onMoveUp={() => movePhoto(idx, "up")}
+                        onMoveDown={() => movePhoto(idx, "down")}
                       />
                     ))}
                   </Box>

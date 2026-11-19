@@ -16,6 +16,12 @@ const {
   getSellerProfile,
   refreshAnnonce,
   markAnnonceSold,
+  reorderPhotos,
+  contactClick,
+  getAdAnalytics,
+  suggestions,
+  bulk,
+  completeness,
 } = require("../controllers/advController");
 const { upload, uploadToCloudinary } = require("../middleware/multer");
 const checkOwnership = require("../middleware/checkOwnership");
@@ -59,5 +65,11 @@ router.patch("/:id/refresh", authMiddleware, checkOwnership, refreshAnnonce);
 router.patch("/:id/sold", authMiddleware, checkOwnership, markAnnonceSold);
 
 router.get("/:id/logs", authMiddleware, checkOwnership, getOwnAdLogs);
+router.patch("/:id/photos/reorder", authMiddleware, checkOwnership, reorderPhotos);
+router.patch("/:id/contact-click", optionalAuth, contactClick);
+router.get("/:id/analytics", authMiddleware, checkOwnership, getAdAnalytics);
+router.get("/:id/completeness", authMiddleware, checkOwnership, completeness);
+router.get("/suggestions", optionalAuth, suggestions);
+router.get("/bulk", optionalAuth, bulk);
 
 module.exports = router;

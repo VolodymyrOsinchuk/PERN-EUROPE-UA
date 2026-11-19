@@ -17,6 +17,7 @@ const Message = sequelize.define(
       },
     },
     readAt: { type: DataTypes.DATE, allowNull: true },
+    deliveredAt: { type: DataTypes.DATE, allowNull: true },
   },
   { tableName: "messages", timestamps: true },
 );

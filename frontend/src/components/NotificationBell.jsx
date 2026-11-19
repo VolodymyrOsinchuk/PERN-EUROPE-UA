@@ -76,7 +76,13 @@ export default function NotificationBell() {
     } else if (n.conversationId) {
       navigate(`/messages/${n.conversationId}`);
     } else if (n.advId) {
-      navigate("/profile/my-ads");
+      // Нові оголошення за збереженим пошуком — на сторінку оголошення,
+      // інші — до списку своїх оголошень.
+      if (n.type === "new_ad_match") {
+        navigate(`/ads/${n.advId}`);
+      } else {
+        navigate("/profile/my-ads");
+      }
     }
   };
 
@@ -100,7 +106,18 @@ export default function NotificationBell() {
         onClose={close}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
-        slotProps={{ paper: { sx: { width: 360, maxHeight: 480 } } }}
+        slotProps={{
+          paper: {
+            sx: {
+              width: { xs: "calc(100vw - 32px)", sm: 360 },
+              maxWidth: "calc(100vw - 32px)",
+              maxHeight: "min(480px, calc(100vh - 32px))",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            },
+          },
+        }}
       >
         <Box
           sx={{
@@ -109,6 +126,7 @@ export default function NotificationBell() {
             alignItems: "center",
             px: 2,
             pt: 2,
+            flexShrink: 0,
           }}
         >
           <Typography fontWeight={700}>Сповіщення</Typography>
@@ -124,7 +142,7 @@ export default function NotificationBell() {
             Сповіщень немає
           </Typography>
         ) : (
-          <List dense>
+          <List dense sx={{ minHeight: 0, flex: "1 1 auto", overflowY: "auto" }}>
             {items.map((n) => (
               <ListItemButton
                 key={n.id}

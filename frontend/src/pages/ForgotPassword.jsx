@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -31,7 +31,6 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,8 +44,9 @@ export default function ForgotPassword() {
         "Якщо акаунт існує, ми надіслали інструкції на його пошту."
       );
     } catch (err) {
-      setError(err?.response?.data?.message || "Помилка сервера");
-      toast.error(error || "Не вдалося надіслати листа");
+      const message = err?.response?.data?.message || "Помилка сервера";
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

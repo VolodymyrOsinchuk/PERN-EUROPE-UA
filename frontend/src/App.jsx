@@ -55,6 +55,7 @@ import AdDetailPage, {
   loader as adLoader,
   action as adAction,
 } from "./pages/public/AdDetailPage";
+import Compare from "./pages/public/Compare";
 
 // Contact
 import Contacts, { action as contactAction } from "./pages/public/Contacts";
@@ -75,7 +76,9 @@ import Profile, {
   action as updateProfileAction,
 } from "./pages/profile/Profile";
 import MyAds from "./pages/profile/MyAds";
+import Analytics from "./pages/profile/Analytics";
 import Favorites from "./pages/profile/Favorites";
+import SavedSearches from "./pages/profile/SavedSearches";
 import Security from "./pages/profile/Security";
 import ViewHistory from "./pages/profile/ViewHistory";
 import CreateAdPage, {
@@ -261,6 +264,10 @@ const publicRoutes = [
     loader: adLoader,
     action: adAction,
   },
+  {
+    path: "compare",
+    element: <Compare />,
+  },
 
   // Messages
   {
@@ -301,7 +308,9 @@ const profileRoutes = [
     action: createAdAction,
   },
   { path: "my-ads", element: <MyAds /> },
+  { path: "analytics", element: <Analytics /> },
   { path: "favorites", element: <Favorites /> },
+  { path: "saved-searches", element: <SavedSearches /> },
   { path: "security", element: <Security /> },
   { path: "view-history", element: <ViewHistory /> },
   {
